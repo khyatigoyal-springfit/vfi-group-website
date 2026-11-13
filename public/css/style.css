@@ -510,3 +510,9 @@ img.wide{width:100%;height:auto;border-radius:3px;margin-top:1rem}
 .foamlist span{color:var(--ink-2)}
 .presence{grid-template-columns:repeat(3,1fr)}
 @media (max-width:720px){.presence{grid-template-columns:1fr}}
+/* dark-logo brands, square brand photos */
+.btile.dk{background:var(--marine);color:var(--ivory)}
+.btile.dk:hover,.btile.dk[aria-expanded="true"]{background:var(--marine-d);border-color:var(--butter)}
+.btile.dk .m{color:rgba(244,241,233,.7)}
+.ftx .blogo.dk{background:var(--marine);padding:1rem 1.4rem;border-radius:3px;max-width:240px}
+.fim.sq img{aspect-ratio:1/1;max-height:560px}
