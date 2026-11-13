@@ -14,7 +14,9 @@ const SECRET = 'admin-secret-xyz';
 const URL_ = 'https://proj.supabase.co';
 const KEY = 'sb_publishable_testkey';
 
-const input = (over = {}) => ({ ...validateEnquiry(validBody(over)).value, ip_hash: over.ip_hash || '', user_agent: 'UA' });
+let ipSeq = 0;
+// ip_hash is mandatory (SQL raises invalid_input when empty), so default to a unique one per call.
+const input = (over = {}) => ({ ...validateEnquiry(validBody(over)).value, ip_hash: 'ip_hash' in over ? over.ip_hash : `h-auto-${++ipSeq}`, user_agent: 'UA' });
 
 const PG = { rate_limited: ['P0429', 'rate_limited'], invalid_input: ['22023', 'invalid_input'], forbidden: ['P0403', 'forbidden'], not_found: ['P0404', 'not_found'] };
 
@@ -30,8 +32,8 @@ function fakeSupabase(mem) {
     const a = JSON.parse(opts.body);
     const reply = (status, body) => ({ ok: status < 300, status, text: async () => JSON.stringify(body) });
     try {
-      if (fn === 'submit_enquiry') return reply(200, await mem.submitEnquiry(a.p));
       if (a.p_secret !== SECRET) { const e = new Error('forbidden'); e.code = 'forbidden'; throw e; }
+      if (fn === 'submit_enquiry') return reply(200, await mem.submitEnquiry(a.p));
       if (fn === 'admin_list_enquiries') return reply(200, await mem.listEnquiries({ status: a.p_status, q: a.p_q, limit: a.p_limit, offset: a.p_offset }));
       if (fn === 'admin_update_enquiry') return reply(200, await mem.updateEnquiry({ id: a.p_id, status: a.p_status, notes: a.p_notes }));
       if (fn === 'admin_export_enquiries') return reply(200, await mem.exportEnquiries({ status: a.p_status, q: a.p_q }));
@@ -169,7 +171,9 @@ test('supabase: request shape (url, method, headers, body)', async () => {
   await sb().submitEnquiry(input());
   assert.equal(calls[0].url, `${URL_}/rest/v1/rpc/submit_enquiry`);
   assert.equal(calls[0].opts.method, 'POST');
-  assert.ok(JSON.parse(calls[0].opts.body).p.name);
+  const sub = JSON.parse(calls[0].opts.body);
+  assert.equal(sub.p_secret, SECRET);
+  assert.ok(sub.p.name);
   await sb().listEnquiries({ status: '', q: '', limit: 10, offset: 0 });
   const a = JSON.parse(calls[1].opts.body);
   assert.deepEqual(a, { p_secret: SECRET, p_status: null, p_q: null, p_limit: 10, p_offset: 0 });
@@ -235,10 +239,28 @@ test('supabase: wrong admin secret is rejected as forbidden', async () => {
 });
 
 // ---- store selection and memory persistence
-test('createStore picks supabase iff SUPABASE_URL is set', () => {
+test('createStore picks supabase iff SUPABASE_URL is set (memory only outside production)', () => {
   assert.equal(createStore({}).kind, 'memory');
-  assert.equal(createStore({ VERCEL: '1' }).kind, 'memory');
+  assert.equal(createStore({ NODE_ENV: 'test' }).kind, 'memory');
   assert.equal(createStore({ SUPABASE_URL: URL_, SUPABASE_ANON_KEY: KEY }).kind, 'supabase');
+  assert.equal(createStore({ VERCEL: '1', SUPABASE_URL: URL_, SUPABASE_ANON_KEY: KEY }).kind, 'supabase');
+});
+
+test('createStore fails closed on Vercel/production without Supabase config', async () => {
+  const origErr = console.error; console.error = () => {};
+  try {
+    for (const env of [
+      { VERCEL: '1' }, { NODE_ENV: 'production' },
+      { VERCEL: '1', SUPABASE_URL: URL_ }, { NODE_ENV: 'production', SUPABASE_ANON_KEY: KEY },
+    ]) {
+      const s = createStore(env);
+      assert.equal(s.kind, 'unavailable');
+      await assert.rejects(s.submitEnquiry(input()), { code: 'unavailable' });
+      await assert.rejects(s.listEnquiries({}), { code: 'unavailable' });
+      await assert.rejects(s.updateEnquiry({ id: 'x' }), { code: 'unavailable' });
+      await assert.rejects(s.exportEnquiries({}), { code: 'unavailable' });
+    }
+  } finally { console.error = origErr; }
 });
 
 test('memory store persists to file, ignores corrupt file, and does not persist on Vercel', async () => {
@@ -256,10 +278,15 @@ test('memory store persists to file, ignores corrupt file, and does not persist 
   assert.equal(fs.existsSync(vfile), false);
 });
 
-test('memory store: export cap is 5000', async () => {
+test('memory store: export cap is 2000', async () => {
   const s = createMemoryStore({ VERCEL: '1' });
-  for (let i = 0; i < 5003; i++) await s.submitEnquiry(input());
-  assert.equal((await s.exportEnquiries({ status: 'all' })).length, 5000);
+  for (let i = 0; i < 2003; i++) await s.submitEnquiry(input());
+  assert.equal((await s.exportEnquiries({ status: 'all' })).length, 2000);
+});
+
+test('memory store: empty ip_hash is invalid_input (mirrors SQL)', async () => {
+  const s = createMemoryStore({ VERCEL: '1' });
+  await assert.rejects(s.submitEnquiry(input({ ip_hash: '' })), { code: 'invalid_input' });
 });
 
 test.after(() => { globalThis.fetch = realFetch; });

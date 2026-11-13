@@ -13,8 +13,11 @@ const FAIL_DELAY_MS = 400;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sha = (s) => crypto.createHash('sha256').update(String(s)).digest();
 
-const configured = () => Boolean(process.env.ADMIN_PASSWORD && process.env.SESSION_SECRET);
-const isAuthed = (req) => Boolean(session.fromRequest(req, process.env.SESSION_SECRET));
+const configured = () => session.adminConfig().ok;
+const isAuthed = (req) => {
+  const c = session.adminConfig();
+  return c.ok && Boolean(session.fromRequest(req, c.secret, c.v));
+};
 const stripPrivate = (r) => { if (!r || typeof r !== 'object') return r; const { ip_hash, ...rest } = r; return rest; };
 
 function methodNotAllowed(res, allow) {
@@ -54,7 +57,8 @@ function filters(req, res) {
 
 async function login(req, res) {
   if (req.method !== 'POST') return methodNotAllowed(res, 'POST');
-  if (!configured()) return sendError(res, 503, 'admin_not_configured', 'Admin is not configured on this server.');
+  const cfg = session.adminConfig();
+  if (!cfg.ok) return sendError(res, 503, 'admin_not_configured', 'Admin is not configured on this server.');
   if (!requireCsrf(req, res)) return;
   const key = ipHash(clientIp(req));
   if (loginLimiter.isLimited(key)) {
@@ -66,14 +70,14 @@ async function login(req, res) {
     throw e;
   }
   const pw = typeof body.password === 'string' ? body.password : '';
-  const ok = pw !== '' && crypto.timingSafeEqual(sha(pw), sha(process.env.ADMIN_PASSWORD));
+  const ok = pw !== '' && crypto.timingSafeEqual(sha(pw), sha(cfg.password));
   if (!ok) {
     loginLimiter.hit(key);
     await sleep(FAIL_DELAY_MS);
     return sendError(res, 401, 'bad_credentials', 'Incorrect password.');
   }
   loginLimiter.reset(key);
-  session.setCookie(res, req, session.sign(process.env.SESSION_SECRET));
+  session.setCookie(res, req, session.sign(cfg.secret, Date.now(), session.MAX_AGE, cfg.v));
   return send(res, 200, { ok: true });
 }
 

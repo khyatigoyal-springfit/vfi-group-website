@@ -24,6 +24,8 @@ const SECURITY_HEADERS = {
 function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  app.set('case sensitive routing', true); // /ABOUT is a 404, like Vercel
+  app.set('strict routing', false);       // optional trailing slash, like the vercel.json rewrite
 
   app.use((req, res, next) => {
     res.set(SECURITY_HEADERS);

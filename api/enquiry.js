@@ -3,9 +3,24 @@
 const { readJson, send, sendError, clientIp, ipHash, header, HttpError } = require('../lib/http');
 const { validateEnquiry } = require('../lib/validate');
 const { getStore } = require('../lib/store');
-const { notify } = require('../lib/mail');
+const mail = require('../lib/mail');
 
 const MIN_OPEN_MS = 2500;
+const MAIL_BUDGET_MS = 3000; // the visitor never waits longer than this for email
+
+/** Await mail.notify() for at most MAIL_BUDGET_MS. Never rejects. */
+async function notifyBounded(e) {
+  let timer;
+  try {
+    const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve('timeout'), MAIL_BUDGET_MS); });
+    const r = await Promise.race([Promise.resolve().then(() => mail.notify(e)).catch(() => false), timeout]);
+    if (r === 'timeout') console.error('Enquiry email timed out', e && e.ref);
+  } catch (err) {
+    console.error('Enquiry email error', e && e.ref);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 module.exports = async function handler(req, res) {
   try {
@@ -49,7 +64,7 @@ module.exports = async function handler(req, res) {
       return sendError(res, 503, 'unavailable', 'We could not save your enquiry right now. Please try again shortly.');
     }
 
-    await notify({ ...v.value, ref: saved.ref }); // never throws; email failure must not fail the request
+    await notifyBounded({ ...v.value, ref: saved.ref }); // bounded to 3 s; email failure/timeout must not fail the request
     return send(res, 200, { ok: true, ref: saved.ref });
   } catch (e) {
     console.error('Enquiry handler error:', e && e.name);

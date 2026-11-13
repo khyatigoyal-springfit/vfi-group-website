@@ -23,7 +23,8 @@ const get = (p, cookie, h = {}) => fetch(srv.base + p, { headers: { ...(cookie ?
 const patch = (body, cookie, h = CSRF) => fetch(srv.base + '/api/admin/enquiries', {
   method: 'PATCH', headers: { 'content-type': 'application/json', ...(cookie ? { cookie } : {}), ...h }, body: JSON.stringify(body),
 });
-const seed = (over = {}) => getStore().submitEnquiry({ ...validateEnquiry(validBody(over)).value, ip_hash: '', user_agent: 'UA' });
+let seedN = 0;
+const seed = (over = {}) => getStore().submitEnquiry({ ...validateEnquiry(validBody(over)).value, ip_hash: 'seed-' + (++seedN), user_agent: 'UA' });
 
 test('login success sets a correct cookie; session endpoint reflects it', async () => {
   const { r, cookie } = await login();

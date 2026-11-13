@@ -10,6 +10,7 @@ function setupEnv(extra = {}) {
   Object.assign(process.env, {
     ENQUIRY_DATA_FILE: path.join(dir, 'enquiries.json'),
     IP_SALT: 'test-salt',
+    TRUST_PROXY: '1', // tests seed X-Forwarded-For; individual tests override to exercise the untrusted path
     SESSION_SECRET: 'test-session-secret-0123456789abcdef',
     ADMIN_PASSWORD: 'correct horse battery staple',
   }, extra);
