@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)", "destination": "/index.html" }
+  ],
+  "headers": [
+    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000" }] }
+  ],
+  "outputDirectory": "public"
+}
