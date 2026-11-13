@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ],
   "headers": [
