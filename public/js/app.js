@@ -319,8 +319,8 @@ function count(el){if(el._d)return;el._d=1;const end=+el.dataset.count,f=n=>el.h
 
 /* ---------- forms ---------- */
 const TYPES=["Retail partnership","Hospitality","OEM manufacturing","Private label","Foam supply","International","Careers","Other"];
-function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(true));const w=host.lastElementChild,form=$('form',w),ch=$('[data-types]',w);
-  $$('.fl',form).forEach(fl=>{const f=$('input,select,textarea',fl),l=$('label',fl),er=$('.err',fl);if(!f||!l)return;f.id=key+'-'+f.name;l.htmlFor=f.id;er.id=f.id+'-err';f.setAttribute('aria-describedby',er.id)});
+function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(true));const w=host.lastElementChild,form=$('form',w),ch=$('[data-types]',w);let renderedAt=Date.now(),busy=false;
+  $$('.fl',form).forEach(fl=>{const f=$('input,select,textarea',fl),l=$('label',fl),er=$('.err',fl);if(!f||!l)return;f.id=key+'-'+f.name;l.htmlFor=f.id;er.id=f.id+'-err';f.setAttribute('aria-describedby',er.id);if(f.required)f.setAttribute('aria-required','true')});
   ch.setAttribute('role','group');ch.setAttribute('aria-label','Enquiry type');
   ch.innerHTML=TYPES.map(t=>`<button type="button" aria-pressed="false">${t}</button>`).join('');let type='';
   const setType=t=>{type=t;$$('button',ch).forEach(b=>b.setAttribute('aria-pressed',b.textContent===t))};
@@ -328,20 +328,34 @@ function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(tr
   $$('button',ch).forEach(b=>b.onclick=()=>{setType(b.textContent);save()});
   try{const d=JSON.parse(store.get(key)||'null');if(d){F.forEach(f=>{if(d[f.name])f.value=d[f.name]});if(d.type)setType(d.type)}}catch(e){}
   F.forEach(f=>f.addEventListener('input',()=>{save();f.closest('.fl').classList.remove('bad');$('.err',f.closest('.fl')).textContent=''}));
-  form.addEventListener('submit',e=>{e.preventDefault();let ok=true,first=null;F.forEach(f=>{const fl=f.closest('.fl'),er=$('.err',fl);let m='';if(f.required&&!f.value.trim())m='Enter your '+({name:'full name',msg:'message',company:'company',email:'work email'}[f.name]);else if(f.type==='email'&&f.value&&!/^\S+@\S+\.\S+$/.test(f.value))m='Enter an email address like name@company.com';fl.classList.toggle('bad',!!m);er.textContent=m;if(m){ok=false;first=first||f}});F.forEach(f=>f.setAttribute('aria-invalid',f.closest('.fl').classList.contains('bad')));if(!ok){first.focus();return}
-    const d={type,website:hp.value,page:location.pathname};F.forEach(f=>d[f.name]=f.value.trim());
-    sb.disabled=true;sb.textContent='Sending…';stat.textContent='Sending your enquiry…';
+  const EMAIL='care@vfigroup.org',GENERIC='We could not send your enquiry right now. Your message is saved on this device. Please try again, or email '+EMAIL+'.';
+  const say=(txt,err)=>{stat.textContent='';stat.setAttribute('role',err?'alert':'status');txt.split(EMAIL).forEach((p,i)=>{if(i){const a=document.createElement('a');a.href='mailto:'+EMAIL;a.textContent=EMAIL;stat.appendChild(a)}stat.appendChild(document.createTextNode(p))})};
+  const showErr=(name,msg)=>{const f=$('[name='+name+']',form);if(!f)return false;const fl=f.closest('.fl');fl.classList.add('bad');$('.err',fl).textContent=msg;f.setAttribute('aria-invalid','true');return true};
+  form.addEventListener('submit',e=>{e.preventDefault();if(busy)return;let ok=true,first=null;F.forEach(f=>{const fl=f.closest('.fl'),er=$('.err',fl);let m='';if(f.required&&!f.value.trim())m='Enter your '+({name:'full name',msg:'message',company:'company',email:'work email'}[f.name]);else if(f.type==='email'&&f.value&&!/^\S+@\S+\.\S+$/.test(f.value))m='Enter an email address like name@company.com';fl.classList.toggle('bad',!!m);er.textContent=m;if(m){ok=false;first=first||f}});F.forEach(f=>f.setAttribute('aria-invalid',f.closest('.fl').classList.contains('bad')));if(!ok){first.focus();return}
+    busy=true;
+    const d={type,website:hp.value,page:location.pathname,t:Date.now()-renderedAt};F.forEach(f=>d[f.name]=f.value.trim());
+    sb.disabled=true;sb.textContent='Sending…';say('Sending your enquiry…');
     fetch('/api/enquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
-      .then(r=>r.json().catch(()=>({})).then(j=>{if(!r.ok||!j.ok)throw new Error(j.error||'The server could not accept the enquiry.');return j}))
-      .then(j=>{$('[data-sent-email]',w).textContent=d.email;$('[data-sent-ref]',w).textContent=j.ref||'—';w.classList.add('sent');store.set(key,'');form.reset();setType('');toast('Enquiry sent')})
-      .catch(err=>{stat.textContent=(err.message||'Sending failed')+' Please try again, or email us directly.';toast('Enquiry not sent')})
-      .finally(()=>{sb.disabled=false;sb.textContent='Send enquiry'})});
-  $('[data-reset]',w).onclick=()=>{form.reset();setType('');stat.textContent='Drafts are saved on this device until you send.';w.classList.remove('sent')};
-  return{setType,setMsg:m=>{const t=$('textarea',form);t.value=m;save()},w};
+      .then(r=>r.json().catch(()=>({})).then(j=>({s:r.status,j})))
+      .then(({s,j})=>{
+        if(s===200&&j.ok){$('[data-sent-email]',w).textContent=d.email;$('[data-sent-ref]',w).textContent=j.ref||'—';w.classList.add('sent');store.set(key,'');form.reset();setType('');renderedAt=Date.now();toast('Enquiry sent');$('.done',w).focus();return}
+        if(s===422&&j.errors&&typeof j.errors==='object'){
+          const MAP={name:'name',company:'company',email:'email',country:'country',volume:'volume',message:'msg',msg:'msg',type:null,page:null};
+          const extra=[];
+          Object.keys(j.errors).forEach(k=>{const msg=String(j.errors[k]),n=Object.prototype.hasOwnProperty.call(MAP,k)?MAP[k]:null;if(!n||!showErr(n,msg))extra.push(msg)});
+          const bad=F.find(f=>f.getAttribute('aria-invalid')==='true');
+          const txt=[bad?'Please correct the highlighted fields.':'',...extra].filter(Boolean).join(' ');
+          say(txt||GENERIC,true);if(bad)bad.focus();
+          return}
+        say(s===429?'Too many enquiries from your connection. Please wait about 10 minutes and try again, or email '+EMAIL+'.':GENERIC,true);toast('Enquiry not sent')})
+      .catch(()=>{say(GENERIC,true);toast('Enquiry not sent')})
+      .finally(()=>{busy=false;sb.disabled=false;sb.textContent='Send enquiry'})});
+  $('[data-reset]',w).onclick=()=>{form.reset();setType('');renderedAt=Date.now();stat.setAttribute('role','status');stat.textContent='Drafts are saved on this device until you send.';w.classList.remove('sent')};
+  return{setType,setMsg:m=>{const t=$('textarea',form);t.value=m;save()},resetClock:()=>{renderedAt=Date.now()},w};
 }
 const dF=buildForm($('#drawerForm'),'vfi-d'),cF=buildForm($('#inlineForm'),'vfi-c');
 const drawer=$('#drawer');let lf=null;
-function openDrawer(t,msg){lf=document.activeElement;setOv(false);if(t)dF.setType(t);if(msg){dF.w.classList.remove('sent');dF.setMsg(msg)}drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{const i=$('input[name=name]',drawer);i&&i.focus({preventScroll:true})},450)}
+function openDrawer(t,msg){dF.resetClock();lf=document.activeElement;setOv(false);if(t)dF.setType(t);if(msg){dF.w.classList.remove('sent');dF.setMsg(msg)}drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{const i=$('input[name=name]',drawer);i&&i.focus({preventScroll:true})},450)}
 function closeDrawer(){if(!drawer.classList.contains('open'))return;drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');document.body.style.overflow='';lf&&lf.focus&&lf.focus()}
 $$('[data-close]',drawer).forEach(b=>b.onclick=closeDrawer);
 drawer.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=$$('button,input,select,textarea',drawer).filter(x=>x.offsetParent);const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
