@@ -503,3 +503,10 @@ img.wide{width:100%;height:auto;border-radius:3px;margin-top:1rem}
   .logos,.logos.awards{grid-template-columns:repeat(2,1fr)}
   .glance{grid-template-columns:1fr}
 }
+/* foam list + presence */
+.foamlist{grid-template-columns:1fr;border-top-color:var(--line)}
+.foamlist li{border-bottom-color:var(--line);padding:1.1rem 0}
+.foamlist b{font-size:1.25rem;font-weight:400;letter-spacing:-.01em;color:var(--ink);margin-bottom:.25rem}
+.foamlist span{color:var(--ink-2)}
+.presence{grid-template-columns:repeat(3,1fr)}
+@media (max-width:720px){.presence{grid-template-columns:1fr}}

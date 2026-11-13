@@ -17,7 +17,7 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const CAPS=[
- {t:"Foaming",g:"Materials",d:"We manufacture foam and memory foam in virtually any density and elasticity.",img:"/assets/img/caps/foam.jpg"},
+ {t:"Foaming",g:"Materials",d:"Foam, memory foam and latex in virtually any density and elasticity, from India’s largest foam factory.",img:"/assets/img/caps/foam.jpg"},
  {t:"Bonnell springs",g:"Spring systems",d:"In-house Bonnell springs made from carbon manganese alloys.",img:"/assets/img/caps/bonnell.jpg"},
  {t:"Pocket springs",g:"Spring systems",d:"In-house pocket springs with zoning options, made from carbon manganese alloys.",img:"/assets/img/caps/pocket.jpg"},
  {t:"State-of-the-art machinery",g:"Production",d:"We use and procure the best technological infrastructure and equipment.",img:"/assets/img/caps/factory-floor.jpg"},
@@ -46,7 +46,7 @@ const APPS={
  "Hospitality":{p:"Mattresses for more than 200 branches of the world’s renowned hotels, specified for durability and shipped across the globe.",i:[["Hotel mattresses","Pocket spring and foam builds suited to daily turnover."],["Soft furnishings","Pillows, quilts, toppers and protectors for guest rooms."],["Custom specifications","Constructions engineered to a property’s brief."]],e:"Hospitality"},
  "OEM":{p:"Foam, spring units and complete mattresses produced to your specification. We also develop existing vendor specifications.",i:[["Foam and memory foam","Any density and elasticity, as components or in full builds."],["Bonnell and pocket spring systems","Carbon manganese alloy springs, with zoning options."],["Smart mattresses","Sensor-enabled builds for sleep tracking and comfort control."]],e:"OEM manufacturing"},
  "Private label":{p:"Your brand, our manufacturing. We make white-label and private-label ranges for more than 20 brands.",i:[["Full mattress ranges","Foam, innerspring and latex lines developed to your positioning."],["Roll-packed production","Compressed formats for cost-effective shipping."],["Accessories","Pillows, quilts, toppers and protectors to extend the range."]],e:"Private label"},
- "International":{p:"Exporting to twelve markets, including the USA, Canada, Australia, France, Dubai and Singapore.",i:[["Export programmes","Specifications, packaging and documentation for overseas partners."],["Roll-packed logistics","Container-efficient formats for long-distance shipping."],["Certified materials","CertiPUR-US certified foams and comprehensive testing to EN and ASTM standards."]],e:"International"}
+ "International":{p:"Exporting to twelve markets through our branches in Dubai and the USA, including Canada, Australia, France and Singapore.",i:[["Export programmes","Specifications, packaging and documentation for overseas partners."],["Roll-packed logistics","Container-efficient formats for long-distance shipping."],["Certified materials","CertiPUR-US certified foams and comprehensive testing to EN and ASTM standards."]],e:"International"}
 };
 const PRODCATS=[["Innerspring mattresses","Bonnell and pocket spring cores made in-house."],["Foam mattresses","Foam and memory foam in any density and elasticity."],["Smart mattresses","Sensor-enabled sleep tracking and comfort control."],["Pillows and accessories","Pillows, quilts, toppers and protectors."]];
 const BRANDS=[
@@ -57,13 +57,15 @@ const BRANDS=[
  {n:"Durfi",logo:"durfi",url:"https://durfi.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"},
  {n:"Amore",s:"Mattresses",logo:"amore",url:"https://www.amoremattress.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"}
 ];
-const ROUTES=[["Retail partnership","Ranges and exclusive lines for store and online retail."],["Hospitality","Specified comfort for hotels and serviced residences."],["OEM manufacturing","Components and complete mattresses to your specification."],["Private label","Your brand, developed and made by VFI."],["International","Manufacturing partnerships outside India."]];
+const ROUTES=[["Retail partnership","Ranges and exclusive lines for store and online retail."],["Hospitality","Specified comfort for hotels and serviced residences."],["OEM manufacturing","Components and complete mattresses to your specification."],["Private label","Your brand, developed and made by VFI."],["Foam supply","Foam, memory foam and latex to your specification."],["International","Export partnerships through our branches in Dubai and the USA."]];
 const RETAIL=[["amazon","Amazon"],["flipkart","Flipkart"],["walmart","Walmart"],["hometown","HomeTown"],["pepperfry","Pepperfry"],["homecentre","Home Centre"]];
 const HOTELS=["Taj Coromandel","Taj Exotica, Andamans","The Oberoi","ITC Maurya","The Leela","JW Marriott, Mussoorie","Le Méridien","Grand Hyatt","The Lalit","The Lalit, London","Courtyard by Marriott","Fairfield by Marriott","Four Points by Sheraton","Radisson Blu","Holiday Inn","Sarovar","Lemon Tree","Royal Orchid","Fortune Park Panchwati","Red Fox","Cidade de Goa","The Local, Mexico"];
 const MARKETS=["USA","Canada","Mexico","Australia","France","Dubai","China","Singapore","South Africa","South Korea","Taiwan","Thailand"];
 const AWARDS=[["most-trusted-2024","Most Trusted Brands of India 2024"],["brand-icon-toi","The Brand Icon, Times of India"],["up-brand-leadership","UP Brand Leadership Awards"],["india-sme-100","India SME 100 Awards"],["brands-of-india","Brands of India"]];
 const WHATWEDO=[["Private label","White and private-label manufacturing for more than 20 brands."],["Full sleep range","Mattresses, pillows, quilts, toppers and protectors."],["Vendor specifications","We develop and improve existing vendor specifications."],["Hotels worldwide","Hotel mattresses, manufactured and shipped across the globe."]];
-const GLANCE=[["Fastest growing","company"],["6","smart factories"],["50,000","mattresses a month capacity"],["12","export markets"],["In-house","research and development"],["1,100+","people across India"]];
+const FOAM=[["Foam and memory foam","Produced in virtually any density and elasticity, for comfort layers, support cores and components."],["Latex","Natural latex from our own latex manufacturing factory, including 100% organic latex for Organa."],["Breathable foams","AeroSleep open-cell foams with temperature-regulating properties for better ventilation."],["Certified foams","CertiPUR-US certified: low emissions, and made without ozone depleters, PBDEs, heavy metals, formaldehyde or prohibited phthalates."],["Tested","Stress, elasticity and rebound testing, including ASTM D3574 indentation force deflection and ISO 2439."],["Scale","India’s largest foam factory, unveiled in 2024, supplying our own lines and partners."]];
+const PRESENCE=[["India","Corporate office and six manufacturing units"],["Dubai","Branch for global exports"],["USA","Branch for global exports"]];
+const GLANCE=[["Fastest growing","company"],["6","smart factories"],["50,000","mattresses a month capacity"],["12","export markets"],["Dubai and USA","branches for global exports"],["1,100+","people across India"]];
 const JOURNEY=[
  ["30+ years ago","Two mattresses a day","Mr. Mukesh Gupta starts with one mattress binding machine and a table in a very small space."],
  ["2007","Haridwar","Establishment of our manufacturing unit in Haridwar."],
@@ -217,6 +219,8 @@ $$('[data-routes]').forEach(h=>h.innerHTML=`<ul class="routes">${ROUTES.map(([t,
 $$('[data-retail]').forEach(h=>h.innerHTML=RETAIL.map(([f,n])=>`<span><img src="/assets/img/partners/${f}.png" alt="${n}" loading="lazy" width="300" height="109"></span>`).join(''));
 $$('[data-hotels]').forEach(h=>h.innerHTML=HOTELS.map(p=>`<span>${p}</span>`).join(''));
 $$('[data-awards]').forEach(h=>h.innerHTML=AWARDS.map(([f,n])=>`<span><img src="/assets/img/awards/${f}.png" alt="${n}" title="${n}" loading="lazy" width="300" height="109"></span>`).join(''));
+$('#foamList').innerHTML=FOAM.map(([t,d])=>`<li><b>${t}</b><span>${d}</span></li>`).join('');
+$('#presence').innerHTML=PRESENCE.map(([t,d])=>`<li><b>${t}</b><span>${d}</span></li>`).join('');
 $('#markets').innerHTML=MARKETS.map(m=>`<span class="cert">${m}</span>`).join('');
 $('#prodcats').innerHTML=PRODCATS.map(([t,d])=>`<div><h3>${t}</h3><p>${d}</p></div>`).join('');
 $('#whatwedo').innerHTML=WHATWEDO.map(([t,d])=>`<div><h3>${t}</h3><p>${d}</p></div>`).join('');
@@ -238,9 +242,10 @@ $$('[data-updated]').forEach(e=>e.textContent='Last updated '+SITE.updated);
   const line=(k,v)=>!v?'':k==='email'?`<li><span>Email</span><a href="mailto:${esc(v)}">${esc(v)}</a></li>`:k==='phone'?`<li><span>Phone</span><a href="tel:${esc(v.replace(/[^+\d]/g,''))}">${esc(v)}</a></li>`:`<li><span>Address</span><address>${esc(v).replace(/\n/g,'<br>')}</address></li>`;
   const blocks=[C.office,C.sales,C.careers].map(b=>{const ls=['address','phone','email'].map(k=>line(k,b[k])).join('');return ls?`<div class="cblock"><h2 class="h-m">${esc(b.title)}</h2><ul class="cinfo">${ls}</ul></div>`:''}).join('');
   const mp=C.office.map?`<a class="chev" style="margin-top:1.2rem" href="${esc(C.office.map)}" target="_blank" rel="noopener">Open in Google Maps</a>`:'';
+  const brs=`<div class="cblock"><h2 class="h-m">Global presence</h2><ul class="cinfo">${PRESENCE.map(([t,d])=>`<li><span>${t}</span><span>${d}</span></li>`).join('')}</ul></div>`;
   const fac=C.factories.length?`<div class="cblock"><h2 class="h-m">Manufacturing units</h2><ul class="cinfo">${C.factories.map(f=>`<li><span>${esc(f.name)}</span><span>${esc(f.city)}</span></li>`).join('')}</ul></div>`:'';
   const o=C.office;$('#fAddr').innerHTML=[o.address&&esc(o.address).replace(/\n/g,'<br>'),o.phone&&`<a href="tel:${esc(o.phone.replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`,o.email&&`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`].filter(Boolean).join('<br>');
-  $('#contactInfo').innerHTML=(blocks||fac)?blocks.replace('</ul></div>','</ul>'+mp+'</div>')+fac:`<h2 class="h-m">Corporate office</h2><p style="color:var(--ink-2);margin-top:1rem">Send us an enquiry with the form and the right team will reply directly. <span class="flag">Add verified address, phone and email in SITE.contact (js/app.js)</span></p>`;
+  $('#contactInfo').innerHTML=(blocks||fac)?blocks.replace('</ul></div>','</ul>'+mp+'</div>')+brs+fac:`<h2 class="h-m">Corporate office</h2><p style="color:var(--ink-2);margin-top:1rem">Send us an enquiry with the form and the right team will reply directly. <span class="flag">Add verified address, phone and email in SITE.contact (js/app.js)</span></p>`;
 })();
 
 /* ---------- overlay menu ---------- */
@@ -311,7 +316,7 @@ let io;function observe(){if(io)io.disconnect();io=new IntersectionObserver(es=>
 function count(el){if(el._d)return;el._d=1;const end=+el.dataset.count,f=n=>el.hasAttribute('data-fmt')?n.toLocaleString('en-IN'):n;if(reduce){el.textContent=f(end);return}const t0=performance.now();const tk=t=>{const p=Math.min(1,(t-t0)/1800),e=1-Math.pow(1-p,4);el.textContent=f(Math.round(end*e));if(p<1)requestAnimationFrame(tk)};requestAnimationFrame(tk)}
 
 /* ---------- forms ---------- */
-const TYPES=["Retail partnership","Hospitality","OEM manufacturing","Private label","International","Careers","Other"];
+const TYPES=["Retail partnership","Hospitality","OEM manufacturing","Private label","Foam supply","International","Careers","Other"];
 function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(true));const w=host.lastElementChild,form=$('form',w),ch=$('[data-types]',w);
   $$('.fl',form).forEach(fl=>{const f=$('input,select,textarea',fl),l=$('label',fl),er=$('.err',fl);if(!f||!l)return;f.id=key+'-'+f.name;l.htmlFor=f.id;er.id=f.id+'-err';f.setAttribute('aria-describedby',er.id)});
   ch.setAttribute('role','group');ch.setAttribute('aria-label','Enquiry type');
