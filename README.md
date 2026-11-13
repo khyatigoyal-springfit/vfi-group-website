@@ -40,21 +40,28 @@ www.vfigroup.org (home, /innovation, /vfi-corporate-profile, /vfi-group-code-of-
 **Architecture.** The site is static (`public/`) plus two Vercel Node functions (`api/enquiry.js`, `api/admin/[action].js`).
 The functions store enquiries in Supabase Postgres by calling `SECURITY DEFINER` RPC functions through PostgREST with the
 publishable (anon) key. Tables have RLS on, no policies and no grants, so the key alone can only call the four RPCs.
-Admin RPCs also require `SUPABASE_ADMIN_SECRET`, whose SHA-256 hash lives in `private.app_secrets`.
+All RPCs (submit included, since migration 0002) require `SUPABASE_ADMIN_SECRET`, whose SHA-256 hash lives in `private.app_secrets`.
 Without `SUPABASE_URL` the same handlers use a local memory store persisted to `data/enquiries.json`
-(add `data/` to `.gitignore`; it is never used on Vercel).
+(add `data/` to `.gitignore`); this is for local development and tests only. On Vercel or with `NODE_ENV=production`
+a missing Supabase URL/key makes every store call fail with 503 instead.
 
 ### Setup
 1. Create a Supabase project.
-2. Run `supabase/migrations/0001_init.sql` in the SQL editor (safe to re-run; it contains no secrets).
-3. Generate an admin API secret (`openssl rand -hex 32`) and store its hash (replace `<SECRET>`):
+2. Run the migrations in the SQL editor, **in order**: first `supabase/migrations/0001_init.sql`, then
+   `supabase/migrations/0002_harden_submit.sql` (both safe to re-run; neither contains secrets). 0002 replaces
+   `submit_enquiry(p jsonb)` with `submit_enquiry(p_secret text, p jsonb)` (secret required, `ip_hash` mandatory), tightens
+   the email regex and text cleaning, and caps CSV export at 2000 rows.
+3. Generate the API secret (`openssl rand -hex 32`) and store its hash (replace `<SECRET>`). The same secret protects
+   every RPC, including `submit_enquiry`:
    ```sql
    insert into private.app_secrets(name,hash) values ('admin_api', encode(extensions.digest('<SECRET>','sha256'),'hex'))
    on conflict (name) do update set hash=excluded.hash;
    ```
 4. In Vercel (Production and Preview) set the variables listed in `.env.example`:
    `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_ADMIN_SECRET` (the `<SECRET>` from step 3), `ADMIN_PASSWORD`,
-   `SESSION_SECRET`, `IP_SALT`, and optionally `SMTP_*`, `ENQUIRY_TO`, `ENQUIRY_FROM`.
+   `SESSION_SECRET` (min 32 characters), `ADMIN_PASSWORD` (min 12 characters), `IP_SALT`, and optionally `SMTP_*`,
+   `ENQUIRY_TO`, `ENQUIRY_FROM`. If `SUPABASE_URL` or `SUPABASE_ANON_KEY` is missing on Vercel, the API fails closed
+   (503 `unavailable`); it never falls back to the memory store.
 5. Check privacy: as `anon`, `select * from public.enquiries;` must fail with `permission denied`
    (SQL editor: `set role anon; select * from public.enquiries;`).
 
@@ -64,8 +71,9 @@ npm install
 npm start          # http://localhost:3000 (memory store unless SUPABASE_URL is set)
 npm test           # offline, no Supabase needed
 ```
-Set `ADMIN_PASSWORD` and `SESSION_SECRET` (see `.env.example`) to use `/admin` locally; without them login returns 503
-`admin_not_configured`. The server reads real environment variables, so e.g.
+Set `ADMIN_PASSWORD` (at least 12 characters) and `SESSION_SECRET` (at least 32) (see `.env.example`) to use `/admin` locally;
+without them, or if they are too short, login returns 503 `admin_not_configured` (the reason is logged). Session cookies carry a
+version claim derived from both values, so changing either one signs everyone out. The server reads real environment variables, so e.g.
 `ADMIN_PASSWORD=pw SESSION_SECRET=$(openssl rand -hex 32) npm start`.
 
 ### API
@@ -85,7 +93,17 @@ POST/PATCH admin requests need the header `X-Requested-With: vfi-admin`.
 
 ### Admin and CSV export
 Open `/admin`, sign in with `ADMIN_PASSWORD`. "Export" downloads the current filter as UTF-8 CSV (BOM, RFC 4180 quoting;
-cells starting with `= + - @` get a leading `'` to defuse spreadsheet formulas). Max 5000 rows.
+cells starting with `= + - @` get a leading `'` to defuse spreadsheet formulas). Max 2000 rows (newest first).
+
+### Client IP and `TRUST_PROXY`
+Rate limiting keys on a salted hash of the client IP (IPv6 reduced to its /64, IPv4-mapped addresses treated as IPv4).
+On Vercel the IP comes from `x-vercel-forwarded-for`, then `x-real-ip`, then the first `x-forwarded-for` hop. Anywhere else
+(`server.js`, local) the socket address is used and `X-Forwarded-For` is **ignored** unless `TRUST_PROXY=1`. Set it only
+behind a reverse proxy you control that overwrites that header, otherwise clients can spoof it to dodge the rate limit.
+
+### Operational limits
+Email notification waits at most 3 s (SMTP timeouts are 3 s too); a slow or failing mail server never fails or delays the
+request beyond that. Vercel `maxDuration` is 15 s. Routing is case-sensitive: `/ABOUT` is a 404.
 
 ### Privacy
 Raw IP addresses are never stored, logged or returned. Only a salted HMAC (`IP_SALT`) is kept for rate limiting
@@ -95,8 +113,8 @@ Raw IP addresses are never stored, logged or returned. Only a salted HMAC (`IP_S
 - **503 `unavailable`** on submit or in admin: Supabase unreachable, migration not applied, wrong `SUPABASE_URL`/`SUPABASE_ANON_KEY`,
   or (admin only) `SUPABASE_ADMIN_SECRET` does not match the hash in `private.app_secrets`. Check the function logs.
 - **429 `rate_limited`**: more than 5 enquiries in 10 minutes from one visitor, or 10 failed admin logins in 15 minutes. Wait and retry.
-- **503 `admin_not_configured`**: `ADMIN_PASSWORD` or `SESSION_SECRET` is not set in the environment.
-- **Enquiries vanish on Vercel**: `SUPABASE_URL` is unset, so the ephemeral memory store is in use.
+- **503 `admin_not_configured`**: `ADMIN_PASSWORD` (min 12 chars) or `SESSION_SECRET` (min 32 chars) is missing or too short; check the function log for the reason.
+- **Enquiry form returns 503 right after deploy**: `SUPABASE_URL`/`SUPABASE_ANON_KEY` unset (fail closed), `SUPABASE_ADMIN_SECRET` unset or not matching the stored hash, or migration 0002 not applied (the old `submit_enquiry(jsonb)` is dropped by 0002; apply it together with this code release).
 
 ## Review notes before launch
 Open any page with `?review` (e.g. `/?review`) and press **Review notes** to highlight every

@@ -97,6 +97,9 @@ test('ipHash: IPv6 reduced to /64, IPv4-mapped treated as IPv4', () => {
 });
 
 test('rate limit follows the trusted client IP; spoofed X-Forwarded-For does not evade it when untrusted', async () => {
+  const { resetStore } = require('../lib/store');
+  process.env.ENQUIRY_DATA_FILE = path.join(path.dirname(process.env.ENQUIRY_DATA_FILE), 'ratelimit-' + Date.now() + '.json');
+  resetStore(); // fresh store: earlier tests already used the 127.0.0.1 budget
   const srv = await boot();
   try {
     await withEnv({ TRUST_PROXY: undefined, VERCEL: undefined }, async () => {
@@ -234,7 +237,7 @@ test('migration 0002: hardened submit_enquiry, strict email, \\r stripping, expo
   assert.ok(!/limit 5000/.test(sql));
   assert.match(sql, /revoke all on function public\.submit_enquiry\(text, jsonb\) from public, anon, authenticated/);
   assert.match(sql, /grant execute on function public\.submit_enquiry\(text, jsonb\) to anon/);
-  assert.ok(!/insert into/i.test(sql), 'no secrets or inserts in the migration');
+  assert.ok(!/app_secrets/i.test(sql), 'no secrets in the migration');
   assert.ok(fs.readFileSync(path.join(dir, '0001_init.sql'), 'utf8').includes('submit_enquiry(p jsonb)'), '0001 left untouched');
 });
 
