@@ -55,7 +55,9 @@ const BRANDS=[
  {n:"Serta",tag:"World’s most comfortable mattress",logo:"serta",url:"https://sertaindia.com/",img:"serta-life",range:"serta-range",since:"Part of VFI Group since 2022",d:"More than 90 years of helping people get the sleep they need, whether they sleep on their back, stomach or side, online or in store.",col:["iPedic","iLatex","iSeries","Antarctic","Perfect Sleeper","PerfectSpine"]},
  {n:"Organa",tag:"Redefining the essence of sleep",url:"",range:"organa-range",since:"Launched in 2024",d:"An international brand of 100% organic latex mattresses and bedding, founded on quality, innovation and sustainability, for consumers in the USA, Canada, France, Italy, India and Thailand.",col:["Latex Zone","Latex Grid","Latex Hybrid"]},
  {n:"Durfi",logo:"durfi",url:"https://durfi.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"},
- {n:"Amore",s:"Mattresses",logo:"amore",url:"https://www.amoremattress.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"}
+ {n:"Amore",s:"Mattresses",logo:"amore",url:"https://www.amoremattress.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"},
+ {n:"Millo Luxe",tag:"Part of the VFI Group portfolio",url:"",d:"A mattress brand in the VFI Group portfolio.",f:"Logo, description and website to supply"},
+ {n:"No Sag",tag:"Part of the VFI Group portfolio",url:"",d:"A mattress brand in the VFI Group portfolio.",f:"Logo, description and website to supply"}
 ];
 const ROUTES=[["Retail partnership","Ranges and exclusive lines for store and online retail."],["Hospitality","Specified comfort for hotels and serviced residences."],["OEM manufacturing","Components and complete mattresses to your specification."],["Private label","Your brand, developed and made by VFI."],["Foam supply","Foam, memory foam and latex to your specification."],["International","Export partnerships through our branches in Dubai and the USA."]];
 const RETAIL=[["amazon","Amazon"],["flipkart","Flipkart"],["walmart","Walmart"],["hometown","HomeTown"],["pepperfry","Pepperfry"],["homecentre","Home Centre"]];
