@@ -52,10 +52,10 @@ const PRODCATS=[["Innerspring mattresses","Bonnell and pocket spring cores made 
 const BRANDS=[
  {n:"Springfit",tag:"India’s most trusted premium mattress brand",logo:"springfit",url:"https://www.springfit.com/",img:"springfit-life",range:"springfit-range",since:"Launched by VFI in 2009",d:"A world of premium mattresses and sleep solutions, crafted with precision and care from superior materials, with stunning aesthetics and unmatched craftsmanship. Comfort guaranteed, every night.",col:["Sleep","Club Class","Emporio","Autograph","Reactive","ProActiv","Luxury","Superfactive","Wellness"]},
  {n:"Simmons",s:"Beautyrest",tag:"Sleep first class",logo:"beautyrest",url:"https://www.simmonsbeautyrest.in/",img:"beautyrest-life",range:"beautyrest-range",since:"With VFI since 2021",d:"Quintessential proficiency and technology-driven products for ideal sleep since 1870. Every Simmons Beautyrest mattress is fashioned for one goal: ultimate luxurious, comfortable sleep.",col:["Beautyrest Black","Harmony","Recharge","TechCare"]},
- {n:"Serta",tag:"World’s most comfortable mattress",logo:"serta",url:"https://sertaindia.com/",img:"serta-life",range:"serta-range",since:"Part of VFI Group since 2022",d:"More than 90 years of helping people get the sleep they need, whether they sleep on their back, stomach or side, online or in store.",col:["iPedic","iLatex","iSeries","Antarctic","Perfect Sleeper","PerfectSpine"]},
+ {n:"Serta",tag:"World’s most comfortable mattress",logo:"serta",url:"https://www.sertaindia.com/",img:"serta-life",range:"serta-range",since:"Part of VFI Group since 2022",d:"More than 90 years of helping people get the sleep they need, whether they sleep on their back, stomach or side, online or in store.",col:["iPedic","iLatex","iSeries","Antarctic","Perfect Sleeper","PerfectSpine"]},
  {n:"Organa",tag:"Redefining the essence of sleep",logo:"organa-black",url:"https://organamattress.in/",range:"organa-range",since:"Launched in 2024",d:"An international brand of 100% organic latex mattresses and bedding, founded on quality, innovation and sustainability, for consumers in the USA, Canada, France, Italy, India and Thailand.",col:["Latex Zone","Latex Grid","Latex Hybrid"]},
- {n:"Durfi",logo:"durfi",url:"https://durfi.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"},
- {n:"Amore",s:"Mattresses",logo:"amore",url:"https://www.amoremattress.com/",d:"A mattress brand in the VFI Group portfolio.",f:"Brand description to supply"},
+ {n:"Durfi",logo:"durfi",url:"https://www.durfi.com/",d:"A mattress brand in the VFI Group portfolio."},
+ {n:"Amore",s:"Mattresses",logo:"amore",url:"https://www.amoremattress.com/",d:"A mattress brand in the VFI Group portfolio."},
  {n:"Millo Luxe",tag:"Founded in Florence. Loved worldwide.",logo:"milloluxe",url:"https://milloluxe.it/",img:"millo-life",sq:true,since:"Italia, since 1974",d:"Italian comfort with a touch of elegance and luxury. Sofas, recliners and loungescapes crafted by master artisans, with retailers and showrooms in more than 40 cities, including a showroom in Dubai Design District.",col:["Nimbus","Falcon","Caspian","Albatross","Zephyr","Avian","Tranquil","Heron","Celesta","Elysian"]},
  {n:"NOSag",s:"Sofa Foam",tag:"Kuch bhi karlo. Dabega nahi.",logo:"nosag",url:"https://www.springfit.com/pages/nosag-foam",img:"nosag-life",sq:true,since:"By Springfit",d:"Springfit NOSag foam technology, engineered for resilient comfort, reliable support and long-lasting performance in sofas, chairs and furniture. A dedicated foam platform for furniture makers and seating brands.",col:["NOSag Seat Cushion","NOSag Back Cushion","NOSag Ergo Foam","NOSag Safe Foam"]}
 ];
@@ -98,7 +98,7 @@ const CONDUCT=[
  {h:"Our customers",i:[["Quality and safety","Products that are safe, high quality and compliant with relevant standards and regulations."],["Transparency","Precise information about our products, including materials, origin, price and warranty."],["Privacy","We value and uphold consumers’ privacy and data-protection rights."]]},
  {h:"Our environment and communities",i:[["Community","We uphold the rights of the communities where we operate or source materials, create employment, support local initiatives, meet our tax obligations and consult stakeholders."],["Environment","From research to production, resource use, waste and emissions, we follow domestic and international law and internal protocols to reduce our footprint and prevent pollution or harm."],["Health and safety","We comply with the Environment, Health and Safety (EHS) policies that apply in India to protect our workers, customers and communities."]]}
 ];
-const DESC={home:"VFI Group (Varahamurti Flexirub Industries Pvt. Ltd.) manufactures mattresses, foam, spring systems and soft furnishings for retail and hospitality businesses.",about:"Thirty years of comfort manufacturing: the journey, vision and values of VFI Group.",manufacturing:"Five manufacturing units producing foam, Bonnell and pocket springs and finished mattresses in-house.",innovation:"Material science, spring engineering and testing behind every layer of a VFI mattress.",products:"Mattresses, foam, spring systems and soft furnishings for retail, hospitality, OEM and private label.",brands:"The mattress brands manufactured by VFI Group.",partnerships:"Retail, hospitality, OEM, private-label and international manufacturing partnerships.",sustainability:"How VFI Group looks after its people, communities and environment.",careers:"Careers in production, engineering, quality and business at VFI Group.",contact:"Contact VFI Group about retail, hospitality, OEM, private-label or international manufacturing.",privacy:"Privacy policy for the VFI Group website.",terms:"Terms and conditions for the VFI Group website.","code-of-conduct":"The VFI Group code of conduct for employees, suppliers and partners.","404":"Page not found."};
+const DESC={home:"VFI Group (Varahamurti Flexirub Industries Pvt. Ltd.) manufactures mattresses, foam, spring systems and soft furnishings for retail and hospitality businesses.",about:"Thirty years of comfort manufacturing: the journey, vision and values of VFI Group.",manufacturing:"Six smart factories producing foam, Bonnell and pocket springs and finished mattresses in-house.",innovation:"Material science, spring engineering and testing behind every layer of a VFI mattress.",products:"Mattresses, foam, spring systems and soft furnishings for retail, hospitality, OEM and private label.",brands:"The VFI Group brand portfolio: Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag sofa foam.",partnerships:"Retail, hospitality, OEM, private-label and international manufacturing partnerships.",sustainability:"How VFI Group looks after its people, communities and environment.",careers:"Careers in production, engineering, quality and business at VFI Group.",contact:"Contact VFI Group about retail, hospitality, OEM, private-label or international manufacturing.",privacy:"How VFI Group handles information sent through the website enquiry forms, including data use, sharing, retention and your choices.",terms:"Terms of use for the VFI Group website: information-only content, the specification builder and intellectual property, governed by Indian law.","code-of-conduct":"The VFI Group code of conduct for employees, suppliers and partners.","404":"Page not found."};
 const PAGES=[["home","Home","/assets/img/story/craft-hand.jpg","The science of comfort. The art of manufacturing."],["about","About VFI","/assets/img/story/craft-thread.jpg","Our journey, mission and values."],["manufacturing","Manufacturing","/assets/img/story/craft-machine.jpg","Foam, springs and finished mattresses, made in-house."],["innovation","Innovation and quality","/assets/img/tech/aerosleep.jpg","Material science and testing behind every layer."],["products","Products and solutions","/assets/img/story/springfit-life.jpg","For retail, hospitality, OEM and private label."],["brands","Our brands","/assets/img/story/serta-life.jpg","A portfolio built around comfort."],["partnerships","Global partnerships","/assets/img/story/global-footprint.jpg","How we work with businesses worldwide."],["sustainability","CSR policy","/assets/img/story/csr-banner.jpg","People, community and environment."],["careers","Careers","/assets/img/story/craft-hand.jpg","Join more than 1,100 people."],["contact","Contact","/assets/img/story/beautyrest-life.jpg","Start a conversation with our team."]];
 
 /* ---------- rails ---------- */
@@ -116,13 +116,13 @@ function makeRail(host,cardsHTML){
   r.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false}},true);
   setTimeout(upd,50);host._upd=upd;return r;
 }
-const capCards=CAPS.map(c=>`<article class="card" data-g="${c.g}"><div class="im"><img src="${c.img}" alt="${c.t}" loading="lazy" draggable="false" width="412" height="301"><span class="tg">${c.g}</span></div><h3>${c.t}</h3><p>${c.d}${c.flag?` <span class="flag">${c.flag}</span>`:''}</p><a class="chev" href="/manufacturing" data-go="manufacturing">Learn more</a></article>`).join('');
+const capCards=CAPS.map(c=>`<article class="card" data-g="${c.g}"><div class="im"><img src="${c.img}" alt="${c.t}" loading="lazy" draggable="false" width="412" height="301"><span class="tg">${c.g}</span></div><h3>${c.t}</h3><p>${c.d}</p><a class="chev" href="/manufacturing" data-go="manufacturing">Learn more</a></article>`).join('');
 $$('[data-rail="caps"]').forEach((h,i)=>{makeRail(h,capCards);const tabs=$('#capTabs'+(i?'2':''));const G=["All",...new Set(CAPS.map(c=>c.g))];tabs.innerHTML=G.map((g,j)=>`<button aria-pressed="${j===0}">${g}</button>`).join('');$$('button',tabs).forEach(b=>b.onclick=()=>{$$('button',tabs).forEach(x=>x.setAttribute('aria-pressed',x===b));$$('.card',h).forEach(c=>c.classList.toggle('hide',b.textContent!=='All'&&c.dataset.g!==b.textContent));$('.rail',h).scrollLeft=0;h._upd()})});
 const bName=b=>b.n+(b.s&&b.s!=="Mattresses"?' '+b.s:'');
 const bMark=b=>b.logo?`<img src="/assets/img/brands/${b.logo}.png" alt="${bName(b)}" draggable="false" loading="lazy">`:`<span class="wtxt">${b.n}${b.s?`<small>${b.s}</small>`:''}</span>`;
 const brandCards=BRANDS.map((b,i)=>`<button class="btile${b.dark?' dk':''}" aria-expanded="false" data-i="${i}"><span class="m"><span>${b.since||'VFI Group'}</span><span>Details</span></span><span class="wm">${bMark(b)}</span><span class="m"><span>${b.tag||''}</span></span></button>`).join('');
 $$('[data-rail="brands"]').forEach(h=>{makeRail(h,brandCards);const d=document.createElement('div');d.className='wrap';d.innerHTML=`<div class="bdet"><div><div class="in"></div></div></div>`;h.appendChild(d);
-  const det=$('.bdet',d),inn=$('.in',d);let cur=-1;$$('.btile',h).forEach(t=>t.addEventListener('click',()=>{const i=+t.dataset.i;if(cur===i){cur=-1;det.classList.remove('on');t.setAttribute('aria-expanded','false');return}cur=i;$$('.btile',h).forEach(x=>x.setAttribute('aria-expanded',x===t));const b=BRANDS[i];inn.innerHTML=`<h3>${bName(b)}</h3><p>${b.d}${b.f?` <span class="flag">${b.f}</span>`:''}${b.col?`<br><span style="font-size:.86rem">Collections: ${b.col.join(', ')}</span>`:''}</p>${b.url?`<a class="chev" href="${b.url}" target="_blank" rel="noopener">Visit ${b.n.toLowerCase()==='simmons'?'simmonsbeautyrest.in':new URL(b.url).hostname.replace('www.','')}</a>`:'<span style="font-size:.86rem;color:var(--dk-ink-2)">Website coming soon</span>'}`;det.classList.add('on')}))});
+  const det=$('.bdet',d),inn=$('.in',d);let cur=-1;$$('.btile',h).forEach(t=>t.addEventListener('click',()=>{const i=+t.dataset.i;if(cur===i){cur=-1;det.classList.remove('on');t.setAttribute('aria-expanded','false');return}cur=i;$$('.btile',h).forEach(x=>x.setAttribute('aria-expanded',x===t));const b=BRANDS[i];inn.innerHTML=`<h3>${bName(b)}</h3><p>${b.d}${b.col?`<br><span style="font-size:.86rem">Collections: ${b.col.join(', ')}</span>`:''}</p>${b.url?`<a class="chev" href="${b.url}" target="_blank" rel="noopener">Visit ${b.n.toLowerCase()==='simmons'?'simmonsbeautyrest.in':new URL(b.url).hostname.replace('www.','')}</a>`:'<span style="font-size:.86rem;color:var(--dk-ink-2)">Website coming soon</span>'}`;det.classList.add('on')}))});
 
 /* ---------- explorer ---------- */
 $$('[data-explorer]').forEach(host=>{
@@ -142,7 +142,7 @@ $$('[data-explorer]').forEach(host=>{
 $$('[data-apps]').forEach(host=>{
   const K=Object.keys(APPS);
   host.innerHTML=`<div class="apps"><ul class="applist" role="tablist" aria-label="Applications">${K.map((k,i)=>`<li><button role="tab" aria-selected="${i===0}">${k}</button></li>`).join('')}</ul><div class="appd" role="tabpanel"></div></div>`;
-  const pnl=$('.appd',host);const set=k=>{const a=APPS[k];$$('[role=tab]',host).forEach(b=>b.setAttribute('aria-selected',b.textContent===k));pnl.innerHTML=`<div class="fade"><h3>${k}</h3><p class="sub">${a.p} ${a.f?`<span class="flag">${a.f}</span>`:''}</p><ul>${a.i.map(([n,s])=>`<li><b>${n}</b><span>${s}</span></li>`).join('')}</ul><div class="acts"><button class="cta pri" data-enquire="${a.e}">Enquire about ${k.toLowerCase()}</button><button class="cta sec" data-scroll="configure">Build a specification</button></div></div>`};
+  const pnl=$('.appd',host);const set=k=>{const a=APPS[k];$$('[role=tab]',host).forEach(b=>b.setAttribute('aria-selected',b.textContent===k));pnl.innerHTML=`<div class="fade"><h3>${k}</h3><p class="sub">${a.p} </p><ul>${a.i.map(([n,s])=>`<li><b>${n}</b><span>${s}</span></li>`).join('')}</ul><div class="acts"><button class="cta pri" data-enquire="${a.e}">Enquire about ${k.toLowerCase()}</button><button class="cta sec" data-scroll="configure">Build a specification</button></div></div>`};
   $$('[role=tab]',host).forEach(b=>{b.onclick=()=>set(b.textContent);b.onmouseenter=()=>{if(matchMedia('(hover:hover)').matches)set(b.textContent)}});set(K[0]);
 });
 
@@ -216,7 +216,7 @@ $$('[data-conf]').forEach(host=>{
 function syncAll(except){$$('[data-conf]').forEach(h=>{if(h!==except&&h._sync)h._sync()})}
 
 /* ---------- static fills ---------- */
-$$('[data-certs]').forEach(h=>h.innerHTML=CERTS.map(([n,d,im])=>`<span class="cert" title="${d}">${im?`<img src="${im}" alt="" width="22" height="22" loading="lazy">`:''}${n}</span>`).join(''));
+$$('[data-certs]').forEach(h=>h.innerHTML=CERTS.map(([n,d,im])=>`<span class="cert" title="${d}">${im?`<img src="${im}" alt="" aria-hidden="true" width="22" height="22" loading="lazy">`:''}${n}</span>`).join(''));
 $$('[data-routes]').forEach(h=>h.innerHTML=`<ul class="routes">${ROUTES.map(([t,d])=>`<li><button data-enquire="${t}"><h3>${t}</h3><p>${d}</p><span class="chev">Enquire</span></button></li>`).join('')}</ul>`);
 $$('[data-retail]').forEach(h=>h.innerHTML=RETAIL.map(([f,n])=>`<span><img src="/assets/img/partners/${f}.png" alt="${n}" loading="lazy" width="300" height="109"></span>`).join(''));
 $$('[data-hotels]').forEach(h=>h.innerHTML=HOTELS.map(p=>`<span>${p}</span>`).join(''));
@@ -247,7 +247,7 @@ $$('[data-updated]').forEach(e=>e.textContent='Last updated '+SITE.updated);
   const brs=`<div class="cblock"><h2 class="h-m">Global presence</h2><ul class="cinfo">${PRESENCE.map(([t,d])=>`<li><span>${t}</span><span>${d}</span></li>`).join('')}</ul></div>`;
   const fac=C.factories.length?`<div class="cblock"><h2 class="h-m">Manufacturing units</h2><ul class="cinfo">${C.factories.map(f=>`<li><span>${esc(f.name)}</span><span>${esc(f.city)}</span></li>`).join('')}</ul></div>`:'';
   const o=C.office;$('#fAddr').innerHTML=[o.address&&esc(o.address).replace(/\n/g,'<br>'),o.phone&&`<a href="tel:${esc(o.phone.replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`,o.email&&`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`].filter(Boolean).join('<br>');
-  $('#contactInfo').innerHTML=(blocks||fac)?blocks.replace('</ul></div>','</ul>'+mp+'</div>')+brs+fac:`<h2 class="h-m">Corporate office</h2><p style="color:var(--ink-2);margin-top:1rem">Send us an enquiry with the form and the right team will reply directly. <span class="flag">Add verified address, phone and email in SITE.contact (js/app.js)</span></p>`;
+  $('#contactInfo').innerHTML=(blocks||fac)?blocks.replace('</ul></div>','</ul>'+mp+'</div>')+brs+fac:`<h2 class="h-m">Corporate office</h2><p style="color:var(--ink-2);margin-top:1rem">Send us an enquiry with the form and the right team will reply directly.</p>`;
 })();
 
 /* ---------- overlay menu ---------- */
@@ -256,7 +256,12 @@ $('#ovList').innerHTML=PAGES.map(([k,n],i)=>`<li style="transition-delay:${80+i*
 prev.innerHTML=PAGES.map(([k,n,im],i)=>`<div class="pv${i===0?' on':''}" style="background-image:url(${im})"></div>`).join('')+`<div class="pvt"><h3 class="h-l"></h3><p></p></div>`;
 const setPv=i=>{$$('.pv',prev).forEach((p,j)=>p.classList.toggle('on',j===i));$('.pvt h3',prev).textContent=PAGES[i][1];$('.pvt p',prev).textContent=PAGES[i][3]};setPv(0);
 $$('[data-pv]').forEach(a=>{a.addEventListener('mouseenter',()=>setPv(+a.dataset.pv));a.addEventListener('focus',()=>setPv(+a.dataset.pv))});
-const setOv=o=>{ov.classList.toggle('open',o);ov.setAttribute('aria-hidden',!o);mb.setAttribute('aria-expanded',o);document.body.style.overflow=o?'hidden':'';if(o)setTimeout(()=>$('#ovClose').focus(),50)};
+const INERT=['header.nav','#main','footer','.tools'];
+const setOv=o=>{const was=ov.classList.contains('open');if(o===was)return;ov.classList.toggle('open',o);ov.setAttribute('aria-hidden',!o);mb.setAttribute('aria-expanded',o);document.body.style.overflow=o?'hidden':'';
+  if(o){ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Site menu')}else{ov.removeAttribute('role');ov.removeAttribute('aria-modal');ov.removeAttribute('aria-label')}
+  INERT.forEach(q=>$$(q).forEach(e=>o?e.setAttribute('inert',''):e.removeAttribute('inert')));
+  if(o)setTimeout(()=>$('#ovClose').focus(),50);else mb.focus({preventScroll:true})};
+ov.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=$$('a[href],button',ov).filter(x=>x.offsetParent);if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
 mb.onclick=()=>setOv(true);$('#ovClose').onclick=()=>setOv(false);
 
 /* ---------- hero slideshow ---------- */
@@ -275,17 +280,18 @@ const TITLES={home:"VFI Group | The Science of Comfort. The Art of Manufacturing
 const pathFor=v=>v==='home'?'/':'/'+v;
 function viewFromPath(){const p=location.pathname.replace(/\/index\.html$/,'/').replace(/\/+$/,'')||'/';if(p==='/')return 'home';const v=decodeURIComponent(p.slice(1));return VIEWS.includes(v)&&v!=='404'?v:'404'}
 function nav(v,hash){const url=pathFor(v)+(hash?'#'+hash:'');if(location.pathname+location.hash!==url)history.pushState({},'',url);route(hash)}
+let firstRoute=true;
 function route(hash){
   // support old #page links
   const lh=location.hash.slice(1);if(lh&&VIEWS.includes(lh)&&lh!=='404'&&!document.getElementById(lh)){history.replaceState({},'',pathFor(lh));}
   let h=viewFromPath();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===h));document.body.classList.toggle('inner',h!=='home');$$('.navlinks a').forEach(a=>a.dataset.go===h?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));document.title=TITLES[h]||TITLES.home;setMeta(h);setOv(false);closeDrawer();if(h==='home')go(0);else clearTimeout(timer);observe();$$('[data-explorer]').forEach(e=>e._place&&e._place());$$('[data-rail]').forEach(r=>r._upd&&r._upd());
   const target=typeof hash==='string'?hash:(location.hash.slice(1)||'');const el=target&&document.getElementById(target);
   if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:reduce?'auto':'smooth'}));else scrollTo(0,0);
-  $('#main').focus({preventScroll:true});
+  if(!firstRoute)$('#main').focus({preventScroll:true});firstRoute=false;
 }
 function setMeta(h){const d=DESC[h]||DESC.home;const m=(sel,attr,val)=>{let e=$(sel);if(!e){e=document.createElement(sel.startsWith('link')?'link':'meta');const [k,v]=sel.match(/\[(\w+(?::\w+)?)="([^"]+)"\]/).slice(1);e.setAttribute(k,v);document.head.appendChild(e)}e.setAttribute(attr,val)};
   m('meta[name="description"]','content',d);m('meta[property="og:description"]','content',d);m('meta[property="og:title"]','content',TITLES[h]||TITLES.home);
-  m('link[rel="canonical"]','href',SITE.url+(h==='404'?'/':pathFor(h)));m('meta[property="og:url"]','content',SITE.url+pathFor(h));
+  if(h==='404'){$$('link[rel="canonical"],meta[property="og:url"]').forEach(e=>e.remove())}else{m('link[rel="canonical"]','href',SITE.url+pathFor(h));m('meta[property="og:url"]','content',SITE.url+pathFor(h))}
   let rb=$('meta[name="robots"]');if(h==='404'){if(!rb){rb=document.createElement('meta');rb.name='robots';document.head.appendChild(rb)}rb.content='noindex'}else if(rb)rb.remove()}
 document.addEventListener('click',e=>{
   if(e.defaultPrevented||e.button>0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey){if(e.target.closest('[data-go]'))return}
@@ -306,12 +312,9 @@ function onScroll(){document.body.classList.toggle('scrolled',scrollY>200);
 addEventListener('scroll',onScroll,{passive:true});
 $('#topBtn').onclick=()=>scrollTo({top:0,behavior:reduce?'auto':'smooth'});
 
-/* ---------- theme / review ---------- */
+/* ---------- theme ---------- */
 const root=document.documentElement;const st=store.get('vfi-theme');if(st)root.dataset.theme=st;
 $('#themeBtn').onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;root.dataset.theme=dark?'light':'dark';store.set('vfi-theme',root.dataset.theme);toast(dark?'Light sections':'Dark sections')};
-const rb=$('#reviewBtn');const setR=o=>{document.body.classList.toggle('review',o);rb.setAttribute('aria-pressed',o);store.set('vfi-review',o?'1':'0')};
-if(new URLSearchParams(location.search).has('review')||store.get('vfi-review')!==null)rb.hidden=false;
-rb.onclick=()=>{const o=!document.body.classList.contains('review');setR(o);toast(o?'Showing items that need confirmation before launch':'Review notes hidden')};if(store.get('vfi-review')==='1')setR(true);
 
 /* ---------- reveal & count ---------- */
 let io;function observe(){if(io)io.disconnect();io=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;const t=en.target;t.classList.add('in');const c=$('[data-count]',t);if(c)count(c);io.unobserve(t)}),{threshold:.15});$$('.view.active .rv:not(.in)').forEach(el=>io.observe(el))}
@@ -350,12 +353,13 @@ function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(tr
         say(s===429?'Too many enquiries from your connection. Please wait about 10 minutes and try again, or email '+EMAIL+'.':GENERIC,true);toast('Enquiry not sent')})
       .catch(()=>{say(GENERIC,true);toast('Enquiry not sent')})
       .finally(()=>{busy=false;sb.disabled=false;sb.textContent='Send enquiry'})});
-  $('[data-reset]',w).onclick=()=>{form.reset();setType('');renderedAt=Date.now();stat.setAttribute('role','status');stat.textContent='Drafts are saved on this device until you send.';w.classList.remove('sent')};
-  return{setType,setMsg:m=>{const t=$('textarea',form);t.value=m;save()},resetClock:()=>{renderedAt=Date.now()},w};
+  const reset=()=>{form.reset();setType('');renderedAt=Date.now();$$('.fl',form).forEach(fl=>{fl.classList.remove('bad');const er=$('.err',fl);if(er)er.textContent=''});F.forEach(f=>f.removeAttribute('aria-invalid'));stat.setAttribute('role','status');stat.textContent='Drafts are saved on this device until you send.';w.classList.remove('sent')};
+  $('[data-reset]',w).onclick=reset;
+  return{setType,reset,isSent:()=>w.classList.contains('sent'),setMsg:m=>{const t=$('textarea',form);t.value=m;save()},resetClock:()=>{renderedAt=Date.now()},w};
 }
 const dF=buildForm($('#drawerForm'),'vfi-d'),cF=buildForm($('#inlineForm'),'vfi-c');
 const drawer=$('#drawer');let lf=null;
-function openDrawer(t,msg){dF.resetClock();lf=document.activeElement;setOv(false);if(t)dF.setType(t);if(msg){dF.w.classList.remove('sent');dF.setMsg(msg)}drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{const i=$('input[name=name]',drawer);i&&i.focus({preventScroll:true})},450)}
+function openDrawer(t,msg){if(dF.isSent())dF.reset();dF.resetClock();lf=document.activeElement;setOv(false);if(t)dF.setType(t);if(msg)dF.setMsg(msg);drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{const i=$('input[name=name]',drawer);i&&i.focus({preventScroll:true})},450)}
 function closeDrawer(){if(!drawer.classList.contains('open'))return;drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');document.body.style.overflow='';lf&&lf.focus&&lf.focus()}
 $$('[data-close]',drawer).forEach(b=>b.onclick=closeDrawer);
 drawer.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=$$('button,input,select,textarea',drawer).filter(x=>x.offsetParent);const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
