@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light">
+<title>VFI Group · Enquiries</title>
+<link rel="icon" href="/assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<script src="/admin/admin.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="/admin" aria-label="VFI Group enquiries"><img src="/assets/img/logo-ivory.png" alt="VFI Group" height="26"><span class="brand-sub">Enquiries</span></a>
+    <button type="button" id="logoutBtn" class="btn btn-ghost-dk" hidden>Sign out</button>
+  </div>
+</header>
+<main id="main" tabindex="-1">
+  <noscript><p class="notice">This dashboard needs JavaScript. Please enable it and reload.</p></noscript>
+
+  <section id="bootView" class="center" aria-live="polite"><p class="muted">Loading…</p></section>
+
+  <section id="loginView" class="center" hidden>
+    <form id="loginForm" class="card login" novalidate>
+      <img src="/assets/img/logo-blue.png" alt="" height="30" class="login-logo">
+      <h1>Sign in</h1>
+      <p class="muted">Enquiries dashboard for the VFI Group team.</p>
+      <p id="loginMsg" class="msg" role="alert" hidden></p>
+      <div class="field">
+        <label for="pw">Password</label>
+        <input id="pw" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" id="loginBtn" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+  </section>
+
+  <section id="appView" class="wrap" hidden>
+    <div class="head-row">
+      <h1>Enquiries</h1>
+      <div class="head-actions">
+        <button type="button" id="refreshBtn" class="btn">Refresh</button>
+        <button type="button" id="exportBtn" class="btn btn-primary">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="tabs-wrap"><div id="tabs" class="tabs" role="tablist" aria-label="Filter by status"></div></div>
+
+    <div class="search">
+      <label for="q" class="sr">Search enquiries</label>
+      <input id="q" type="search" placeholder="Search enquiries" autocomplete="off" maxlength="200">
+      <button type="button" id="qClear" class="clear" aria-label="Clear search" hidden>&times;</button>
+    </div>
+
+    <div id="listStatus" class="sr" role="status" aria-live="polite"></div>
+    <div id="listBox" class="card list-box" aria-busy="false">
+      <div id="listBody"></div>
+    </div>
+    <nav class="pager" aria-label="Pagination" id="pager" hidden>
+      <span id="pagerInfo" class="muted"></span>
+      <span class="pager-btns">
+        <button type="button" id="prevBtn" class="btn">Previous</button>
+        <button type="button" id="nextBtn" class="btn">Next</button>
+      </span>
+    </nav>
+  </section>
+</main>
+
+<div id="scrim" class="scrim" hidden></div>
+<aside id="detail" class="detail" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden tabindex="-1">
+  <div class="d-head">
+    <div>
+      <h2 id="dTitle">Enquiry</h2>
+      <p id="dSub" class="muted"></p>
+    </div>
+    <button type="button" id="dClose" class="btn">Close</button>
+  </div>
+  <div class="d-body">
+    <dl id="dFields" class="fields"></dl>
+    <h3>Message</h3>
+    <div id="dMsg" class="msgbox"></div>
+    <form id="dForm" novalidate>
+      <div class="field">
+        <label for="dStatus">Status</label>
+        <select id="dStatus"></select>
+        <p class="ferr" id="dStatusErr" hidden></p>
+      </div>
+      <div class="field">
+        <label for="dNotes">Internal notes</label>
+        <textarea id="dNotes" rows="6" maxlength="5000"></textarea>
+        <p class="counter muted"><span id="dCount">0</span> / 5000</p>
+        <p class="ferr" id="dNotesErr" hidden></p>
+      </div>
+      <p id="dMsgStatus" class="msg" role="status" hidden></p>
+      <div class="d-actions">
+        <button type="submit" id="dSave" class="btn btn-primary">Save</button>
+        <span id="dDirty" class="muted" hidden>Unsaved changes</span>
+      </div>
+    </form>
+  </div>
+</aside>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
