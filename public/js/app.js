@@ -1,6 +1,6 @@
 (function(){
-const IMG={factory:"/assets/img/factory.jpg",layers:"/assets/img/layers.jpg",spring:"/assets/img/spring.jpg",coil:"/assets/img/coil.jpg"};
-/* ---------- site configuration: edit these values ---------- */
+const IMG={factory:"/assets/img/factory.jpg",spring:"/assets/img/spring.jpg",coil:"/assets/img/coil.jpg"};
+/* ---------- site settings: edit these values ---------- */
 const SITE={
   url:"https://www.vfigroup.org",
   updated:"13 November 2026",
@@ -24,14 +24,15 @@ const CAPS=[
  {t:"Lab testing",g:"Quality",d:"Stress, elasticity and rebound testing, internally and through third parties, on all materials and finished products.",img:"/assets/img/caps/lab.jpg"},
  {t:"Mattresses",g:"Production",d:"Mattresses in almost any size or shape, even roll-packed for cost-effective shipping.",img:"/assets/img/caps/mattress.jpg"}
 ];
-const LAYERS=[
- {t:"Quilted cover",x:82,y:16,d:"The first touch. Quilting, fabric and fill set the surface feel and how the mattress breathes."},
- {t:"Comfort foam",x:55,y:15,d:"A soft upper layer that relieves pressure and shapes the first impression of comfort."},
- {t:"Perforated foam",x:56,y:34,d:"Ventilation channels let air move through the foam, helping regulate temperature."},
- {t:"Convoluted support foam",x:50,y:51,d:"A profiled surface distributes weight and adds responsiveness between comfort and core."},
- {t:"Fibre insulator pad",x:55,y:73,d:"A dense fibre layer that protects the upper foams from the spring unit and steadies the feel."},
- {t:"Pocket spring core",x:31,y:86,d:"Individually encased springs, made in-house, for independent support and low motion transfer."}
+const PORTFOLIO=[
+ {t:"Premium mattresses",d:"Five mattress brands made and marketed by VFI Group, from Springfit, launched in 2009, to Simmons Beautyrest and Serta.",c:["Springfit","Simmons Beautyrest","Serta","Durfi","Amore"]},
+ {t:"Organic latex",d:"Organa, launched in 2024, makes 100% organic latex mattresses and bedding, sold in the USA, Canada, France, Italy, India and Thailand.",c:["Organa","Global latex factory"]},
+ {t:"Furniture and sofa foam",d:"NOSag is Springfit’s sofa foam, made for furniture makers.",c:["NOSag","Seat foam","Back foam","Ergo foam","Safe foam"]},
+ {t:"Luxury furniture",d:"Millo Luxe brings Italian luxury sofas and recliners, since 1974, to showrooms in 40+ cities including Dubai Design District.",c:["Millo Luxe","Sofas","Recliners"]},
+ {t:"Private label and OEM",d:"We make private-label ranges for 20+ brands, and supply foam and spring units to our partners’ own specifications.",c:["20+ brands","Foam","Bonnell springs","Pocket springs"]},
+ {t:"Hospitality and export",d:"We supply 200+ hotel branches, cater to 70% of the hospitality industry and export to 12 markets.",c:["200+ hotel branches","12 export markets","Dubai branch","USA branch"]}
 ];
+const PLOGOS=[["springfit","Springfit"],["beautyrest","Simmons Beautyrest"],["serta","Serta"],["organa-black","Organa"],["durfi","Durfi"],["amore","Amore"],["milloluxe","Millo Luxe"],["nosag","NOSag"]];
 const CERTS=[["CMAS","Carbon manganese alloy springs"],["CertiPUR-US","Certified foams","/assets/img/certs/certipur-us.png"],["CertiGuard","Germ-free technology","/assets/img/certs/certiguard.png"],["AeroSleep","Breathable foams","/assets/img/certs/aerosleep.png"],["MCTS","Mattress comprehensive testing"]];
 const TECH=[
  {k:"CMAS",t:"Carbon manganese alloy springs",img:"cmas",d:"Advanced carbon manganese coils are stress-relieved and strengthened for a comfortable sleeping experience. Independent suspension coil units are heat-treated under controlled conditions for better resistance and durability."},
@@ -67,7 +68,7 @@ const AWARDS=[["most-trusted-2024","Most Trusted Brands of India 2024"],["brand-
 const WHATWEDO=[["Private label","White and private-label manufacturing for more than 20 brands."],["Full sleep range","Mattresses, pillows, quilts, toppers and protectors."],["Vendor specifications","We develop and improve existing vendor specifications."],["Hotels worldwide","Hotel mattresses, manufactured and shipped across the globe."]];
 const FOAM=[["Foam and memory foam","Produced in virtually any density and elasticity, for comfort layers, support cores and components."],["Latex","Natural latex from our own latex manufacturing factory, including 100% organic latex for Organa."],["Breathable foams","AeroSleep open-cell foams with temperature-regulating properties for better ventilation."],["Certified foams","CertiPUR-US certified: low emissions, and made without ozone depleters, PBDEs, heavy metals, formaldehyde or prohibited phthalates."],["Tested","Stress, elasticity and rebound testing, including ASTM D3574 indentation force deflection and ISO 2439."],["Furniture foam","Springfit NOSag sofa foam for seat cushions, back cushions and ergonomic seating, built not to sag."],["Scale","India’s largest foam factory, unveiled in 2024, supplying our own lines and partners."]];
 const PRESENCE=[["India","Corporate office and six manufacturing units"],["Dubai","Branch for global exports"],["USA","Branch for global exports"]];
-const GLANCE=[["Fastest growing","company"],["6","smart factories"],["50,000","mattresses a month capacity"],["12","export markets"],["Dubai and USA","branches for global exports"],["1,100+","people across India"]];
+const GLANCE=[["Fastest growing","company"],["6","smart factories"],["50,000","mattresses a month capacity"],["8","brands in the portfolio"],["12","export markets"],["200+","hotel branches supplied"],["Dubai and USA","branches for global exports"],["1,100+","people across India"]];
 const JOURNEY=[
  ["30+ years ago","Two mattresses a day","Mr. Mukesh Gupta starts with one mattress binding machine and a table in a very small space."],
  ["2007","Haridwar","Establishment of our manufacturing unit in Haridwar."],
@@ -98,8 +99,8 @@ const CONDUCT=[
  {h:"Our customers",i:[["Quality and safety","Products that are safe, high quality and compliant with relevant standards and regulations."],["Transparency","Precise information about our products, including materials, origin, price and warranty."],["Privacy","We value and uphold consumers’ privacy and data-protection rights."]]},
  {h:"Our environment and communities",i:[["Community","We uphold the rights of the communities where we operate or source materials, create employment, support local initiatives, meet our tax obligations and consult stakeholders."],["Environment","From research to production, resource use, waste and emissions, we follow domestic and international law and internal protocols to reduce our footprint and prevent pollution or harm."],["Health and safety","We comply with the Environment, Health and Safety (EHS) policies that apply in India to protect our workers, customers and communities."]]}
 ];
-const DESC={home:"VFI Group (Varahamurti Flexirub Industries Pvt. Ltd.) manufactures mattresses, foam, spring systems and soft furnishings for retail and hospitality businesses.",about:"Thirty years of comfort manufacturing: the journey, vision and values of VFI Group.",manufacturing:"Six smart factories producing foam, Bonnell and pocket springs and finished mattresses in-house.",innovation:"Material science, spring engineering and testing behind every layer of a VFI mattress.",products:"Mattresses, foam, spring systems and soft furnishings for retail, hospitality, OEM and private label.",brands:"The VFI Group brand portfolio: Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag sofa foam.",partnerships:"Retail, hospitality, OEM, private-label and international manufacturing partnerships.",sustainability:"How VFI Group looks after its people, communities and environment.",careers:"Careers in production, engineering, quality and business at VFI Group.",contact:"Contact VFI Group about retail, hospitality, OEM, private-label or international manufacturing.",privacy:"How VFI Group handles information sent through the website enquiry forms, including data use, sharing, retention and your choices.",terms:"Terms of use for the VFI Group website: information-only content, the specification builder and intellectual property, governed by Indian law.","code-of-conduct":"The VFI Group code of conduct for employees, suppliers and partners.","404":"Page not found."};
-const PAGES=[["home","Home","/assets/img/story/craft-hand.jpg","The science of comfort. The art of manufacturing."],["about","About VFI","/assets/img/story/craft-thread.jpg","Our journey, mission and values."],["manufacturing","Manufacturing","/assets/img/story/craft-machine.jpg","Foam, springs and finished mattresses, made in-house."],["innovation","Innovation and quality","/assets/img/tech/aerosleep.jpg","Material science and testing behind every layer."],["products","Products and solutions","/assets/img/story/springfit-life.jpg","For retail, hospitality, OEM and private label."],["brands","Our brands","/assets/img/story/serta-life.jpg","A portfolio built around comfort."],["partnerships","Global partnerships","/assets/img/story/global-footprint.jpg","How we work with businesses worldwide."],["sustainability","CSR policy","/assets/img/story/csr-banner.jpg","People, community and environment."],["careers","Careers","/assets/img/story/craft-hand.jpg","Join more than 1,100 people."],["contact","Contact","/assets/img/story/beautyrest-life.jpg","Start a conversation with our team."]];
+const DESC={home:"VFI Group makes mattresses, foam and soft furnishings: six factories, 50,000+ mattresses a month, eight brands and exports to 12 markets.",about:"Thirty years of comfort manufacturing: the journey, vision and values of VFI Group.",manufacturing:"Six smart factories producing foam, Bonnell and pocket springs and finished mattresses in-house.",innovation:"Material science, spring engineering and testing behind everything VFI makes.",products:"Mattresses, foam, spring systems and soft furnishings for retail, hospitality, OEM and private label.",brands:"The VFI Group brand portfolio: Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag sofa foam.",partnerships:"Retail, hospitality, OEM, private-label and international manufacturing partnerships.",sustainability:"How VFI Group looks after its people, communities and environment.",careers:"Careers in production, engineering, quality and business at VFI Group.",contact:"Contact VFI Group about retail, hospitality, OEM, private-label or international manufacturing.",privacy:"How VFI Group handles information sent through the website enquiry forms, including data use, sharing, retention and your choices.",terms:"Terms of use for the VFI Group website: information-only content, intellectual property, governed by Indian law.","code-of-conduct":"The VFI Group code of conduct for employees, suppliers and partners.","404":"Page not found."};
+const PAGES=[["home","Home","/assets/img/story/craft-hand.jpg","The science of comfort. The art of manufacturing."],["about","About VFI","/assets/img/story/craft-thread.jpg","Our journey, mission and values."],["manufacturing","Manufacturing","/assets/img/story/craft-machine.jpg","Foam, springs and finished mattresses, made in-house."],["innovation","Innovation and quality","/assets/img/tech/aerosleep.jpg","Material science and testing behind everything we make."],["products","Products and solutions","/assets/img/story/springfit-life.jpg","For retail, hospitality, OEM and private label."],["brands","Our brands","/assets/img/story/serta-life.jpg","A portfolio built around comfort."],["partnerships","Global partnerships","/assets/img/story/global-footprint.jpg","How we work with businesses worldwide."],["sustainability","CSR policy","/assets/img/story/csr-banner.jpg","People, community and environment."],["careers","Careers","/assets/img/story/craft-hand.jpg","Join more than 1,100 people."],["contact","Contact","/assets/img/story/beautyrest-life.jpg","Start a conversation with our team."]];
 
 /* ---------- rails ---------- */
 function makeRail(host,cardsHTML){
@@ -124,98 +125,18 @@ const brandCards=BRANDS.map((b,i)=>`<button class="btile${b.dark?' dk':''}" aria
 $$('[data-rail="brands"]').forEach(h=>{makeRail(h,brandCards);const d=document.createElement('div');d.className='wrap';d.innerHTML=`<div class="bdet"><div><div class="in"></div></div></div>`;h.appendChild(d);
   const det=$('.bdet',d),inn=$('.in',d);let cur=-1;$$('.btile',h).forEach(t=>t.addEventListener('click',()=>{const i=+t.dataset.i;if(cur===i){cur=-1;det.classList.remove('on');t.setAttribute('aria-expanded','false');return}cur=i;$$('.btile',h).forEach(x=>x.setAttribute('aria-expanded',x===t));const b=BRANDS[i];inn.innerHTML=`<h3>${bName(b)}</h3><p>${b.d}${b.col?`<br><span style="font-size:.86rem">Collections: ${b.col.join(', ')}</span>`:''}</p>${b.url?`<a class="chev" href="${b.url}" target="_blank" rel="noopener">Visit ${b.n.toLowerCase()==='simmons'?'simmonsbeautyrest.in':new URL(b.url).hostname.replace('www.','')}</a>`:'<span style="font-size:.86rem;color:var(--dk-ink-2)">Website coming soon</span>'}`;det.classList.add('on')}))});
 
-/* ---------- explorer ---------- */
-$$('[data-explorer]').forEach(host=>{
-  host.innerHTML=`<div class="exp"><img src="${IMG.layers}" alt="Cut-away of a mattress showing its layers" loading="lazy">${LAYERS.map((l,i)=>`<button class="hs" style="left:${l.x}%;top:${l.y}%" aria-label="${l.t}" aria-selected="${i===0}" data-i="${i}"></button>`).join('')}<span class="hs-tag"></span><span class="cap-note">Representative image</span>
-  <div class="exp-panel"><span class="kick">Inside the mattress</span><h2 class="h-l">Innovation behind every layer.</h2><p class="sub" style="font-size:1rem">Select a layer to see what it does.</p><ul class="lyr" role="tablist" aria-label="Mattress layers">${LAYERS.map((l,i)=>`<li><button role="tab" aria-selected="${i===0}" data-i="${i}">${l.t}<em>${String(i+1).padStart(2,'0')}</em></button></li>`).join('')}</ul><p class="lyr-d" aria-live="polite"></p></div></div>`;
-  const ex=$('.exp',host),img=$('img',ex),tabs=$$('[role=tab]',host),hs=$$('.hs',host),tag=$('.hs-tag',host),d=$('.lyr-d',host);
-  const set=(i,z)=>{const l=LAYERS[i];tabs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));hs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));d.textContent=l.d;tag.textContent=l.t;const pp=l._p||[l.x,l.y];tag.style.left=pp[0]+'%';tag.style.top=pp[1]+'%';if(z&&!reduce){img.style.transformOrigin=`${l.x}% ${l.y}%`;img.style.transform='scale(1.15)'}};
-  tabs.forEach(t=>{t.onclick=()=>set(+t.dataset.i,1);t.onkeydown=e=>{const i=+t.dataset.i,n=LAYERS.length;let k=null;if(e.key==='ArrowDown'||e.key==='ArrowRight')k=(i+1)%n;if(e.key==='ArrowUp'||e.key==='ArrowLeft')k=(i-1+n)%n;if(k!==null){e.preventDefault();tabs[k].focus();set(k,1)}}});
-  hs.forEach(t=>{t.onclick=()=>set(+t.dataset.i,1);t.onmouseenter=()=>set(+t.dataset.i,0)});
-  ex.addEventListener('mouseleave',()=>{img.style.transform='none'});
-  const place=()=>{const W=ex.clientWidth,H=ex.clientHeight,r=1.5;let iw=W,ih=W/r;if(ih<H){ih=H;iw=H*r}const ox=(W-iw)/2,oy=(H-ih)/2;const P=(l)=>[(ox+l.x/100*iw)/W*100,(oy+l.y/100*ih)/H*100];hs.forEach((h,i)=>{const p=P(LAYERS[i]);h.style.left=p[0]+'%';h.style.top=p[1]+'%';LAYERS[i]._p=p});const a=LAYERS[+($('.hs[aria-selected=true]',ex)||hs[0]).dataset.i]._p;if(a){tag.style.left=a[0]+'%';tag.style.top=a[1]+'%'}};
-  host._place=place;addEventListener('resize',place);
-  set(0,0);place();
-});
-
 /* ---------- applications ---------- */
 $$('[data-apps]').forEach(host=>{
   const K=Object.keys(APPS);
   host.innerHTML=`<div class="apps"><ul class="applist" role="tablist" aria-label="Applications">${K.map((k,i)=>`<li><button role="tab" aria-selected="${i===0}">${k}</button></li>`).join('')}</ul><div class="appd" role="tabpanel"></div></div>`;
-  const pnl=$('.appd',host);const set=k=>{const a=APPS[k];$$('[role=tab]',host).forEach(b=>b.setAttribute('aria-selected',b.textContent===k));pnl.innerHTML=`<div class="fade"><h3>${k}</h3><p class="sub">${a.p} </p><ul>${a.i.map(([n,s])=>`<li><b>${n}</b><span>${s}</span></li>`).join('')}</ul><div class="acts"><button class="cta pri" data-enquire="${a.e}">Enquire about ${k.toLowerCase()}</button><button class="cta sec" data-scroll="configure">Build a specification</button></div></div>`};
+  const pnl=$('.appd',host);const set=k=>{const a=APPS[k];$$('[role=tab]',host).forEach(b=>b.setAttribute('aria-selected',b.textContent===k));pnl.innerHTML=`<div class="fade"><h3>${k}</h3><p class="sub">${a.p} </p><ul>${a.i.map(([n,s])=>`<li><b>${n}</b><span>${s}</span></li>`).join('')}</ul><div class="acts"><button class="cta pri" data-enquire="${a.e}">Enquire about ${k.toLowerCase()}</button></div></div>`};
   $$('[role=tab]',host).forEach(b=>{b.onclick=()=>set(b.textContent);b.onmouseenter=()=>{if(matchMedia('(hover:hover)').matches)set(b.textContent)}});set(K[0]);
 });
 
-/* ---------- configurator ---------- */
-const CONF={
- core:{n:"Core",o:[["pocket","Pocket spring","Individually encased springs, independent support"],["bonnell","Bonnell spring","Interconnected coils, even and durable support"],["foam","Foam core","Supportive foam base for all-foam builds"]]},
- comfort:{n:"Comfort",o:[["memory","Memory foam","Body-contouring, pressure-relieving layer"],["perf","Perforated foam","Ventilated layer for airflow"],["dual","Dual layer","Memory foam over convoluted support foam"]]},
- feel:{n:"Feel",o:[["firm","Firm","Higher support, minimal sink"],["medium","Medium","Balanced support and contouring"],["plush","Plush","Softer surface, deeper contouring"]]},
- top:{n:"Finish",o:[["tight","Tight top","Clean, tailored quilted surface"],["euro","Euro top","Additional sewn-in comfort layer"],["pillow","Pillow top","Plush padded layer stitched on top"]]},
- size:{n:"Size",o:[["single","Single","For single beds and guest rooms"],["double","Double","For compact double beds"],["queen","Queen","The most common double size"],["king","King","For larger beds and suites"],["custom","Custom","Built to your dimensions"]]},
- pack:{n:"Delivery",o:[["flat","Flat-packed","Delivered at full height"],["roll","Roll-packed","Compressed and rolled for efficient shipping"]]}
-};
-const CK=Object.keys(CONF);
-const defSpec={core:"pocket",comfort:"memory",feel:"medium",top:"tight",size:"queen",pack:"flat"};
-let spec=Object.assign({},defSpec);try{const s=JSON.parse(store.get('vfi-spec')||'null');if(s)Object.assign(spec,s)}catch(e){}
-const lbl=(k,v)=>CONF[k].o.find(o=>o[0]===v)[1];
-function slab(x,y,w,h,dx,dy,c,extra){
-  const top=`${x},${y} ${x+w},${y} ${x+w+dx},${y-dy} ${x+dx},${y-dy}`;
-  const side=`${x+w},${y} ${x+w+dx},${y-dy} ${x+w+dx},${y-dy+h} ${x+w},${y+h}`;
-  return `<polygon points="${top}" fill="${c.t}" stroke="${c.s}" stroke-width=".6"/>${extra&&extra.top?`<polygon points="${top}" fill="${extra.top}"/>`:''}<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c.f}" stroke="${c.s}" stroke-width=".6"/>${extra&&extra.front?extra.front:''}<polygon points="${side}" fill="${c.d}" stroke="${c.s}" stroke-width=".6"/>`;
-}
-function buildStack(){
-  const L=[];
-  const cover={t:"#F7F5EF",f:"#ECE8DD",d:"#D9D4C6",s:"#B9B3A3"};
-  if(spec.top==="pillow")L.push({n:"Pillow top",h:26,c:cover,q:1});
-  else if(spec.top==="euro")L.push({n:"Euro top",h:18,c:cover,q:1});
-  L.push({n:"Quilted cover",h:14,c:cover,q:1});
-  if(spec.comfort==="memory"||spec.comfort==="dual")L.push({n:"Memory foam",h:spec.feel==="plush"?30:spec.feel==="firm"?18:24,c:{t:"#EFE3B8",f:"#DCCB91",d:"#C6B47A",s:"#A8975F"}});
-  if(spec.comfort==="perf")L.push({n:"Perforated foam",h:26,c:{t:"#F3EBCF",f:"#E8DDB5",d:"#D3C79D",s:"#B2A67E"},perf:1});
-  if(spec.comfort==="dual")L.push({n:"Convoluted support foam",h:20,c:{t:"#4A4E53",f:"#303438",d:"#24272A",s:"#111315"},wave:1});
-  L.push({n:"Fibre insulator pad",h:8,c:{t:"#CFC4AE",f:"#BFB39A",d:"#A99D84",s:"#8F8470"}});
-  if(spec.core==="foam")L.push({n:"Foam support core",h:70,c:{t:"#E9EDF1",f:"#D4DCE3",d:"#BCC6CF",s:"#97A3AE"}});
-  else L.push({n:spec.core==="pocket"?"Pocket spring core":"Bonnell spring core",h:84,c:{t:"#E4E6E8",f:"#F4F1E9",d:"#C9CCCF",s:"#8E949A"},spr:spec.core});
-  L.push({n:"Base cover",h:8,c:cover});
-  return L;
-}
-function renderStack(svg){
-  const L=buildStack(),W=440,dx=120,dy=46,x0=30,gap=30;
-  const total=L.reduce((a,l)=>a+l.h+gap,0);let y=dy+20;
-  let g='',labels='';const ly=[];
-  L.forEach((l,i)=>{
-    let front='',ex={};
-    if(l.spr){const n=l.spr==='pocket'?13:9;for(let k=0;k<n;k++){const cx=x0+16+k*(W-32)/(n-1);if(l.spr==='pocket'){front+=`<rect x="${cx-12}" y="${y+6}" width="24" height="${l.h-12}" rx="10" fill="#FAF8F3" stroke="#B5BABF" stroke-width=".7"/>`}else{for(let j=0;j<6;j++)front+=`<ellipse cx="${cx}" cy="${y+10+j*(l.h-20)/5}" rx="13" ry="3.2" fill="none" stroke="#7C8288" stroke-width="1"/>`;front+=`<path d="M${cx-13} ${y+10}v${l.h-20}M${cx+13} ${y+10}v${l.h-20}" stroke="#7C8288" stroke-width=".6" opacity=".5"/>`}}}
-    if(l.perf){for(let k=0;k<12;k++)front+=`<circle cx="${x0+22+k*35}" cy="${y+l.h/2}" r="2.2" fill="#B2A67E"/>`}
-    if(l.wave){let p=`M${x0} ${y+6}`;for(let k=0;k<=14;k++)p+=` Q${x0+k*W/14-W/28} ${y+(k%2?0:12)} ${x0+k*W/14} ${y+6}`;front+=`<path d="${p}" fill="none" stroke="#5A5F66" stroke-width="1"/>`}
-    if(l.q)ex.top='url(#quilt)';
-    ex.front=front;
-    g=`<g class="lay" style="animation-delay:${i*70}ms">${slab(x0,y,W,l.h,dx,dy,l.c,ex)}</g>`+g;
-    ly.push(y+l.h/2);y+=l.h+gap;
-  });
-  const lx=x0+W+dx+40;
-  L.forEach((l,i)=>{const yy=ly[i];labels+=`<g class="lbl lay" style="animation-delay:${i*70+200}ms"><line x1="${x0+W+dx/2}" y1="${yy-dy/2}" x2="${lx}" y2="${yy-dy/2}"/><circle cx="${x0+W+dx/2}" cy="${yy-dy/2}" r="2.2" fill="currentColor"/><text x="${lx+8}" y="${yy-dy/2+4}">${l.n}</text></g>`});
-  const H=y+20;
-  svg.setAttribute('viewBox',`0 0 ${lx+200} ${H}`);
-  svg.innerHTML=`<defs><pattern id="quilt" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="skewX(-62) scale(1,.52)"><path d="M0 9L9 0L18 9L9 18Z" fill="none" stroke="#C9C2B0" stroke-width=".7"/></pattern></defs>${g}${labels}`;
-}
-$$('[data-conf]').forEach(host=>{
-  host.innerHTML=`<div class="conf"><div class="conf-stage"><div class="conf-meta"><b data-m="title"></b><span data-m="sub"></span></div><svg role="img" aria-label="Exploded view of the configured mattress"></svg></div>
-  <div class="conf-panel"><div class="steps" role="tablist">${CK.map((k,i)=>`<button role="tab" aria-selected="${i===0}" data-k="${k}"><span class="k">${i+1}</span>${CONF[k].n}</button>`).join('')}</div><div class="opts" role="radiogroup"></div>
-  <div class="summary"><dl></dl><div class="row"><button class="cta pri" data-send>Send specification</button><button class="nextstep" data-next>Next step</button><button class="nextstep" data-resetspec>Reset</button></div></div></div></div>`;
-  const svg=$('svg',host),opts=$('.opts',host),dl=$('dl',host);let step=CK[0];
-  const draw=()=>{renderStack(svg);$('[data-m=title]',host).textContent=`${lbl('core',spec.core)} build`;$('[data-m=sub]',host).textContent=`${lbl('feel',spec.feel)} feel, ${lbl('top',spec.top).toLowerCase()}`;dl.innerHTML=CK.map(k=>`<dt>${CONF[k].n}</dt><dd>${lbl(k,spec[k])}</dd>`).join('');store.set('vfi-spec',JSON.stringify(spec))};
-  const showStep=k=>{step=k;$$('.steps button',host).forEach(b=>b.setAttribute('aria-selected',b.dataset.k===k));opts.setAttribute('aria-label',CONF[k].n);opts.innerHTML=CONF[k].o.map(([v,n,d])=>`<button class="opt" role="radio" aria-checked="${spec[k]===v}" data-v="${v}"><b>${n}</b><span>${d}</span><i aria-hidden="true"></i></button>`).join('');$$('.opt',opts).forEach(o=>o.onclick=()=>{spec[k]=o.dataset.v;$$('.opt',opts).forEach(x=>x.setAttribute('aria-checked',x===o));draw();syncAll(host)})};
-  host._sync=()=>{draw();showStep(step)};
-  $$('.steps button',host).forEach(b=>b.onclick=()=>showStep(b.dataset.k));
-  $('[data-next]',host).onclick=()=>{const i=CK.indexOf(step);showStep(CK[(i+1)%CK.length])};
-  $('[data-resetspec]',host).onclick=()=>{spec=Object.assign({},defSpec);host._sync();syncAll(host);toast('Specification reset')};
-  $('[data-send]',host).onclick=()=>{const txt='Specification: '+CK.map(k=>`${CONF[k].n} ${lbl(k,spec[k])}`).join('; ')+'.';openDrawer('OEM manufacturing',txt)};
-  draw();showStep(step);
-});
-function syncAll(except){$$('[data-conf]').forEach(h=>{if(h!==except&&h._sync)h._sync()})}
 
 /* ---------- static fills ---------- */
+$$('[data-portfolio]').forEach(h=>h.innerHTML=PORTFOLIO.map(p=>`<article class="pcard rv"><h3>${p.t}</h3><p>${p.d}</p><ul>${p.c.map(x=>`<li class="cert">${x}</li>`).join('')}</ul></article>`).join(''));
+$$('[data-portlogos]').forEach(h=>h.innerHTML=PLOGOS.map(([f,n])=>`<span><a href="/brands" data-go="brands" aria-label="${n}"><img src="/assets/img/brands/${f}.png" alt="${n}" loading="lazy" width="300" height="109"></a></span>`).join(''));
 $$('[data-certs]').forEach(h=>h.innerHTML=CERTS.map(([n,d,im])=>`<span class="cert" title="${d}">${im?`<img src="${im}" alt="" aria-hidden="true" width="22" height="22" loading="lazy">`:''}${n}</span>`).join(''));
 $$('[data-routes]').forEach(h=>h.innerHTML=`<ul class="routes">${ROUTES.map(([t,d])=>`<li><button data-enquire="${t}"><h3>${t}</h3><p>${d}</p><span class="chev">Enquire</span></button></li>`).join('')}</ul>`);
 $$('[data-retail]').forEach(h=>h.innerHTML=RETAIL.map(([f,n])=>`<span><img src="/assets/img/partners/${f}.png" alt="${n}" loading="lazy" width="300" height="109"></span>`).join(''));
@@ -284,7 +205,7 @@ let firstRoute=true;
 function route(hash){
   // support old #page links
   const lh=location.hash.slice(1);if(lh&&VIEWS.includes(lh)&&lh!=='404'&&!document.getElementById(lh)){history.replaceState({},'',pathFor(lh));}
-  let h=viewFromPath();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===h));document.body.classList.toggle('inner',h!=='home');$$('.navlinks a').forEach(a=>a.dataset.go===h?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));document.title=TITLES[h]||TITLES.home;setMeta(h);setOv(false);closeDrawer();if(h==='home')go(0);else clearTimeout(timer);observe();$$('[data-explorer]').forEach(e=>e._place&&e._place());$$('[data-rail]').forEach(r=>r._upd&&r._upd());
+  let h=viewFromPath();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===h));document.body.classList.toggle('inner',h!=='home');$$('.navlinks a').forEach(a=>a.dataset.go===h?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));document.title=TITLES[h]||TITLES.home;setMeta(h);setOv(false);closeDrawer();if(h==='home')go(0);else clearTimeout(timer);observe();$$('[data-rail]').forEach(r=>r._upd&&r._upd());
   const target=typeof hash==='string'?hash:(location.hash.slice(1)||'');const el=target&&document.getElementById(target);
   if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:reduce?'auto':'smooth'}));else scrollTo(0,0);
   if(!firstRoute)$('#main').focus({preventScroll:true});firstRoute=false;
