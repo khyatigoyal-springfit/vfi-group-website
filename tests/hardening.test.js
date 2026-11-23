@@ -7,12 +7,10 @@ const path = require('path');
 const { setupEnv, validBody, boot, postJson, mockReq, mockRes } = require('./_helpers');
 setupEnv();
 const { readJson, clientIp, ipHash, normalizeIp } = require('../lib/http');
-const session = require('../lib/session');
 const mail = require('../lib/mail');
 const { getStore } = require('../lib/store');
 const { isEmail, validateEnquiry } = require('../lib/validate');
 const enquiryHandler = require('../api/enquiry');
-const adminHandler = require('../api/admin/[action]');
 
 const quiet = async (fn) => { const o = console.error; console.error = () => {}; try { return await fn(); } finally { console.error = o; } };
 const withEnv = async (vars, fn) => {
@@ -163,57 +161,6 @@ test('enquiry handler: throwing req.body getter gives 400 bad_json, not 500', as
   assert.equal(res.json().code, 'bad_json');
 });
 
-// ---------------------------------------------------------------- sessions
-test('session: v claim round-trips and a mismatching/missing v is rejected', () => {
-  const S = 's'.repeat(40);
-  const v = session.versionClaim(S, 'a long enough password');
-  assert.match(v, /^[0-9a-f]{16}$/);
-  assert.notEqual(v, session.versionClaim(S, 'another long password'));
-  const tok = session.sign(S, 1000, 60, v);
-  assert.equal(session.verify(tok, S, 2000, v).v, v);
-  assert.equal(session.verify(tok, S, 2000, session.versionClaim(S, 'another long password')), null);
-  assert.equal(session.verify(session.sign(S, 1000, 60), S, 2000, v), null, 'token without v');
-});
-
-async function adminLogin() {
-  const res = mockRes();
-  await adminHandler(mockReq({ query: { action: 'login' }, headers: { ...JSON_CT, ...CSRF }, body: { password: process.env.ADMIN_PASSWORD } }), res);
-  return res;
-}
-
-test('admin: refuses to be configured with short SESSION_SECRET (<32) or ADMIN_PASSWORD (<12)', async () => {
-  await quiet(async () => {
-    for (const [k, val] of [['SESSION_SECRET', 'x'.repeat(31)], ['ADMIN_PASSWORD', 'x'.repeat(11)]]) {
-      await withEnv({ [k]: val }, async () => {
-        const res = await adminLogin();
-        assert.equal(res.statusCode, 503, k);
-        assert.equal(res.json().code, 'admin_not_configured');
-        assert.equal(res.getHeader('set-cookie'), undefined);
-      });
-    }
-    await withEnv({ SESSION_SECRET: 'x'.repeat(32), ADMIN_PASSWORD: 'x'.repeat(12) }, async () => {
-      assert.equal((await adminLogin()).statusCode, 200);
-    });
-  });
-});
-
-test('admin: changing ADMIN_PASSWORD or SESSION_SECRET logs out existing sessions', async () => {
-  const sessionState = async (cookie) => {
-    const res = mockRes();
-    await adminHandler(mockReq({ method: 'GET', query: { action: 'session' }, headers: { cookie } }), res);
-    return res.json().authenticated;
-  };
-  const lres = await adminLogin();
-  assert.equal(lres.statusCode, 200);
-  const cookie = lres.getHeader('set-cookie').split(';')[0];
-  const payload = JSON.parse(Buffer.from(cookie.split('=')[1].split('.')[0], 'base64url').toString());
-  assert.match(payload.v, /^[0-9a-f]{16}$/);
-  assert.equal(await sessionState(cookie), true);
-  await withEnv({ ADMIN_PASSWORD: 'a brand new password' }, async () => assert.equal(await sessionState(cookie), false));
-  await withEnv({ SESSION_SECRET: 'z'.repeat(40) }, async () => assert.equal(await sessionState(cookie), false));
-  assert.equal(await sessionState(cookie), true);
-});
-
 // ---------------------------------------------------------------- validation
 test('email: rejects consecutive dots, leading/trailing domain dots, spaces; accepts normal addresses', () => {
   for (const e of ['a@b.co', 'a.b+c@d.e.f', 'first.last@sub-domain.example.com', 'x@a1.b2.io']) assert.equal(isEmail(e), true, e);
@@ -221,24 +168,6 @@ test('email: rejects consecutive dots, leading/trailing domain dots, spaces; acc
     assert.equal(isEmail(e), false, e);
     assert.ok(validateEnquiry({ ...validBody(), email: e }).errors.email, e);
   }
-});
-
-test('migration 0002: hardened submit_enquiry, strict email, \\r stripping, export cap, grants', () => {
-  const dir = path.join(__dirname, '..', 'supabase', 'migrations');
-  const sql = fs.readFileSync(path.join(dir, '0002_harden_submit.sql'), 'utf8');
-  assert.match(sql, /drop function if exists public\.submit_enquiry\(jsonb\)/);
-  assert.match(sql, /create or replace function public\.submit_enquiry\(p_secret text, p jsonb\)/);
-  assert.match(sql, /perform private\.assert_admin\(p_secret\)/);
-  assert.match(sql, /if v_ip = '' then\s+raise exception 'invalid_input' using errcode = '22023'/);
-  assert.ok(sql.includes('[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$'));
-  assert.match(sql, /strpos\(v_email, '\.\.'\) > 0/);
-  assert.match(sql, /\\x0B-\\x1F/, '\\r (0x0D) is inside the stripped range');
-  assert.match(sql, /limit 2000/);
-  assert.ok(!/limit 5000/.test(sql));
-  assert.match(sql, /revoke all on function public\.submit_enquiry\(text, jsonb\) from public, anon, authenticated/);
-  assert.match(sql, /grant execute on function public\.submit_enquiry\(text, jsonb\) to anon/);
-  assert.ok(!/app_secrets/i.test(sql), 'no secrets in the migration');
-  assert.ok(fs.readFileSync(path.join(dir, '0001_init.sql'), 'utf8').includes('submit_enquiry(p jsonb)'), '0001 left untouched');
 });
 
 // ---------------------------------------------------------------- routing
@@ -258,9 +187,9 @@ test('vercel.json page rewrite allows an optional trailing slash and keeps desti
 });
 
 // ---------------------------------------------------------------- fail closed through the handlers
-test('production without Supabase config: enquiry 503 (no memory fallback)', async () => {
+test('production without DATABASE_URL: enquiry 503 (no memory fallback)', async () => {
   const { resetStore } = require('../lib/store');
-  await quiet(() => withEnv({ NODE_ENV: 'production', VERCEL: '1', SUPABASE_URL: undefined, SUPABASE_ANON_KEY: undefined }, async () => {
+  await quiet(() => withEnv({ NODE_ENV: 'production', VERCEL: '1', DATABASE_URL: undefined }, async () => {
     resetStore();
     try {
       const res = mockRes();

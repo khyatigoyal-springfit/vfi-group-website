@@ -1,0 +1,2707 @@
+{
+ "sections": [
+  {
+   "key": "settings",
+   "label": "Settings & contact",
+   "description": "Company contact details, factory list and the main website menu. Used in the footer, the Contact page and the pop-out menu.",
+   "fields": [
+    {
+     "key": "url",
+     "label": "Website address",
+     "type": "url",
+     "help": "The public address of the site, e.g. https://www.vfigroup.org. Used for search engine links.",
+     "max": 300,
+     "required": true
+    },
+    {
+     "key": "updated",
+     "label": "Legal pages \"last updated\" date",
+     "type": "text",
+     "help": "Shown on the Privacy and Terms pages, e.g. 13 November 2026.",
+     "max": 60,
+     "required": true
+    },
+    {
+     "key": "contact",
+     "label": "Contact details",
+     "type": "object",
+     "help": "Shown on the Contact page and in the footer.",
+     "fields": [
+      {
+       "key": "office",
+       "label": "Corporate office",
+       "type": "object",
+       "fields": [
+        {
+         "key": "title",
+         "label": "Heading",
+         "type": "text",
+         "help": "Heading above the office details.",
+         "max": 80,
+         "required": true
+        },
+        {
+         "key": "address",
+         "label": "Address",
+         "type": "textarea",
+         "help": "One line per row. Press Enter for a new line.",
+         "max": 300
+        },
+        {
+         "key": "phone",
+         "label": "Phone number",
+         "type": "text",
+         "help": "Shown as a tap-to-call link.",
+         "max": 40
+        },
+        {
+         "key": "email",
+         "label": "Email address",
+         "type": "text",
+         "help": "Shown as a link, e.g. care@vfigroup.org.",
+         "max": 120
+        },
+        {
+         "key": "map",
+         "label": "Google Maps link",
+         "type": "url",
+         "help": "Link behind \"Open in Google Maps\". Leave empty to hide it.",
+         "max": 300
+        }
+       ]
+      },
+      {
+       "key": "sales",
+       "label": "Business enquiries",
+       "type": "object",
+       "fields": [
+        {
+         "key": "title",
+         "label": "Heading",
+         "type": "text",
+         "help": "Heading above these details.",
+         "max": 80,
+         "required": true
+        },
+        {
+         "key": "phone",
+         "label": "Phone number",
+         "type": "text",
+         "help": "Shown as a tap-to-call link.",
+         "max": 40
+        },
+        {
+         "key": "email",
+         "label": "Email address",
+         "type": "text",
+         "help": "Shown as a link.",
+         "max": 120
+        }
+       ]
+      },
+      {
+       "key": "careers",
+       "label": "Careers",
+       "type": "object",
+       "fields": [
+        {
+         "key": "title",
+         "label": "Heading",
+         "type": "text",
+         "help": "Heading above these details.",
+         "max": 80,
+         "required": true
+        },
+        {
+         "key": "email",
+         "label": "Email address",
+         "type": "text",
+         "help": "Also used for the \"Email ... or use the form\" line on the Careers page.",
+         "max": 120
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "key": "factories",
+     "label": "Manufacturing units",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Factory name",
+       "type": "text",
+       "help": "For example Haridwar.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "city",
+       "label": "State and start year",
+       "type": "text",
+       "help": "For example \"Uttarakhand · since 2007\".",
+       "max": 120
+      }
+     ],
+     "fields": "Factories listed on the Manufacturing and Contact pages."
+    },
+    {
+     "key": "presence",
+     "label": "Global presence",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Place",
+       "type": "text",
+       "help": "For example Dubai.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "text",
+       "help": "What happens there, e.g. \"Branch for global exports\".",
+       "max": 160
+      }
+     ],
+     "fields": "Branches and offices listed on the Contact and Partnerships pages."
+    },
+    {
+     "key": "menu",
+     "label": "Pop-out menu pages",
+     "type": "list",
+     "help": [
+      {
+       "key": "page",
+       "label": "Page",
+       "type": "select",
+       "help": "Which page this menu row opens.",
+       "options": [
+        "home",
+        "about",
+        "manufacturing",
+        "innovation",
+        "products",
+        "brands",
+        "partnerships",
+        "sustainability",
+        "careers",
+        "contact"
+       ],
+       "required": true
+      },
+      {
+       "key": "label",
+       "label": "Menu name",
+       "type": "text",
+       "help": "The name shown in the menu.",
+       "max": 60,
+       "required": true
+      },
+      {
+       "key": "image",
+       "label": "Preview image",
+       "type": "image",
+       "help": "Photo shown beside the menu when hovered.",
+       "required": true
+      },
+      {
+       "key": "blurb",
+       "label": "Preview sentence",
+       "type": "text",
+       "help": "One short line shown under the page name.",
+       "max": 160
+      }
+     ],
+     "fields": "The pages in the full-screen menu, in order. The image and sentence show when the page name is hovered."
+    }
+   ]
+  },
+  {
+   "key": "seo",
+   "label": "SEO",
+   "description": "The title and description search engines and social networks show for each page.",
+   "fields": [
+    {
+     "key": "404",
+     "label": "Page not found (404)",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "home",
+     "label": "Home page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "about",
+     "label": "About page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "manufacturing",
+     "label": "Manufacturing page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "innovation",
+     "label": "Innovation page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "products",
+     "label": "Products page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "brands",
+     "label": "Brands page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "partnerships",
+     "label": "Partnerships page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "sustainability",
+     "label": "Sustainability (CSR) page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "careers",
+     "label": "Careers page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "contact",
+     "label": "Contact page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "privacy",
+     "label": "Privacy policy page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "terms",
+     "label": "Terms and conditions page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    },
+    {
+     "key": "code-of-conduct",
+     "label": "Code of conduct page",
+     "type": "object",
+     "fields": [
+      {
+       "key": "title",
+       "label": "Browser tab title",
+       "type": "text",
+       "help": "Shown in the browser tab and in Google results. Keep under 60 characters.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Search result description",
+       "type": "textarea",
+       "help": "Shown under the title in Google results. Keep under 160 characters.",
+       "max": 300,
+       "required": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "hero",
+   "label": "Home hero",
+   "description": "The large slideshow at the top of the home page. The first slide is the main page heading; keep three or four slides.",
+   "fields": [
+    {
+     "key": "slides",
+     "label": "Slides",
+     "type": "list",
+     "help": [
+      {
+       "key": "kicker",
+       "label": "Small label",
+       "type": "text",
+       "help": "Short label above the heading, e.g. \"Our portfolio\".",
+       "max": 60
+      },
+      {
+       "key": "heading",
+       "label": "Heading",
+       "type": "text",
+       "help": "The big headline.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "text",
+       "label": "Supporting text",
+       "type": "textarea",
+       "help": "One or two sentences under the headline.",
+       "max": 300
+      },
+      {
+       "key": "image",
+       "label": "Background photo",
+       "type": "image",
+       "help": "Wide photo, at least 1600 px across. Upload a JPG or WebP.",
+       "required": true
+      },
+      {
+       "key": "imageNote",
+       "label": "Photo note",
+       "type": "text",
+       "help": "Small caption in the top-right corner (optional), e.g. \"Representative facility image\".",
+       "max": 80
+      },
+      {
+       "key": "imageFocus",
+       "label": "Photo cropping",
+       "type": "select",
+       "help": "Soft left crop keeps the left of the photo in view on phones and uses a dark fallback colour.",
+       "options": [
+        "Default",
+        "Soft left crop"
+       ]
+      },
+      {
+       "key": "tabLabel",
+       "label": "Progress bar label",
+       "type": "text",
+       "help": "Word shown under the slide progress bar, e.g. \"Global\".",
+       "max": 30,
+       "required": true
+      },
+      {
+       "key": "primaryLabel",
+       "label": "Main button text",
+       "type": "text",
+       "help": "Text on the filled button.",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "primaryLink",
+       "label": "Main button action",
+       "type": "select",
+       "help": "What happens when the main button is pressed.",
+       "options": [
+        "Open enquiry form",
+        "Open enquiry form (International)",
+        "Open enquiry form (Retail partnership)",
+        "Open enquiry form (Hospitality)",
+        "Open enquiry form (OEM manufacturing)",
+        "Open enquiry form (Private label)",
+        "Open enquiry form (Foam supply)",
+        "Scroll to Overview",
+        "Scroll to Scale",
+        "Scroll to Capabilities",
+        "Scroll to Portfolio",
+        "Scroll to Solutions",
+        "Scroll to Brands",
+        "Scroll to Partnerships",
+        "Scroll to Awards",
+        "Go to Home page",
+        "Go to About page",
+        "Go to Manufacturing page",
+        "Go to Innovation page",
+        "Go to Products page",
+        "Go to Brands page",
+        "Go to Partnerships page",
+        "Go to Sustainability page",
+        "Go to Careers page",
+        "Go to Contact page"
+       ],
+       "required": true
+      },
+      {
+       "key": "secondaryLabel",
+       "label": "Second button text",
+       "type": "text",
+       "help": "Text on the outlined button.",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "secondaryLink",
+       "label": "Second button action",
+       "type": "select",
+       "help": "What happens when the second button is pressed.",
+       "options": [
+        "Open enquiry form",
+        "Open enquiry form (International)",
+        "Open enquiry form (Retail partnership)",
+        "Open enquiry form (Hospitality)",
+        "Open enquiry form (OEM manufacturing)",
+        "Open enquiry form (Private label)",
+        "Open enquiry form (Foam supply)",
+        "Scroll to Overview",
+        "Scroll to Scale",
+        "Scroll to Capabilities",
+        "Scroll to Portfolio",
+        "Scroll to Solutions",
+        "Scroll to Brands",
+        "Scroll to Partnerships",
+        "Scroll to Awards",
+        "Go to Home page",
+        "Go to About page",
+        "Go to Manufacturing page",
+        "Go to Innovation page",
+        "Go to Products page",
+        "Go to Brands page",
+        "Go to Partnerships page",
+        "Go to Sustainability page",
+        "Go to Careers page",
+        "Go to Contact page"
+       ],
+       "required": true
+      }
+     ],
+     "fields": "Add, remove or reorder slides."
+    }
+   ]
+  },
+  {
+   "key": "scale",
+   "label": "Scale figures",
+   "description": "The big counting numbers, the short fact boxes and the highlight chips on the home page.",
+   "fields": [
+    {
+     "key": "figures",
+     "label": "Counting figures",
+     "type": "list",
+     "help": [
+      {
+       "key": "value",
+       "label": "Number",
+       "type": "number",
+       "help": "Whole number only, no commas, e.g. 50000.",
+       "required": true
+      },
+      {
+       "key": "suffix",
+       "label": "Symbol after the number",
+       "type": "text",
+       "help": "For example + . Leave empty for none.",
+       "max": 3
+      },
+      {
+       "key": "label",
+       "label": "Label",
+       "type": "text",
+       "help": "What the number counts, e.g. \"Mattresses a month\".",
+       "max": 60,
+       "required": true
+      },
+      {
+       "key": "numberStyle",
+       "label": "Number format",
+       "type": "select",
+       "help": "Thousands separators shows 50000 as 50,000.",
+       "options": [
+        "Plain",
+        "Thousands separators"
+       ],
+       "required": true
+      }
+     ],
+     "fields": "The animated numbers in \"Built big. Built to last.\"."
+    },
+    {
+     "key": "keyFacts",
+     "label": "Fact boxes",
+     "type": "list",
+     "help": [
+      {
+       "key": "value",
+       "label": "Figure",
+       "type": "text",
+       "help": "For example 30+.",
+       "max": 20,
+       "required": true
+      },
+      {
+       "key": "label",
+       "label": "Label",
+       "type": "text",
+       "help": "Short caption.",
+       "max": 60,
+       "required": true
+      }
+     ],
+     "fields": "The three short facts beside \"We are the true bedmakers.\"."
+    },
+    {
+     "key": "highlights",
+     "label": "Highlight chips",
+     "type": "stringList",
+     "help": "The small tags under the figures, one per line.",
+     "max": 100
+    }
+   ]
+  },
+  {
+   "key": "portfolio",
+   "label": "Portfolio",
+   "description": "The portfolio cards and logo strip on the home and Products pages.",
+   "fields": [
+    {
+     "key": "categories",
+     "label": "Portfolio cards",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Card title",
+       "type": "text",
+       "help": "For example Premium mattresses.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Card description",
+       "type": "textarea",
+       "help": "Two or three sentences.",
+       "max": 400,
+       "required": true
+      },
+      {
+       "key": "tags",
+       "label": "Tags",
+       "type": "stringList",
+       "help": "Short chips at the bottom of the card.",
+       "max": 60
+      }
+     ],
+     "fields": "One card per product area."
+    },
+    {
+     "key": "logos",
+     "label": "Brand logo strip",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Brand name",
+       "type": "text",
+       "help": "Used as the logo description for screen readers and to find the brand link.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "image",
+       "label": "Logo",
+       "type": "image",
+       "help": "Upload a transparent PNG logo.",
+       "required": true
+      }
+     ],
+     "fields": "Logos shown under the cards. A logo links to the brand website when the brand below has the same logo or name."
+    }
+   ]
+  },
+  {
+   "key": "brands",
+   "label": "Brands",
+   "description": "Every VFI Group brand: tiles on the home and Brands pages, the brand sections, and the footer links.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Brands",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Brand name",
+       "type": "text",
+       "help": "Main name, e.g. Simmons.",
+       "max": 60,
+       "required": true
+      },
+      {
+       "key": "suffix",
+       "label": "Name suffix",
+       "type": "text",
+       "help": "Second part of the name, e.g. Beautyrest. Leave empty if none.",
+       "max": 40
+      },
+      {
+       "key": "tagline",
+       "label": "Tagline",
+       "type": "text",
+       "help": "Shown on the brand tile and under the logo.",
+       "max": 120
+      },
+      {
+       "key": "since",
+       "label": "Since line",
+       "type": "text",
+       "help": "For example \"Launched by VFI in 2009\". Shown on the tile.",
+       "max": 80
+      },
+      {
+       "key": "logo",
+       "label": "Logo",
+       "type": "image",
+       "help": "Upload a transparent PNG logo. Leave empty to show the brand name as text."
+      },
+      {
+       "key": "url",
+       "label": "Brand website",
+       "type": "url",
+       "help": "Full address starting with https://. Leave empty if the brand has no website.",
+       "max": 300
+      },
+      {
+       "key": "image",
+       "label": "Brand photo",
+       "type": "image",
+       "help": "Photo for the Brands page section. Leave empty to skip the section."
+      },
+      {
+       "key": "imageShape",
+       "label": "Photo shape",
+       "type": "select",
+       "help": "Square suits product shots, wide suits room scenes.",
+       "options": [
+        "Wide",
+        "Square"
+       ]
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "Two or three sentences about the brand.",
+       "max": 800,
+       "required": true
+      },
+      {
+       "key": "collections",
+       "label": "Collections",
+       "type": "stringList",
+       "help": "Product ranges shown as chips, one per line.",
+       "max": 60
+      }
+     ],
+     "fields": "Add, remove or reorder brands. A brand needs a photo to get its own section on the Brands page."
+    }
+   ]
+  },
+  {
+   "key": "capabilities",
+   "label": "Capabilities",
+   "description": "The scrolling manufacturing capability cards on the home and Manufacturing pages. Cards are grouped by the \"Group\" tab.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Capability cards",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "For example Pocket springs.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "group",
+       "label": "Group",
+       "type": "text",
+       "help": "Cards with the same group appear under the same filter tab, e.g. Materials.",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One or two sentences.",
+       "max": 400,
+       "required": true
+      },
+      {
+       "key": "image",
+       "label": "Photo",
+       "type": "image",
+       "help": "Photo about 4:3, at least 800 px across.",
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "technologies",
+   "label": "Technologies",
+   "description": "Technology write-ups on the Innovation page and the certification chips on the home page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Technology write-ups",
+     "type": "list",
+     "help": [
+      {
+       "key": "label",
+       "label": "Short name",
+       "type": "text",
+       "help": "For example CertiPUR-US.",
+       "max": 60,
+       "required": true
+      },
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "For example Certified foams.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "A short paragraph.",
+       "max": 700,
+       "required": true
+      },
+      {
+       "key": "image",
+       "label": "Photo",
+       "type": "image",
+       "help": "Square-ish photo, at least 960 px across.",
+       "required": true
+      }
+     ],
+     "fields": "Shown in order, alternating photo left and right."
+    },
+    {
+     "key": "badges",
+     "label": "Certification chips",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Name",
+       "type": "text",
+       "help": "For example CertiGuard.",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Tooltip",
+       "type": "text",
+       "help": "Shown when hovering the chip.",
+       "max": 100
+      },
+      {
+       "key": "icon",
+       "label": "Icon",
+       "type": "image",
+       "help": "Small square icon (optional)."
+      }
+     ],
+     "fields": "The small chips under \"Material science\" on the home page."
+    }
+   ]
+  },
+  {
+   "key": "foam",
+   "label": "Foam",
+   "description": "The foam capability list on the Manufacturing page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Foam capabilities",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "For example Latex.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One or two sentences.",
+       "max": 400,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "solutions",
+   "label": "Solutions",
+   "description": "The tabbed \"Products and solutions\" panel and the product category blocks on the Products page.",
+   "fields": [
+    {
+     "key": "tabs",
+     "label": "Solution tabs",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Tab name",
+       "type": "text",
+       "help": "Shown on the tab, e.g. Hospitality.",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "intro",
+       "label": "Intro",
+       "type": "textarea",
+       "help": "One or two sentences.",
+       "max": 400,
+       "required": true
+      },
+      {
+       "key": "enquiryType",
+       "label": "Enquiry type",
+       "type": "select",
+       "help": [
+        "Retail partnership",
+        "Hospitality",
+        "OEM manufacturing",
+        "Private label",
+        "Foam supply",
+        "International",
+        "Careers",
+        "Other"
+       ],
+       "options": "Pre-selects this type when the enquiry button is pressed.",
+       "required": true
+      },
+      {
+       "key": "items",
+       "label": "Bullet points",
+       "type": "list",
+       "help": [
+        {
+         "key": "title",
+         "label": "Title",
+         "type": "text",
+         "help": "Short heading.",
+         "max": 120,
+         "required": true
+        },
+        {
+         "key": "description",
+         "label": "Description",
+         "type": "textarea",
+         "help": "One sentence.",
+         "max": 300,
+         "required": true
+        }
+       ],
+       "fields": ""
+      }
+     ],
+     "fields": "Each tab has an intro, three bullet points and an enquiry button."
+    },
+    {
+     "key": "categories",
+     "label": "Product categories",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "For example Foam mattresses.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": "The four blocks at the top of the Products page."
+    }
+   ]
+  },
+  {
+   "key": "routes",
+   "label": "Partnership routes",
+   "description": "The \"ways to partner\" buttons on the home and Partnerships pages.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Routes",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "Must match an enquiry type.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": "Each one opens the enquiry form with the same type selected, so the title must match an enquiry type (Retail partnership, Hospitality, OEM manufacturing, Private label, Foam supply, International)."
+    }
+   ]
+  },
+  {
+   "key": "retail",
+   "label": "Retail partners",
+   "description": "Logos of retailers that sell VFI products.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Retailers",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Retailer name",
+       "type": "text",
+       "help": "",
+       "max": 60,
+       "required": true
+      },
+      {
+       "key": "logo",
+       "label": "Logo",
+       "type": "image",
+       "help": "Upload a transparent PNG logo.",
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "hotels",
+   "label": "Hotels",
+   "description": "Hotel properties supplied by VFI.",
+   "fields": [
+    {
+     "key": "names",
+     "label": "Hotel names",
+     "type": "stringList",
+     "help": "One hotel per line.",
+     "max": 80
+    }
+   ]
+  },
+  {
+   "key": "markets",
+   "label": "Export markets",
+   "description": "Countries VFI exports to, shown on the Partnerships page.",
+   "fields": [
+    {
+     "key": "names",
+     "label": "Countries",
+     "type": "stringList",
+     "help": "One country per line.",
+     "max": 60
+    }
+   ]
+  },
+  {
+   "key": "awards",
+   "label": "Awards",
+   "description": "Award logos on the home page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Awards",
+     "type": "list",
+     "help": [
+      {
+       "key": "name",
+       "label": "Award name",
+       "type": "text",
+       "help": "Also used as the picture description.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "image",
+       "label": "Award logo",
+       "type": "image",
+       "help": "Upload a PNG image.",
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "timeline",
+   "label": "About: timeline",
+   "description": "The company journey on the About page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Milestones",
+     "type": "list",
+     "help": [
+      {
+       "key": "year",
+       "label": "Year",
+       "type": "text",
+       "help": "For example 2021, or \"30+ years ago\".",
+       "max": 30,
+       "required": true
+      },
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "Short heading.",
+       "max": 80,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One or two sentences.",
+       "max": 400,
+       "required": true
+      }
+     ],
+     "fields": "Shown in order, oldest first."
+    }
+   ]
+  },
+  {
+   "key": "values",
+   "label": "About: values",
+   "description": "The four values on the About page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Values",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Value",
+       "type": "text",
+       "help": "One word, e.g. Quality.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "whatWeDo",
+   "label": "About: what we do",
+   "description": "The \"What we do\" blocks on the About page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Blocks",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "Short heading.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "glance",
+   "label": "About: at a glance",
+   "description": "The key-figure list on the About page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Figures",
+     "type": "list",
+     "help": [
+      {
+       "key": "value",
+       "label": "Figure",
+       "type": "text",
+       "help": "For example 50,000 or \"Fastest growing\".",
+       "max": 40,
+       "required": true
+      },
+      {
+       "key": "label",
+       "label": "Caption",
+       "type": "text",
+       "help": "For example \"mattresses a month capacity\".",
+       "max": 80,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "csr",
+   "label": "CSR focus areas",
+   "description": "The six focus areas of the CSR programme on the Sustainability page.",
+   "fields": [
+    {
+     "key": "items",
+     "label": "Focus areas",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Title",
+       "type": "text",
+       "help": "Short heading.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "Two sentences.",
+       "max": 600,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "conduct",
+   "label": "Code of conduct",
+   "description": "The groups of principles on the Code of conduct page.",
+   "fields": [
+    {
+     "key": "groups",
+     "label": "Groups",
+     "type": "list",
+     "help": [
+      {
+       "key": "heading",
+       "label": "Group heading",
+       "type": "text",
+       "help": "For example Our customers.",
+       "max": 100,
+       "required": true
+      },
+      {
+       "key": "items",
+       "label": "Principles",
+       "type": "list",
+       "help": [
+        {
+         "key": "title",
+         "label": "Title",
+         "type": "text",
+         "help": "Short heading.",
+         "max": 120,
+         "required": true
+        },
+        {
+         "key": "description",
+         "label": "Description",
+         "type": "textarea",
+         "help": "One or two sentences.",
+         "max": 600,
+         "required": true
+        }
+       ],
+       "fields": ""
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "careers",
+   "label": "Careers",
+   "description": "Role areas listed on the Careers page.",
+   "fields": [
+    {
+     "key": "roles",
+     "label": "Role areas",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Area",
+       "type": "text",
+       "help": "For example Engineering.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": "Each has a \"Send résumé\" button that starts an enquiry for that area."
+    }
+   ]
+  },
+  {
+   "key": "process",
+   "label": "Process",
+   "description": "The \"How a mattress is made\" steps on the Manufacturing page. Steps are numbered automatically.",
+   "fields": [
+    {
+     "key": "steps",
+     "label": "Steps",
+     "type": "list",
+     "help": [
+      {
+       "key": "title",
+       "label": "Step name",
+       "type": "text",
+       "help": "For example Assembly.",
+       "max": 120,
+       "required": true
+      },
+      {
+       "key": "description",
+       "label": "Description",
+       "type": "textarea",
+       "help": "One sentence.",
+       "max": 300,
+       "required": true
+      }
+     ],
+     "fields": ""
+    }
+   ]
+  },
+  {
+   "key": "texts",
+   "label": "Page texts",
+   "description": "Headings, intros and paragraphs written directly on the pages. Leave a box empty to keep the original wording. Boxes are grouped by page.",
+   "fields": [
+    {
+     "key": "home.overview.heading",
+     "label": "Home · Overview · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.overview.intro",
+     "label": "Home · Overview · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.scale.kicker",
+     "label": "Home · Scale · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.scale.heading",
+     "label": "Home · Scale · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.story.kicker",
+     "label": "Home · Story · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.story.heading",
+     "label": "Home · Story · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.story.text",
+     "label": "Home · Story · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.story.link",
+     "label": "Home · Story · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.capabilities.kicker",
+     "label": "Home · Capabilities · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.capabilities.heading",
+     "label": "Home · Capabilities · Heading",
+     "type": "text",
+     "help": "Press Enter to start a new line. Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.capabilities.link",
+     "label": "Home · Capabilities · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.portfolio.kicker",
+     "label": "Home · Portfolio · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.portfolio.heading",
+     "label": "Home · Portfolio · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.portfolio.intro",
+     "label": "Home · Portfolio · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.portfolio.link",
+     "label": "Home · Portfolio · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.pills.1.title",
+     "label": "Home · Pills · 1 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.pills.1.text",
+     "label": "Home · Pills · 1 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.pills.2.title",
+     "label": "Home · Pills · 2 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.pills.2.text",
+     "label": "Home · Pills · 2 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.pills.3.title",
+     "label": "Home · Pills · 3 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.pills.3.text",
+     "label": "Home · Pills · 3 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.pills.4.title",
+     "label": "Home · Pills · 4 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.pills.4.text",
+     "label": "Home · Pills · 4 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.certs.label",
+     "label": "Home · Certs · Label",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.solutions.kicker",
+     "label": "Home · Solutions · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.solutions.heading",
+     "label": "Home · Solutions · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.solutions.link",
+     "label": "Home · Solutions · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.brands.kicker",
+     "label": "Home · Brands · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.brands.heading",
+     "label": "Home · Brands · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.brands.link",
+     "label": "Home · Brands · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.partners.kicker",
+     "label": "Home · Partners · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.partners.heading",
+     "label": "Home · Partners · Heading",
+     "type": "text",
+     "help": "Press Enter to start a new line. Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.partners.retailHeading",
+     "label": "Home · Partners · Retail heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.partners.hotelsHeading",
+     "label": "Home · Partners · Hotels heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.partners.hotelsIntro",
+     "label": "Home · Partners · Hotels intro",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.awards.heading",
+     "label": "Home · Awards · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.awards.intro",
+     "label": "Home · Awards · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.heading",
+     "label": "Home · People · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.people.intro",
+     "label": "Home · People · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.1.title",
+     "label": "Home · People · 1 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.people.1.text",
+     "label": "Home · People · 1 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.2.title",
+     "label": "Home · People · 2 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.people.2.text",
+     "label": "Home · People · 2 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.3.title",
+     "label": "Home · People · 3 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.people.3.text",
+     "label": "Home · People · 3 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.4.title",
+     "label": "Home · People · 4 · Title",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.people.4.text",
+     "label": "Home · People · 4 · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.people.link",
+     "label": "Home · People · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.cta.heading",
+     "label": "Home · Cta · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.cta.text",
+     "label": "Home · Cta · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "home.cta.primary",
+     "label": "Home · Cta · Main button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "home.cta.secondary",
+     "label": "Home · Cta · Second button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.hero.kicker",
+     "label": "About · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.hero.heading",
+     "label": "About · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.hero.intro",
+     "label": "About · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "about.history.kicker",
+     "label": "About · History · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.history.heading",
+     "label": "About · History · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.history.quote1",
+     "label": "About · History · First quote",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "about.history.cite1",
+     "label": "About · History · First quote, name",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.history.quote2",
+     "label": "About · History · Second quote",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "about.history.cite2",
+     "label": "About · History · Second quote, name",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.timeline.kicker",
+     "label": "About · Timeline · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.timeline.heading",
+     "label": "About · Timeline · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.mission.kicker",
+     "label": "About · Mission · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.mission.heading",
+     "label": "About · Mission · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.mission.text",
+     "label": "About · Mission · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "about.whatwedo.kicker",
+     "label": "About · Whatwedo · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.whatwedo.heading",
+     "label": "About · Whatwedo · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.values.kicker",
+     "label": "About · Values · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.values.heading",
+     "label": "About · Values · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.glance.kicker",
+     "label": "About · Glance · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.glance.heading",
+     "label": "About · Glance · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "about.glance.text",
+     "label": "About · Glance · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "manufacturing.hero.kicker",
+     "label": "Manufacturing · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.hero.heading",
+     "label": "Manufacturing · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.hero.intro",
+     "label": "Manufacturing · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "manufacturing.foam.kicker",
+     "label": "Manufacturing · Foam · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.foam.heading",
+     "label": "Manufacturing · Foam · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.foam.intro",
+     "label": "Manufacturing · Foam · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "manufacturing.foam.primary",
+     "label": "Manufacturing · Foam · Main button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.foam.secondary",
+     "label": "Manufacturing · Foam · Second button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.factories.kicker",
+     "label": "Manufacturing · Factories · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.factories.heading",
+     "label": "Manufacturing · Factories · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.process.kicker",
+     "label": "Manufacturing · Process · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "manufacturing.process.heading",
+     "label": "Manufacturing · Process · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "innovation.hero.kicker",
+     "label": "Innovation · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "innovation.hero.heading",
+     "label": "Innovation · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "innovation.hero.intro",
+     "label": "Innovation · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "innovation.tech.kicker",
+     "label": "Innovation · Tech · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "innovation.tech.heading",
+     "label": "Innovation · Tech · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "products.hero.kicker",
+     "label": "Products · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "products.hero.heading",
+     "label": "Products · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "products.hero.intro",
+     "label": "Products · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "products.portfolio.kicker",
+     "label": "Products · Portfolio · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "products.portfolio.heading",
+     "label": "Products · Portfolio · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "products.portfolio.text",
+     "label": "Products · Portfolio · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "products.portfolio.link",
+     "label": "Products · Portfolio · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "brands.hero.kicker",
+     "label": "Brands · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "brands.hero.heading",
+     "label": "Brands · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "brands.hero.intro",
+     "label": "Brands · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "brands.architecture.kicker",
+     "label": "Brands · Architecture · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.hero.kicker",
+     "label": "Partnerships · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.hero.heading",
+     "label": "Partnerships · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.hero.intro",
+     "label": "Partnerships · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "partnerships.retail.heading",
+     "label": "Partnerships · Retail · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.hotels.heading",
+     "label": "Partnerships · Hotels · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.hotels.intro",
+     "label": "Partnerships · Hotels · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "partnerships.footprint.kicker",
+     "label": "Partnerships · Footprint · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.footprint.heading",
+     "label": "Partnerships · Footprint · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "partnerships.footprint.text",
+     "label": "Partnerships · Footprint · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "sustainability.hero.kicker",
+     "label": "Sustainability · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "sustainability.hero.heading",
+     "label": "Sustainability · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "sustainability.hero.intro",
+     "label": "Sustainability · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "sustainability.focus.heading",
+     "label": "Sustainability · Focus · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "sustainability.focus.intro",
+     "label": "Sustainability · Focus · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "sustainability.focus.link",
+     "label": "Sustainability · Focus · Link text",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "careers.hero.kicker",
+     "label": "Careers · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "careers.hero.heading",
+     "label": "Careers · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "careers.hero.intro",
+     "label": "Careers · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "careers.roles.heading",
+     "label": "Careers · Roles · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "contact.hero.kicker",
+     "label": "Contact · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "contact.hero.heading",
+     "label": "Contact · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "contact.hero.intro",
+     "label": "Contact · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.hero.kicker",
+     "label": "Privacy policy · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.hero.heading",
+     "label": "Privacy policy · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.hero.intro",
+     "label": "Privacy policy · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.collect.heading",
+     "label": "Privacy policy · Collect · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.collect.text",
+     "label": "Privacy policy · Collect · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.use.heading",
+     "label": "Privacy policy · Use · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.use.text",
+     "label": "Privacy policy · Use · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.sharing.heading",
+     "label": "Privacy policy · Sharing · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.sharing.text",
+     "label": "Privacy policy · Sharing · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.retention.heading",
+     "label": "Privacy policy · Retention · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "privacy.retention.text",
+     "label": "Privacy policy · Retention · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "privacy.choices.heading",
+     "label": "Privacy policy · Choices · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.hero.kicker",
+     "label": "Terms · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.hero.heading",
+     "label": "Terms · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.hero.intro",
+     "label": "Terms · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "terms.use.heading",
+     "label": "Terms · Use · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.use.text",
+     "label": "Terms · Use · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "terms.info.heading",
+     "label": "Terms · Info · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.info.text",
+     "label": "Terms · Info · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "terms.ip.heading",
+     "label": "Terms · Ip · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.ip.text",
+     "label": "Terms · Ip · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "terms.liability.heading",
+     "label": "Terms · Liability · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "terms.liability.text",
+     "label": "Terms · Liability · Text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "conduct.hero.kicker",
+     "label": "Code of conduct · Hero · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "conduct.hero.heading",
+     "label": "Code of conduct · Hero · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "conduct.hero.intro",
+     "label": "Code of conduct · Hero · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "notfound.kicker",
+     "label": "Page not found · Small label above heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "notfound.heading",
+     "label": "Page not found · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "notfound.intro",
+     "label": "Page not found · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "notfound.primary",
+     "label": "Page not found · Main button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "notfound.secondary",
+     "label": "Page not found · Second button",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "footer.about",
+     "label": "Footer · About paragraph",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    },
+    {
+     "key": "footer.companyHeading",
+     "label": "Footer · Company column heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "footer.capabilitiesHeading",
+     "label": "Footer · Capabilities column heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "footer.businessHeading",
+     "label": "Footer · Business column heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "footer.brandsHeading",
+     "label": "Footer · Brands column heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "drawer.heading",
+     "label": "Enquiry panel · Heading",
+     "type": "text",
+     "help": "Leave empty to keep the original wording.",
+     "max": 300
+    },
+    {
+     "key": "drawer.intro",
+     "label": "Enquiry panel · Intro text",
+     "type": "textarea",
+     "help": "Leave empty to keep the original wording.",
+     "max": 1500
+    }
+   ]
+  }
+ ]
+}

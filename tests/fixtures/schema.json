@@ -1,0 +1,37 @@
+{
+  "sections": [
+    { "key": "settings", "label": "Settings", "description": "Site settings", "fields": [
+      { "key": "siteName", "label": "Site name", "type": "text", "required": true, "max": 60 },
+      { "key": "website", "label": "Website", "type": "url", "required": true },
+      { "key": "phone", "label": "Phone", "type": "text", "max": 30 },
+      { "key": "tagline", "label": "Tagline", "type": "textarea", "max": 300 }
+    ] },
+    { "key": "hero", "label": "Hero", "description": "Slides", "type": "list", "fields": [
+      { "key": "heading", "label": "Heading", "type": "text", "required": true, "max": 80 },
+      { "key": "sub", "label": "Sub", "type": "textarea", "max": 200 },
+      { "key": "image", "label": "Image", "type": "image", "required": true },
+      { "key": "cta", "label": "Button", "type": "object", "fields": [
+        { "key": "label", "label": "Label", "type": "text", "max": 30 },
+        { "key": "href", "label": "Link", "type": "url" }
+      ] },
+      { "key": "tier", "label": "Tier", "type": "select", "options": ["a", "b", { "value": "c", "label": "See" }] }
+    ] },
+    { "key": "brands", "label": "Brands", "description": "Brands", "type": "list", "fields": [
+      { "key": "name", "label": "Name", "type": "text", "required": true, "max": 40 },
+      { "key": "logo", "label": "Logo", "type": "image" },
+      { "key": "url", "label": "Website", "type": "url" },
+      { "key": "description", "label": "Description", "type": "textarea", "max": 200 },
+      { "key": "tags", "label": "Tags", "type": "stringList", "max": 20 }
+    ] },
+    { "key": "scale", "label": "Scale", "description": "Figures", "fields": [
+      { "key": "figures", "label": "Figures", "type": "list", "required": true, "fields": [
+        { "key": "value", "label": "Value", "type": "number", "required": true, "min": 0, "max": 100000 },
+        { "key": "label", "label": "Label", "type": "text", "required": true, "max": 40 }
+      ] }
+    ] },
+    { "key": "texts", "label": "Texts", "description": "Headings", "fields": [
+      { "key": "home.title", "label": "Home title", "type": "text", "max": 100 },
+      { "key": "about.intro", "label": "About intro", "type": "textarea", "max": 400 }
+    ] }
+  ]
+}

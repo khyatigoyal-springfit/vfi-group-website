@@ -1,0 +1,1363 @@
+{
+ "settings": {
+  "url": "https://www.vfigroup.org",
+  "updated": "13 November 2026",
+  "contact": {
+   "office": {
+    "title": "Corporate office",
+    "address": "Varahamurti Flexirub Industries Pvt. Ltd.\n401, K. M. Trade Tower (Hotel Radisson Blu)\nSector 14, Kaushambi\nGhaziabad, Uttar Pradesh 201010",
+    "phone": "+91 95993 37712",
+    "email": "care@vfigroup.org",
+    "map": "https://www.google.com/maps/search/?api=1&query=K.+M.+Trade+Tower+Kaushambi+Ghaziabad+201010"
+   },
+   "sales": {
+    "title": "Business enquiries",
+    "phone": "+91 80101 61016",
+    "email": "info@vfigroup.org"
+   },
+   "careers": {
+    "title": "Careers",
+    "email": "info@vfigroup.org"
+   }
+  },
+  "factories": [
+   {
+    "name": "Haridwar",
+    "city": "Uttarakhand · since 2007"
+   },
+   {
+    "name": "Coimbatore",
+    "city": "Tamil Nadu · since 2016"
+   },
+   {
+    "name": "Meerut",
+    "city": "Uttar Pradesh · since 2020"
+   },
+   {
+    "name": "Vadodara",
+    "city": "Gujarat · since 2020"
+   }
+  ],
+  "presence": [
+   {
+    "name": "India",
+    "description": "Corporate office and six manufacturing units"
+   },
+   {
+    "name": "Dubai",
+    "description": "Branch for global exports"
+   },
+   {
+    "name": "USA",
+    "description": "Branch for global exports"
+   }
+  ],
+  "menu": [
+   {
+    "page": "home",
+    "label": "Home",
+    "image": "/assets/img/story/craft-hand.jpg",
+    "blurb": "The science of comfort. The art of manufacturing."
+   },
+   {
+    "page": "about",
+    "label": "About VFI",
+    "image": "/assets/img/story/craft-thread.jpg",
+    "blurb": "Our journey, mission and values."
+   },
+   {
+    "page": "manufacturing",
+    "label": "Manufacturing",
+    "image": "/assets/img/story/craft-machine.jpg",
+    "blurb": "Foam, springs and finished mattresses, made in-house."
+   },
+   {
+    "page": "innovation",
+    "label": "Innovation and quality",
+    "image": "/assets/img/tech/aerosleep.jpg",
+    "blurb": "Material science and testing behind everything we make."
+   },
+   {
+    "page": "products",
+    "label": "Products and solutions",
+    "image": "/assets/img/story/springfit-life.jpg",
+    "blurb": "For retail, hospitality, OEM and private label."
+   },
+   {
+    "page": "brands",
+    "label": "Our brands",
+    "image": "/assets/img/story/serta-life.jpg",
+    "blurb": "A portfolio built around comfort."
+   },
+   {
+    "page": "partnerships",
+    "label": "Global partnerships",
+    "image": "/assets/img/story/global-footprint.jpg",
+    "blurb": "How we work with businesses worldwide."
+   },
+   {
+    "page": "sustainability",
+    "label": "CSR policy",
+    "image": "/assets/img/story/csr-banner.jpg",
+    "blurb": "People, community and environment."
+   },
+   {
+    "page": "careers",
+    "label": "Careers",
+    "image": "/assets/img/story/craft-hand.jpg",
+    "blurb": "Join more than 1,100 people."
+   },
+   {
+    "page": "contact",
+    "label": "Contact",
+    "image": "/assets/img/story/beautyrest-life.jpg",
+    "blurb": "Start a conversation with our team."
+   }
+  ]
+ },
+ "seo": {
+  "404": {
+   "title": "Page Not Found | VFI Group",
+   "description": "Page not found."
+  },
+  "home": {
+   "title": "VFI Group | The Science of Comfort. The Art of Manufacturing.",
+   "description": "VFI Group makes mattresses, foam and soft furnishings: six factories, 50,000+ mattresses a month, eight brands and exports to 12 markets."
+  },
+  "about": {
+   "title": "About VFI | VFI Group",
+   "description": "Thirty years of comfort manufacturing: the journey, vision and values of VFI Group."
+  },
+  "manufacturing": {
+   "title": "Manufacturing | VFI Group",
+   "description": "Six smart factories producing foam, Bonnell and pocket springs and finished mattresses in-house."
+  },
+  "innovation": {
+   "title": "Innovation and Quality | VFI Group",
+   "description": "Material science, spring engineering and testing behind everything VFI makes."
+  },
+  "products": {
+   "title": "Products and Solutions | VFI Group",
+   "description": "Mattresses, foam, spring systems and soft furnishings for retail, hospitality, OEM and private label."
+  },
+  "brands": {
+   "title": "Our Brands | VFI Group",
+   "description": "The VFI Group brand portfolio: Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag sofa foam."
+  },
+  "partnerships": {
+   "title": "Global Partnerships | VFI Group",
+   "description": "Retail, hospitality, OEM, private-label and international manufacturing partnerships."
+  },
+  "sustainability": {
+   "title": "Sustainability | VFI Group",
+   "description": "How VFI Group looks after its people, communities and environment."
+  },
+  "careers": {
+   "title": "Careers | VFI Group",
+   "description": "Careers in production, engineering, quality and business at VFI Group."
+  },
+  "contact": {
+   "title": "Contact | VFI Group",
+   "description": "Contact VFI Group about retail, hospitality, OEM, private-label or international manufacturing."
+  },
+  "privacy": {
+   "title": "Privacy Policy | VFI Group",
+   "description": "How VFI Group handles information sent through the website enquiry forms, including data use, sharing, retention and your choices."
+  },
+  "terms": {
+   "title": "Terms and Conditions | VFI Group",
+   "description": "Terms of use for the VFI Group website: information-only content, intellectual property, governed by Indian law."
+  },
+  "code-of-conduct": {
+   "title": "Code of Conduct | VFI Group",
+   "description": "The VFI Group code of conduct for employees, suppliers and partners."
+  }
+ },
+ "hero": {
+  "slides": [
+   {
+    "kicker": "VFI Group",
+    "heading": "The science of comfort. The art of manufacturing.",
+    "text": "Advanced manufacturing, material innovation and more than thirty years of expertise, building comfort for businesses around the world.",
+    "image": "/assets/img/factory.jpg",
+    "imageNote": "Representative facility image",
+    "imageFocus": "Default",
+    "tabLabel": "Manufacturing",
+    "primaryLabel": "Explore VFI",
+    "primaryLink": "Scroll to Overview",
+    "secondaryLabel": "Partner with us",
+    "secondaryLink": "Open enquiry form"
+   },
+   {
+    "kicker": "Our portfolio",
+    "heading": "One group. Eight brands.",
+    "text": "Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag, made and marketed by VFI Group.",
+    "image": "/assets/img/story/beautyrest-life.jpg",
+    "imageNote": "",
+    "imageFocus": "Soft left crop",
+    "tabLabel": "Portfolio",
+    "primaryLabel": "See the portfolio",
+    "primaryLink": "Scroll to Portfolio",
+    "secondaryLabel": "Explore brands",
+    "secondaryLink": "Go to Brands page"
+   },
+   {
+    "kicker": "Global reach",
+    "heading": "From India to the world.",
+    "text": "Twelve export markets, served through our branches in Dubai and the USA.",
+    "image": "/assets/img/story/craft-machine.jpg",
+    "imageNote": "",
+    "imageFocus": "Default",
+    "tabLabel": "Global",
+    "primaryLabel": "Global partnerships",
+    "primaryLink": "Go to Partnerships page",
+    "secondaryLabel": "Partner with us",
+    "secondaryLink": "Open enquiry form (International)"
+   }
+  ]
+ },
+ "scale": {
+  "figures": [
+   {
+    "value": 30,
+    "suffix": "+",
+    "label": "Years of experience",
+    "numberStyle": "Plain"
+   },
+   {
+    "value": 6,
+    "suffix": "",
+    "label": "Smart factories",
+    "numberStyle": "Plain"
+   },
+   {
+    "value": 1100,
+    "suffix": "+",
+    "label": "People",
+    "numberStyle": "Thousands separators"
+   },
+   {
+    "value": 50000,
+    "suffix": "+",
+    "label": "Mattresses a month",
+    "numberStyle": "Thousands separators"
+   },
+   {
+    "value": 8,
+    "suffix": "",
+    "label": "Brands in our portfolio",
+    "numberStyle": "Plain"
+   },
+   {
+    "value": 20,
+    "suffix": "+",
+    "label": "Private-label brands made",
+    "numberStyle": "Plain"
+   },
+   {
+    "value": 200,
+    "suffix": "+",
+    "label": "Hotel branches supplied",
+    "numberStyle": "Plain"
+   },
+   {
+    "value": 12,
+    "suffix": "",
+    "label": "Export markets",
+    "numberStyle": "Plain"
+   }
+  ],
+  "keyFacts": [
+   {
+    "value": "30+",
+    "label": "Years of experience"
+   },
+   {
+    "value": "20+",
+    "label": "Private-label brands"
+   },
+   {
+    "value": "200+",
+    "label": "Hotel branches supplied"
+   }
+  ],
+  "highlights": [
+   "India’s largest foam factory",
+   "Global latex factory",
+   "Branches in Dubai and the USA",
+   "Catering to 70% of the hospitality industry",
+   "Most Trusted Brands of India 2024"
+  ]
+ },
+ "portfolio": {
+  "categories": [
+   {
+    "title": "Premium mattresses",
+    "description": "Five mattress brands made and marketed by VFI Group, from Springfit, launched in 2009, to Simmons Beautyrest and Serta.",
+    "tags": [
+     "Springfit",
+     "Simmons Beautyrest",
+     "Serta",
+     "Durfi",
+     "Amore"
+    ]
+   },
+   {
+    "title": "Organic latex",
+    "description": "Organa, launched in 2024, makes 100% organic latex mattresses and bedding, sold in the USA, Canada, France, Italy, India and Thailand.",
+    "tags": [
+     "Organa",
+     "Global latex factory"
+    ]
+   },
+   {
+    "title": "Furniture and sofa foam",
+    "description": "NOSag is Springfit’s sofa foam, made for furniture makers.",
+    "tags": [
+     "NOSag",
+     "Seat foam",
+     "Back foam",
+     "Ergo foam",
+     "Safe foam"
+    ]
+   },
+   {
+    "title": "Luxury furniture",
+    "description": "Millo Luxe brings Italian luxury sofas and recliners, since 1974, to showrooms in 40+ cities including Dubai Design District.",
+    "tags": [
+     "Millo Luxe",
+     "Sofas",
+     "Recliners"
+    ]
+   },
+   {
+    "title": "Private label and OEM",
+    "description": "We make private-label ranges for 20+ brands, and supply foam and spring units to our partners’ own specifications.",
+    "tags": [
+     "20+ brands",
+     "Foam",
+     "Bonnell springs",
+     "Pocket springs"
+    ]
+   },
+   {
+    "title": "Hospitality and export",
+    "description": "We supply 200+ hotel branches, cater to 70% of the hospitality industry and export to 12 markets.",
+    "tags": [
+     "200+ hotel branches",
+     "12 export markets",
+     "Dubai branch",
+     "USA branch"
+    ]
+   }
+  ],
+  "logos": [
+   {
+    "name": "Springfit",
+    "image": "/assets/img/brands/springfit.png"
+   },
+   {
+    "name": "Simmons Beautyrest",
+    "image": "/assets/img/brands/beautyrest.png"
+   },
+   {
+    "name": "Serta",
+    "image": "/assets/img/brands/serta.png"
+   },
+   {
+    "name": "Organa",
+    "image": "/assets/img/brands/organa-black.png"
+   },
+   {
+    "name": "Durfi",
+    "image": "/assets/img/brands/durfi.png"
+   },
+   {
+    "name": "Amore",
+    "image": "/assets/img/brands/amore.png"
+   },
+   {
+    "name": "Millo Luxe",
+    "image": "/assets/img/brands/milloluxe.png"
+   },
+   {
+    "name": "NOSag",
+    "image": "/assets/img/brands/nosag.png"
+   }
+  ]
+ },
+ "brands": {
+  "items": [
+   {
+    "name": "Springfit",
+    "suffix": "",
+    "tagline": "India’s most trusted premium mattress brand",
+    "since": "Launched by VFI in 2009",
+    "logo": "/assets/img/brands/springfit.png",
+    "url": "https://www.springfit.com/",
+    "image": "/assets/img/story/springfit-life.jpg",
+    "imageShape": "Wide",
+    "description": "A world of premium mattresses and sleep solutions, crafted with precision and care from superior materials, with stunning aesthetics and unmatched craftsmanship. Comfort guaranteed, every night.",
+    "collections": [
+     "Sleep",
+     "Club Class",
+     "Emporio",
+     "Autograph",
+     "Reactive",
+     "ProActiv",
+     "Luxury",
+     "Superfactive",
+     "Wellness"
+    ]
+   },
+   {
+    "name": "Simmons",
+    "suffix": "Beautyrest",
+    "tagline": "Sleep first class",
+    "since": "With VFI since 2021",
+    "logo": "/assets/img/brands/beautyrest.png",
+    "url": "https://www.simmonsbeautyrest.in/",
+    "image": "/assets/img/story/beautyrest-life.jpg",
+    "imageShape": "Wide",
+    "description": "Quintessential proficiency and technology-driven products for ideal sleep since 1870. Every Simmons Beautyrest mattress is fashioned for one goal: ultimate luxurious, comfortable sleep.",
+    "collections": [
+     "Beautyrest Black",
+     "Harmony",
+     "Recharge",
+     "TechCare"
+    ]
+   },
+   {
+    "name": "Serta",
+    "suffix": "",
+    "tagline": "World’s most comfortable mattress",
+    "since": "Part of VFI Group since 2022",
+    "logo": "/assets/img/brands/serta.png",
+    "url": "https://www.sertaindia.com/",
+    "image": "/assets/img/story/serta-life.jpg",
+    "imageShape": "Wide",
+    "description": "More than 90 years of helping people get the sleep they need, whether they sleep on their back, stomach or side, online or in store.",
+    "collections": [
+     "iPedic",
+     "iLatex",
+     "iSeries",
+     "Antarctic",
+     "Perfect Sleeper",
+     "PerfectSpine"
+    ]
+   },
+   {
+    "name": "Organa",
+    "suffix": "",
+    "tagline": "Redefining the essence of sleep",
+    "since": "Launched in 2024",
+    "logo": "/assets/img/brands/organa-black.png",
+    "url": "https://organamattress.in/",
+    "image": "/assets/img/story/organa-range.jpg",
+    "imageShape": "Wide",
+    "description": "An international brand of 100% organic latex mattresses and bedding, founded on quality, innovation and sustainability, for consumers in the USA, Canada, France, Italy, India and Thailand.",
+    "collections": [
+     "Latex Zone",
+     "Latex Grid",
+     "Latex Hybrid"
+    ]
+   },
+   {
+    "name": "Durfi",
+    "suffix": "",
+    "tagline": "",
+    "since": "",
+    "logo": "/assets/img/brands/durfi.png",
+    "url": "https://www.durfi.com/",
+    "image": "",
+    "imageShape": "Wide",
+    "description": "A mattress brand in the VFI Group portfolio.",
+    "collections": []
+   },
+   {
+    "name": "Amore",
+    "suffix": "Mattresses",
+    "tagline": "",
+    "since": "",
+    "logo": "/assets/img/brands/amore.png",
+    "url": "https://www.amoremattress.com/",
+    "image": "",
+    "imageShape": "Wide",
+    "description": "A mattress brand in the VFI Group portfolio.",
+    "collections": []
+   },
+   {
+    "name": "Millo Luxe",
+    "suffix": "",
+    "tagline": "Founded in Florence. Loved worldwide.",
+    "since": "Italia, since 1974",
+    "logo": "/assets/img/brands/milloluxe.png",
+    "url": "https://milloluxe.it/",
+    "image": "/assets/img/story/millo-life.jpg",
+    "imageShape": "Square",
+    "description": "Italian comfort with a touch of elegance and luxury. Sofas, recliners and loungescapes crafted by master artisans, with retailers and showrooms in more than 40 cities, including a showroom in Dubai Design District.",
+    "collections": [
+     "Nimbus",
+     "Falcon",
+     "Caspian",
+     "Albatross",
+     "Zephyr",
+     "Avian",
+     "Tranquil",
+     "Heron",
+     "Celesta",
+     "Elysian"
+    ]
+   },
+   {
+    "name": "NOSag",
+    "suffix": "",
+    "tagline": "Kuch bhi karlo. Dabega nahi.",
+    "since": "Sofa foam by Springfit",
+    "logo": "/assets/img/brands/nosag.png",
+    "url": "https://www.springfit.com/pages/nosag-foam",
+    "image": "/assets/img/story/nosag-life.jpg",
+    "imageShape": "Square",
+    "description": "Springfit NOSag foam technology, engineered for resilient comfort, reliable support and long-lasting performance in sofas, chairs and furniture. A dedicated foam platform for furniture makers and seating brands.",
+    "collections": [
+     "NOSag Seat Cushion",
+     "NOSag Back Cushion",
+     "NOSag Ergo Foam",
+     "NOSag Safe Foam"
+    ]
+   }
+  ]
+ },
+ "capabilities": {
+  "items": [
+   {
+    "title": "Foaming",
+    "group": "Materials",
+    "description": "Foam, memory foam and latex in virtually any density and elasticity, from India’s largest foam factory.",
+    "image": "/assets/img/caps/foam.jpg"
+   },
+   {
+    "title": "Bonnell springs",
+    "group": "Spring systems",
+    "description": "In-house Bonnell springs made from carbon manganese alloys.",
+    "image": "/assets/img/caps/bonnell.jpg"
+   },
+   {
+    "title": "Pocket springs",
+    "group": "Spring systems",
+    "description": "In-house pocket springs with zoning options, made from carbon manganese alloys.",
+    "image": "/assets/img/caps/pocket.jpg"
+   },
+   {
+    "title": "State-of-the-art machinery",
+    "group": "Production",
+    "description": "We use and procure the best technological infrastructure and equipment.",
+    "image": "/assets/img/caps/factory-floor.jpg"
+   },
+   {
+    "title": "Lab testing",
+    "group": "Quality",
+    "description": "Stress, elasticity and rebound testing, internally and through third parties, on all materials and finished products.",
+    "image": "/assets/img/caps/lab.jpg"
+   },
+   {
+    "title": "Mattresses",
+    "group": "Production",
+    "description": "Mattresses in almost any size or shape, even roll-packed for cost-effective shipping.",
+    "image": "/assets/img/caps/mattress.jpg"
+   }
+  ]
+ },
+ "technologies": {
+  "items": [
+   {
+    "label": "CMAS",
+    "title": "Carbon manganese alloy springs",
+    "description": "Advanced carbon manganese coils are stress-relieved and strengthened for a comfortable sleeping experience. Independent suspension coil units are heat-treated under controlled conditions for better resistance and durability.",
+    "image": "/assets/img/tech/cmas.jpg"
+   },
+   {
+    "label": "CertiPUR-US",
+    "title": "Certified foams",
+    "description": "CertiPUR-US approved foams are low-emission for indoor air quality, and made without ozone depleters, PBDEs, mercury, lead and heavy metals, formaldehyde or prohibited phthalates. VFI was awarded CertiPUR-US certification in 2021.",
+    "image": "/assets/img/tech/certipur.jpg"
+   },
+   {
+    "label": "CertiGuard",
+    "title": "Germ-free technology",
+    "description": "Dust-mite allergens are the most common in Indian households and can cause restless sleep. CertiGuard brings cleanliness and protection into the mattress, for healthier rest and better sleep hygiene.",
+    "image": "/assets/img/tech/certiguard.jpg"
+   },
+   {
+    "label": "AeroSleep",
+    "title": "Breathable foams",
+    "description": "An exclusive open-cell, sustainable system with temperature-regulating properties that gives the best ventilation and comfort in its league, introduced with Springfit mattresses.",
+    "image": "/assets/img/tech/aerosleep.jpg"
+   },
+   {
+    "label": "MCTS",
+    "title": "Mattress comprehensive testing systems",
+    "description": "Mechanical force testing systems perform compression and tensile tests on foam, furniture and mattresses, including the ASTM D3574 indentation force deflection (IFD) test and ISO 2439, with complete performance testing to EN 1957 and EN 1725.",
+    "image": "/assets/img/tech/mcts.jpg"
+   },
+   {
+    "label": "Smart technology",
+    "title": "An AI-enabled future",
+    "description": "Smart mattresses use sensors to understand how you sleep and help improve it: sleep tracking, adjustable firmness, temperature control, position control and app integration.",
+    "image": "/assets/img/tech/smart.jpg"
+   }
+  ],
+  "badges": [
+   {
+    "name": "CMAS",
+    "description": "Carbon manganese alloy springs",
+    "icon": ""
+   },
+   {
+    "name": "CertiPUR-US",
+    "description": "Certified foams",
+    "icon": "/assets/img/certs/certipur-us.png"
+   },
+   {
+    "name": "CertiGuard",
+    "description": "Germ-free technology",
+    "icon": "/assets/img/certs/certiguard.png"
+   },
+   {
+    "name": "AeroSleep",
+    "description": "Breathable foams",
+    "icon": "/assets/img/certs/aerosleep.png"
+   },
+   {
+    "name": "MCTS",
+    "description": "Mattress comprehensive testing",
+    "icon": ""
+   }
+  ]
+ },
+ "foam": {
+  "items": [
+   {
+    "title": "Foam and memory foam",
+    "description": "Produced in virtually any density and elasticity, for comfort layers, support cores and components."
+   },
+   {
+    "title": "Latex",
+    "description": "Natural latex from our own latex manufacturing factory, including 100% organic latex for Organa."
+   },
+   {
+    "title": "Breathable foams",
+    "description": "AeroSleep open-cell foams with temperature-regulating properties for better ventilation."
+   },
+   {
+    "title": "Certified foams",
+    "description": "CertiPUR-US certified: low emissions, and made without ozone depleters, PBDEs, heavy metals, formaldehyde or prohibited phthalates."
+   },
+   {
+    "title": "Tested",
+    "description": "Stress, elasticity and rebound testing, including ASTM D3574 indentation force deflection and ISO 2439."
+   },
+   {
+    "title": "Furniture foam",
+    "description": "Springfit NOSag sofa foam for seat cushions, back cushions and ergonomic seating, built not to sag."
+   },
+   {
+    "title": "Scale",
+    "description": "India’s largest foam factory, unveiled in 2024, supplying our own lines and partners."
+   }
+  ]
+ },
+ "solutions": {
+  "tabs": [
+   {
+    "name": "Retail",
+    "intro": "Ready-to-sell ranges for store and online retail, sold by some of the largest retailers, including roll-packed formats for e-commerce.",
+    "enquiryType": "Retail partnership",
+    "items": [
+     {
+      "title": "Innerspring mattresses",
+      "description": "Bonnell and pocket spring builds on in-house spring systems."
+     },
+     {
+      "title": "Foam mattresses",
+      "description": "Foam and memory foam in virtually any density and elasticity."
+     },
+     {
+      "title": "Pillows and accessories",
+      "description": "Pillows, quilts, toppers and protectors to complete a range."
+     }
+    ]
+   },
+   {
+    "name": "Hospitality",
+    "intro": "Mattresses for more than 200 branches of the world’s renowned hotels, specified for durability and shipped across the globe.",
+    "enquiryType": "Hospitality",
+    "items": [
+     {
+      "title": "Hotel mattresses",
+      "description": "Pocket spring and foam builds suited to daily turnover."
+     },
+     {
+      "title": "Soft furnishings",
+      "description": "Pillows, quilts, toppers and protectors for guest rooms."
+     },
+     {
+      "title": "Custom specifications",
+      "description": "Constructions engineered to a property’s brief."
+     }
+    ]
+   },
+   {
+    "name": "OEM",
+    "intro": "Foam, spring units and complete mattresses produced to your specification. We also develop existing vendor specifications.",
+    "enquiryType": "OEM manufacturing",
+    "items": [
+     {
+      "title": "Foam and memory foam",
+      "description": "Any density and elasticity, as components or in full builds."
+     },
+     {
+      "title": "Bonnell and pocket spring systems",
+      "description": "Carbon manganese alloy springs, with zoning options."
+     },
+     {
+      "title": "Smart mattresses",
+      "description": "Sensor-enabled builds for sleep tracking and comfort control."
+     }
+    ]
+   },
+   {
+    "name": "Private label",
+    "intro": "Your brand, our manufacturing. We make white-label and private-label ranges for more than 20 brands.",
+    "enquiryType": "Private label",
+    "items": [
+     {
+      "title": "Full mattress ranges",
+      "description": "Foam, innerspring and latex lines developed to your positioning."
+     },
+     {
+      "title": "Roll-packed production",
+      "description": "Compressed formats for cost-effective shipping."
+     },
+     {
+      "title": "Accessories",
+      "description": "Pillows, quilts, toppers and protectors to extend the range."
+     }
+    ]
+   },
+   {
+    "name": "International",
+    "intro": "Exporting to twelve markets through our branches in Dubai and the USA, including Canada, Australia, France and Singapore.",
+    "enquiryType": "International",
+    "items": [
+     {
+      "title": "Export programmes",
+      "description": "Specifications, packaging and documentation for overseas partners."
+     },
+     {
+      "title": "Roll-packed logistics",
+      "description": "Container-efficient formats for long-distance shipping."
+     },
+     {
+      "title": "Certified materials",
+      "description": "CertiPUR-US certified foams and comprehensive testing to EN and ASTM standards."
+     }
+    ]
+   }
+  ],
+  "categories": [
+   {
+    "title": "Innerspring mattresses",
+    "description": "Bonnell and pocket spring cores made in-house."
+   },
+   {
+    "title": "Foam mattresses",
+    "description": "Foam and memory foam in any density and elasticity."
+   },
+   {
+    "title": "Smart mattresses",
+    "description": "Sensor-enabled sleep tracking and comfort control."
+   },
+   {
+    "title": "Pillows and accessories",
+    "description": "Pillows, quilts, toppers and protectors."
+   }
+  ]
+ },
+ "routes": {
+  "items": [
+   {
+    "title": "Retail partnership",
+    "description": "Ranges and exclusive lines for store and online retail."
+   },
+   {
+    "title": "Hospitality",
+    "description": "Specified comfort for hotels and serviced residences."
+   },
+   {
+    "title": "OEM manufacturing",
+    "description": "Components and complete mattresses to your specification."
+   },
+   {
+    "title": "Private label",
+    "description": "Your brand, developed and made by VFI."
+   },
+   {
+    "title": "Foam supply",
+    "description": "Foam, memory foam and latex to your specification."
+   },
+   {
+    "title": "International",
+    "description": "Export partnerships through our branches in Dubai and the USA."
+   }
+  ]
+ },
+ "retail": {
+  "items": [
+   {
+    "name": "Amazon",
+    "logo": "/assets/img/partners/amazon.png"
+   },
+   {
+    "name": "Flipkart",
+    "logo": "/assets/img/partners/flipkart.png"
+   },
+   {
+    "name": "Walmart",
+    "logo": "/assets/img/partners/walmart.png"
+   },
+   {
+    "name": "HomeTown",
+    "logo": "/assets/img/partners/hometown.png"
+   },
+   {
+    "name": "Pepperfry",
+    "logo": "/assets/img/partners/pepperfry.png"
+   },
+   {
+    "name": "Home Centre",
+    "logo": "/assets/img/partners/homecentre.png"
+   }
+  ]
+ },
+ "hotels": {
+  "names": [
+   "Taj Coromandel",
+   "Taj Exotica, Andamans",
+   "The Oberoi",
+   "ITC Maurya",
+   "The Leela",
+   "JW Marriott, Mussoorie",
+   "Le Méridien",
+   "Grand Hyatt",
+   "The Lalit",
+   "The Lalit, London",
+   "Courtyard by Marriott",
+   "Fairfield by Marriott",
+   "Four Points by Sheraton",
+   "Radisson Blu",
+   "Holiday Inn",
+   "Sarovar",
+   "Lemon Tree",
+   "Royal Orchid",
+   "Fortune Park Panchwati",
+   "Red Fox",
+   "Cidade de Goa",
+   "The Local, Mexico"
+  ]
+ },
+ "markets": {
+  "names": [
+   "USA",
+   "Canada",
+   "Mexico",
+   "Australia",
+   "France",
+   "Dubai",
+   "China",
+   "Singapore",
+   "South Africa",
+   "South Korea",
+   "Taiwan",
+   "Thailand"
+  ]
+ },
+ "awards": {
+  "items": [
+   {
+    "name": "Most Trusted Brands of India 2024",
+    "image": "/assets/img/awards/most-trusted-2024.png"
+   },
+   {
+    "name": "The Brand Icon, Times of India",
+    "image": "/assets/img/awards/brand-icon-toi.png"
+   },
+   {
+    "name": "UP Brand Leadership Awards",
+    "image": "/assets/img/awards/up-brand-leadership.png"
+   },
+   {
+    "name": "India SME 100 Awards",
+    "image": "/assets/img/awards/india-sme-100.png"
+   },
+   {
+    "name": "Brands of India",
+    "image": "/assets/img/awards/brands-of-india.png"
+   }
+  ]
+ },
+ "timeline": {
+  "items": [
+   {
+    "year": "30+ years ago",
+    "title": "Two mattresses a day",
+    "description": "Mr. Mukesh Gupta starts with one mattress binding machine and a table in a very small space."
+   },
+   {
+    "year": "2007",
+    "title": "Haridwar",
+    "description": "Establishment of our manufacturing unit in Haridwar."
+   },
+   {
+    "year": "2009",
+    "title": "Springfit",
+    "description": "Launch of Springfit Premium Mattresses."
+   },
+   {
+    "year": "2012",
+    "title": "Hypnos",
+    "description": "Associated with Hypnos, one of the world’s most luxurious mattress brands."
+   },
+   {
+    "year": "2016",
+    "title": "Coimbatore",
+    "description": "Inauguration of our state-of-the-art Coimbatore factory."
+   },
+   {
+    "year": "2017",
+    "title": "Brand faces",
+    "description": "Bipasha Basu and Karan Singh Grover join as brand faces."
+   },
+   {
+    "year": "2020",
+    "title": "Meerut and Vadodara",
+    "description": "Two new factories inaugurated."
+   },
+   {
+    "year": "2021",
+    "title": "Simmons Beautyrest",
+    "description": "Collaboration with Simmons Beautyrest, and CertiPUR-US certification."
+   },
+   {
+    "year": "2022",
+    "title": "Serta",
+    "description": "Serta joins the group, and Kareena Kapoor is appointed brand ambassador."
+   },
+   {
+    "year": "2023",
+    "title": "Latex",
+    "description": "Acquisition of a global latex manufacturing factory."
+   },
+   {
+    "year": "2024",
+    "title": "Organa",
+    "description": "Launch of the 100% organic latex brand Organa, Times Business Awards and Most Trusted Brands of India 2024, and India’s largest foam factory."
+   }
+  ]
+ },
+ "values": {
+  "items": [
+   {
+    "title": "Quality",
+    "description": "Every product made to the standard our partners promise their customers."
+   },
+   {
+    "title": "Accuracy",
+    "description": "Specifications measured, made and tested precisely, at any volume."
+   },
+   {
+    "title": "Safety",
+    "description": "Safe workplaces for our people and safe, certified materials for sleepers."
+   },
+   {
+    "title": "Reliance",
+    "description": "Long partnerships built on dependable delivery and transparency."
+   }
+  ]
+ },
+ "whatWeDo": {
+  "items": [
+   {
+    "title": "Private label",
+    "description": "White and private-label manufacturing for more than 20 brands."
+   },
+   {
+    "title": "Full sleep range",
+    "description": "Mattresses, pillows, quilts, toppers and protectors."
+   },
+   {
+    "title": "Vendor specifications",
+    "description": "We develop and improve existing vendor specifications."
+   },
+   {
+    "title": "Hotels worldwide",
+    "description": "Hotel mattresses, manufactured and shipped across the globe."
+   }
+  ]
+ },
+ "glance": {
+  "items": [
+   {
+    "value": "Fastest growing",
+    "label": "company"
+   },
+   {
+    "value": "6",
+    "label": "smart factories"
+   },
+   {
+    "value": "50,000",
+    "label": "mattresses a month capacity"
+   },
+   {
+    "value": "8",
+    "label": "brands in the portfolio"
+   },
+   {
+    "value": "12",
+    "label": "export markets"
+   },
+   {
+    "value": "200+",
+    "label": "hotel branches supplied"
+   },
+   {
+    "value": "Dubai and USA",
+    "label": "branches for global exports"
+   },
+   {
+    "value": "1,100+",
+    "label": "people across India"
+   }
+  ]
+ },
+ "csr": {
+  "items": [
+   {
+    "title": "Education, training and skill development",
+    "description": "We provide training and development, ensure fair compensation and benefits, and promote diversity and inclusion to cultivate creativity and excellence among our employees."
+   },
+   {
+    "title": "Healthcare and sanitation",
+    "description": "We prioritise healthcare and sanitation as part of our commitment to community well-being, building healthier communities and contributing to sustainable development."
+   },
+   {
+    "title": "Environmental sustainability",
+    "description": "We prioritise responsible resource use, pollution reduction and biodiversity preservation, involve communities in environmental awareness, and comply closely with legislation together with our supply-chain partners."
+   },
+   {
+    "title": "Employee welfare",
+    "description": "We take care of our employees’ welfare and rights, educate them about their rights and help them practise those rights."
+   },
+   {
+    "title": "Community development",
+    "description": "We support the social and economic development of the communities where we operate: contributing to charitable causes, creating employment and respecting human rights."
+   },
+   {
+    "title": "Ethical business practice",
+    "description": "We work to prevent corruption, fraud and unfair competition, respect intellectual property rights and adhere to applicable laws and regulations."
+   }
+  ]
+ },
+ "conduct": {
+  "groups": [
+   {
+    "heading": "Our employees",
+    "items": [
+     {
+      "title": "Equal opportunity",
+      "description": "Fair working conditions, equitable wages, comprehensive health and safety measures, and the freedom to associate and bargain collectively."
+     },
+     {
+      "title": "Human rights",
+      "description": "We uphold human rights and safeguard the well-being of our employees and everyone connected to our organisation, across our operations and supply chains."
+     },
+     {
+      "title": "Labour rights",
+      "description": "We help employees know, understand and practise their labour rights, and actively prevent forced labour, child labour, discrimination, harassment and exploitation."
+     }
+    ]
+   },
+   {
+    "heading": "Preventing forced and child labour",
+    "items": [
+     {
+      "title": "Due diligence",
+      "description": "We continuously identify, assess and monitor risks in our operations and supply networks, and act to prevent, reduce or correct any adverse impact."
+     },
+     {
+      "title": "Policies and standards",
+      "description": "Clear policies that prohibit forced and child labour, communicated across our operations and supply chain."
+     },
+     {
+      "title": "Training and awareness",
+      "description": "We train employees, managers, suppliers and contractors on human rights, with special attention to the most vulnerable, such as migrant workers, women and children."
+     },
+     {
+      "title": "Grievance mechanisms",
+      "description": "Accessible ways to raise complaints, investigated and settled in a timely and equitable manner."
+     },
+     {
+      "title": "Reporting and disclosure",
+      "description": "We report on our policies, practices and progress, and engage stakeholders on our efforts and challenges."
+     }
+    ]
+   },
+   {
+    "heading": "Our customers",
+    "items": [
+     {
+      "title": "Quality and safety",
+      "description": "Products that are safe, high quality and compliant with relevant standards and regulations."
+     },
+     {
+      "title": "Transparency",
+      "description": "Precise information about our products, including materials, origin, price and warranty."
+     },
+     {
+      "title": "Privacy",
+      "description": "We value and uphold consumers’ privacy and data-protection rights."
+     }
+    ]
+   },
+   {
+    "heading": "Our environment and communities",
+    "items": [
+     {
+      "title": "Community",
+      "description": "We uphold the rights of the communities where we operate or source materials, create employment, support local initiatives, meet our tax obligations and consult stakeholders."
+     },
+     {
+      "title": "Environment",
+      "description": "From research to production, resource use, waste and emissions, we follow domestic and international law and internal protocols to reduce our footprint and prevent pollution or harm."
+     },
+     {
+      "title": "Health and safety",
+      "description": "We comply with the Environment, Health and Safety (EHS) policies that apply in India to protect our workers, customers and communities."
+     }
+    ]
+   }
+  ]
+ },
+ "careers": {
+  "roles": [
+   {
+    "title": "Production",
+    "description": "Foam, spring and mattress manufacturing across our factories."
+   },
+   {
+    "title": "Engineering",
+    "description": "Machinery, maintenance and process improvement."
+   },
+   {
+    "title": "Quality",
+    "description": "Laboratory testing and quality control."
+   },
+   {
+    "title": "Business",
+    "description": "Sales, partnerships, export, operations and support."
+   }
+  ]
+ },
+ "process": {
+  "steps": [
+   {
+    "title": "Foam",
+    "description": "Foam and memory foam produced and cut to specification."
+   },
+   {
+    "title": "Springs",
+    "description": "Bonnell or pocket spring units formed in-house."
+   },
+   {
+    "title": "Assembly",
+    "description": "Layers built up around the core."
+   },
+   {
+    "title": "Finishing",
+    "description": "Covers quilted, fitted and closed."
+   },
+   {
+    "title": "Testing",
+    "description": "Checked against internal and third-party standards."
+   },
+   {
+    "title": "Packing",
+    "description": "Flat-packed or roll-packed for delivery."
+   }
+  ]
+ },
+ "texts": {
+  "home.overview.heading": "Comfort at a global scale.",
+  "home.overview.intro": "What began with one binding machine, a table and two mattresses a day is now a group of six smart factories and more than 1,100 people across India, exporting to twelve markets through our branches in Dubai and the USA.",
+  "home.scale.kicker": "VFI at scale",
+  "home.scale.heading": "Built big. Built to last.",
+  "home.story.kicker": "Not just an organisation. An ideology.",
+  "home.story.heading": "We are the true bedmakers.",
+  "home.story.text": "More than thirty years ago, Mr. Mukesh Gupta started Varahamurti Flexirub with one mattress binding machine, a table and two mattresses a day. Today the group makes mattresses and soft furnishings for some of the world’s best-known hospitality and retail companies, with a corporate office in Delhi NCR.",
+  "home.story.link": "Discover our story",
+  "home.capabilities.kicker": "Manufacturing capabilities",
+  "home.capabilities.heading": "Engineered with precision.\nBuilt for scale.",
+  "home.capabilities.link": "All manufacturing",
+  "home.portfolio.kicker": "Our portfolio",
+  "home.portfolio.heading": "Everything comfort, under one group.",
+  "home.portfolio.intro": "Mattresses, pillows, quilts and toppers, sofa and furniture foam, luxury sofas and recliners, and foam, latex and spring supply, from eight brands and six factories.",
+  "home.portfolio.link": "Explore all brands",
+  "home.pills.1.title": "Material science",
+  "home.pills.1.text": "Foam formulations and spring systems developed for specific feels, densities and applications.",
+  "home.pills.2.title": "Quality testing",
+  "home.pills.2.text": "Internal laboratory checks supported by independent third-party evaluation.",
+  "home.pills.3.title": "Custom builds",
+  "home.pills.3.text": "Constructions engineered to a partner’s brief, from comfort profile to finish.",
+  "home.pills.4.title": "Roll-packed",
+  "home.pills.4.text": "Compressed, roll-packed production for efficient storage, shipping and e-commerce delivery.",
+  "home.certs.label": "Technologies and certifications",
+  "home.solutions.kicker": "Products and solutions",
+  "home.solutions.heading": "Comfort, engineered for every need.",
+  "home.solutions.link": "All solutions",
+  "home.brands.kicker": "Our brands",
+  "home.brands.heading": "A portfolio built around comfort.",
+  "home.brands.link": "Brand portfolio",
+  "home.partners.kicker": "Global partnerships",
+  "home.partners.heading": "Trusted by businesses.\nBuilt for the world.",
+  "home.partners.retailHeading": "Sold by some of the largest retailers",
+  "home.partners.hotelsHeading": "Supplying more than 200 hotel branches",
+  "home.partners.hotelsIntro": "Including properties of",
+  "home.awards.heading": "Awards and recognition.",
+  "home.awards.intro": "Quality only happens when you care enough to do your best.",
+  "home.people.heading": "Our strength is built by people.",
+  "home.people.intro": "More than 1,100 people make VFI Group what it is. How we train, treat and work alongside them shapes every mattress we make.",
+  "home.people.1.title": "Education and skills",
+  "home.people.1.text": "Training and development, fair compensation and benefits, and a culture of diversity and inclusion.",
+  "home.people.2.title": "Employee welfare",
+  "home.people.2.text": "We look after our employees’ welfare and rights, and help them understand and exercise those rights.",
+  "home.people.3.title": "Healthcare and sanitation",
+  "home.people.3.text": "Healthcare and sanitation programmes that build healthier communities.",
+  "home.people.4.title": "Environment",
+  "home.people.4.text": "Responsible resource use, pollution reduction and biodiversity preservation across our supply chain.",
+  "home.people.link": "Sustainability and responsibility",
+  "home.cta.heading": "Let’s build something meaningful together.",
+  "home.cta.text": "Explore how VFI Group can become your manufacturing and business partner.",
+  "home.cta.primary": "Start a conversation",
+  "home.cta.secondary": "Contact details",
+  "about.hero.kicker": "About VFI",
+  "about.hero.heading": "A legacy of comfort. A future of innovation.",
+  "about.hero.intro": "Varahamurti Flexirub Industries Pvt. Ltd. creates mattresses and soft furnishings for some of the world’s best-known hospitality and retail companies.",
+  "about.history.kicker": "Our history",
+  "about.history.heading": "It started with two mattresses a day.",
+  "about.history.quote1": "“Around 30 years ago, we started with making two mattresses in a day in a very small space and that’s all we had back then: one mattress binding machine and a table.”",
+  "about.history.cite1": "Mr. Mukesh Gupta, Founder",
+  "about.history.quote2": "“I started working in different directions, finding new opportunities, but my heart was stuck with crafting mattresses and making unique comforts which people started appreciating.”",
+  "about.history.cite2": "Mr. Mukesh Gupta",
+  "about.timeline.kicker": "Our passage of accomplishment",
+  "about.timeline.heading": "From two a day to 50,000 a month.",
+  "about.mission.kicker": "Mission and vision",
+  "about.mission.heading": "Responsible, sustainable production.",
+  "about.mission.text": "Varahamurti follows strict manufacturing and quality-management protocols and good business ethics that define a framework for responsible and sustainable production. Our quality commitment extends to social, ethical and environmental responsibilities, and we are proud members of key industry associations.",
+  "about.whatwedo.kicker": "What we do",
+  "about.whatwedo.heading": "Products made with a fine regard for detail.",
+  "about.values.kicker": "What we stand for",
+  "about.values.heading": "Our values",
+  "about.glance.kicker": "At a glance",
+  "about.glance.heading": "About VFI Group",
+  "about.glance.text": "More than 30 years of experience in the mattress industry, with a focus on efficient production and uncompromising excellence.",
+  "manufacturing.hero.kicker": "Manufacturing",
+  "manufacturing.hero.heading": "Built in-house. Built for scale.",
+  "manufacturing.hero.intro": "Six smart factories make the foam, springs and finished mattresses our partners sell, with units in Haridwar, Coimbatore, Meerut and Vadodara.",
+  "manufacturing.foam.kicker": "Foam capabilities",
+  "manufacturing.foam.heading": "Foam, made in-house.",
+  "manufacturing.foam.intro": "From India’s largest foam factory, we produce the foam inside every VFI mattress, and supply foam to partners’ own specifications.",
+  "manufacturing.foam.primary": "Enquire about foam supply",
+  "manufacturing.foam.secondary": "Foam technologies",
+  "manufacturing.factories.kicker": "Our factories",
+  "manufacturing.factories.heading": "Manufacturing across India.",
+  "manufacturing.process.kicker": "Process",
+  "manufacturing.process.heading": "How a mattress is made.",
+  "innovation.hero.kicker": "Innovation and quality",
+  "innovation.hero.heading": "Innovation in everything we make.",
+  "innovation.hero.intro": "Innovation is at the centre of all we do. Every day we come up with new ideas and redefine what “best” means, so you have a good night’s sleep every night.",
+  "innovation.tech.kicker": "Our technologies",
+  "innovation.tech.heading": "Tested before it’s trusted.",
+  "products.hero.kicker": "Products and solutions",
+  "products.hero.heading": "Comfort, engineered for every need.",
+  "products.hero.intro": "Innerspring, foam and smart mattresses, pillows, quilts, toppers and protectors for retail, hospitality, OEM and private label.",
+  "products.portfolio.kicker": "Our portfolio",
+  "products.portfolio.heading": "Eight brands, one group.",
+  "products.portfolio.text": "Springfit, Simmons Beautyrest, Serta, Organa, Durfi, Amore, Millo Luxe and NOSag, each with its own identity and made with VFI Group’s manufacturing behind them.",
+  "products.portfolio.link": "Explore all brands",
+  "brands.hero.kicker": "Brands we own and make",
+  "brands.hero.heading": "A portfolio built around comfort.",
+  "brands.hero.intro": "There’s comfort in every detail. Each brand keeps its own identity, and VFI Group brings the manufacturing behind them.",
+  "brands.architecture.kicker": "Brand architecture",
+  "partnerships.hero.kicker": "Global partnerships",
+  "partnerships.hero.heading": "Trusted by businesses.",
+  "partnerships.hero.intro": "Our products are sold by some of the largest international retailers, and we supply more than 200 branches of the world’s renowned hotels.",
+  "partnerships.retail.heading": "Retail partners",
+  "partnerships.hotels.heading": "Hospitality",
+  "partnerships.hotels.intro": "Mattresses for properties including",
+  "partnerships.footprint.kicker": "Global footprint",
+  "partnerships.footprint.heading": "Exporting to twelve markets.",
+  "partnerships.footprint.text": "Made in India and exported worldwide through our branches in Dubai and the USA, with specifications, packaging and roll-packed logistics for partners around the world.",
+  "sustainability.hero.kicker": "Corporate social responsibility",
+  "sustainability.hero.heading": "Responsibility, made in.",
+  "sustainability.hero.intro": "Success entails more than financial accomplishment. It includes ethical business practice, environmental sustainability and active contributions to the well-being of our communities.",
+  "sustainability.focus.heading": "Focus areas of our CSR programme.",
+  "sustainability.focus.intro": "We integrate social and environmental concerns into our operations, to meet legal requirements and go beyond them.",
+  "sustainability.focus.link": "Read our code of conduct",
+  "careers.hero.kicker": "Careers",
+  "careers.hero.heading": "We’re hiring. Join our talent team.",
+  "careers.hero.intro": "Join more than 1,100 people across production, engineering, quality and business teams.",
+  "careers.roles.heading": "Where you could work",
+  "contact.hero.kicker": "Contact",
+  "contact.hero.heading": "Have a query? Contact us.",
+  "contact.hero.intro": "Tell us what you’re looking for and we’ll route it to the right team.",
+  "privacy.hero.kicker": "Legal",
+  "privacy.hero.heading": "Privacy policy.",
+  "privacy.hero.intro": "How Varahamurti Flexirub Industries Pvt. Ltd. collects, uses and protects information shared through this website.",
+  "privacy.collect.heading": "Information we collect",
+  "privacy.collect.text": "When you send an enquiry we collect the details you enter: your name, company, work email, country, estimated volume, enquiry type and message. We do not use advertising cookies. Your colour theme and unsent form drafts are stored only in your own browser.",
+  "privacy.use.heading": "How we use it",
+  "privacy.use.text": "We use enquiry details only to respond to you, route your request to the right team and keep a record of business correspondence. We do not sell personal information.",
+  "privacy.sharing.heading": "Sharing",
+  "privacy.sharing.text": "Information may be shared within VFI Group and with service providers that host this website or deliver email on our behalf, under confidentiality obligations. We may disclose information where the law requires it.",
+  "privacy.retention.heading": "Retention and security",
+  "privacy.retention.text": "Enquiries are kept for as long as needed to handle the request and meet legal obligations, and are protected with reasonable technical and organisational measures.",
+  "privacy.choices.heading": "Your choices",
+  "terms.hero.kicker": "Legal",
+  "terms.hero.heading": "Terms and conditions.",
+  "terms.hero.intro": "The terms that apply when you use this website.",
+  "terms.use.heading": "Use of this website",
+  "terms.use.text": "This website is provided by Varahamurti Flexirub Industries Pvt. Ltd. for information about our group, capabilities and products. By using it you agree to these terms.",
+  "terms.info.heading": "Information only",
+  "terms.info.text": "Content, specifications and images are for general information and may change without notice. Images marked as representative may not show actual VFI facilities or products. Nothing on this website is an offer; all supply is subject to a separate written agreement.",
+  "terms.ip.heading": "Intellectual property",
+  "terms.ip.text": "The VFI Group name, logo and website content belong to VFI Group or its licensors. Brand names shown belong to their respective owners.",
+  "terms.liability.heading": "Liability and law",
+  "terms.liability.text": "To the extent permitted by law, we are not liable for loss arising from use of this website. These terms are governed by the laws of India.",
+  "conduct.hero.kicker": "Our ethics",
+  "conduct.hero.heading": "Code of conduct.",
+  "conduct.hero.intro": "Our beliefs, ethics and responsibility to our employees, customers, associates, community and environment, and our commitment to integrity, responsibility, unity and quality.",
+  "notfound.kicker": "Error 404",
+  "notfound.heading": "This page isn’t here.",
+  "notfound.intro": "The link may be out of date, or the page may have moved.",
+  "notfound.primary": "Go to the home page",
+  "notfound.secondary": "Contact us",
+  "footer.about": "Varahamurti Flexirub Industries Pvt. Ltd. Manufacturing mattresses and soft furnishings for hospitality and retail businesses for more than thirty years, with branches in Dubai and the USA for global exports.",
+  "footer.companyHeading": "Company",
+  "footer.capabilitiesHeading": "Capabilities",
+  "footer.businessHeading": "Business",
+  "footer.brandsHeading": "Brands",
+  "drawer.heading": "Start a conversation.",
+  "drawer.intro": "A few details help us route your enquiry to the right team."
+ }
+}

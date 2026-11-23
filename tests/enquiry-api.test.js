@@ -112,26 +112,17 @@ test('429 on the 6th enquiry from one IP; other IPs unaffected', async () => {
 });
 
 test('503 unavailable when the store fails; no internals leaked', async () => {
-  const mod = require('../lib/store');
+  const store = require('../lib/store').getStore();
+  const orig = store.submitEnquiry;
   const origErr = console.error; console.error = () => {};
-  process.env.SUPABASE_URL = 'https://x.supabase.co'; process.env.SUPABASE_ANON_KEY = 'k';
-  const origFetch = globalThis.fetch;
-  resetStore();
-  const realFetch = origFetch;
-  globalThis.fetch = async (url, opts) => {
-    if (String(url).includes('supabase.co')) throw new TypeError('network down');
-    return realFetch(url, opts);
-  };
+  store.submitEnquiry = async () => { const e = new Error('connect ECONNREFUSED 10.0.0.1:5432 secret-host'); e.code = 'unavailable'; throw e; };
   try {
     const r = await postJson(srv.base, '/api/enquiry', validBody());
     assert.equal(r.status, 503);
     const j = await J(r);
     assert.equal(j.code, 'unavailable');
-    assert.ok(!JSON.stringify(j).includes('supabase'));
-  } finally {
-    globalThis.fetch = origFetch; console.error = origErr;
-    delete process.env.SUPABASE_URL; delete process.env.SUPABASE_ANON_KEY; mod.resetStore();
-  }
+    assert.ok(!JSON.stringify(j).includes('secret-host'));
+  } finally { store.submitEnquiry = orig; console.error = origErr; }
 });
 
 test('SMTP failure still returns 200', async () => {

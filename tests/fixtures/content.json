@@ -1,0 +1,13 @@
+{
+  "settings": { "siteName": "Test Co", "website": "https://example.com", "phone": "+91 11111 11111", "tagline": "Sleep better." },
+  "hero": [
+    { "heading": "Welcome", "sub": "Hello there", "image": "/assets/img/factory.jpg", "cta": { "label": "Contact", "href": "/contact" }, "tier": "a" },
+    { "heading": "Second slide", "sub": "", "image": "/assets/img/coil.jpg", "cta": { "label": "Mail us", "href": "mailto:hi@example.com" }, "tier": "b" }
+  ],
+  "brands": [
+    { "name": "Alpha", "logo": "/assets/img/brands/serta.png", "url": "https://alpha.example.com", "description": "First brand", "tags": ["one", "two"] },
+    { "name": "Beta", "logo": "", "url": "", "description": "Second brand", "tags": [] }
+  ],
+  "scale": { "figures": [ { "value": 40, "label": "Years" }, { "value": 12000, "label": "Units" } ] },
+  "texts": { "home.title": "Home title", "about.intro": "About intro" }
+}

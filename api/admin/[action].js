@@ -1,120 +1,173 @@
 'use strict';
-// /api/admin/<action>: login, logout, session, enquiries (GET/PATCH), export.
-const crypto = require('crypto');
-const { readJson, send, sendError, sendText, clientIp, ipHash, getQuery, header, HttpError } = require('../../lib/http');
-const session = require('../../lib/session');
-const { createLimiter } = require('../../lib/ratelimit');
+// /api/admin/<action>. Every action is declared in ACTIONS with its allowed methods; the role table lives in
+// lib/auth/guard.js (PERMISSIONS). Order of checks: action exists -> method -> CSRF header -> session -> must_change_password -> role.
+const { readJson, readRaw, send, sendError, sendText, clientIp, ipHash, getQuery, header, HttpError } = require('../../lib/http');
+const session = require('../../lib/auth/session');
+const password = require('../../lib/auth/password');
+const { isLimited } = require('../../lib/auth/ratelimit');
+const { authenticate, can, publicUser, ROLES } = require('../../lib/auth/guard');
 const { toCsv } = require('../../lib/csv');
-const { STATUSES, UUID_RE, LIMITS, clean } = require('../../lib/validate');
+const { STATUSES, UUID_RE, LIMITS, clean, isEmail } = require('../../lib/validate');
 const { getStore } = require('../../lib/store');
+const { validate } = require('../../lib/content/validate');
+const { loadSchema } = require('../../lib/content/defaults');
+const { changedSections, findUsages } = require('../../lib/content/diff');
+const media = require('../../lib/media');
 
-const loginLimiter = createLimiter({ max: 10, windowMs: 15 * 60 * 1000 });
-const FAIL_DELAY_MS = 400;
+const settings = { failDelayMs: 400 }; // exported for tests
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const sha = (s) => crypto.createHash('sha256').update(String(s)).digest();
+const one = (v) => (Array.isArray(v) ? v[0] : v);
+const GENERIC_LOGIN_ERROR = 'Incorrect email or password.';
+const CONTENT_BODY_MAX = 700 * 1024;
 
-const configured = () => session.adminConfig().ok;
-const isAuthed = (req) => {
-  const c = session.adminConfig();
-  return c.ok && Boolean(session.fromRequest(req, c.secret, c.v));
-};
-const stripPrivate = (r) => { if (!r || typeof r !== 'object') return r; const { ip_hash, ...rest } = r; return rest; };
-
-function methodNotAllowed(res, allow) {
-  return sendError(res, 405, 'method_not_allowed', 'Method not allowed', null, { Allow: allow });
-}
+// ------------------------------------------------------------------ helpers
+const methodNotAllowed = (res, allow) => sendError(res, 405, 'method_not_allowed', 'Method not allowed', null, { Allow: allow });
 const unauthenticated = (res) => sendError(res, 401, 'unauthenticated', 'Please sign in.');
+const invalid = (res, errors, msg) => sendError(res, 422, 'invalid_input', msg || 'Please correct the highlighted fields.', { errors });
+const unavailable = (res) => sendError(res, 503, 'unavailable', 'The data store is unavailable. Please try again shortly.');
 
-function requireCsrf(req, res) {
-  if (header(req, 'x-requested-with') !== 'vfi-admin') {
-    sendError(res, 403, 'csrf', 'Missing or invalid request header.');
-    return false;
-  }
-  return true;
+/** Append an audit entry. A failing audit write is logged but never fails the request. */
+async function audit(ctx, action, target, detail, userId) {
+  try {
+    await ctx.store.addAudit({ user_id: userId !== undefined ? userId : (ctx.user ? ctx.user.id : null), action, target: target || '', detail: detail || {} });
+  } catch (e) { console.error('Audit write failed:', (e && e.code) || (e && e.name)); }
 }
 
-function storeFailure(res, e, what) {
-  const code = e && e.code;
-  if (code === 'not_found') return sendError(res, 404, 'not_found', 'Enquiry not found.');
-  if (code === 'invalid_input') return sendError(res, 422, 'invalid_input', 'Invalid input.', { errors: {} });
-  if (code === 'forbidden') console.error(`Admin ${what}: store rejected the admin secret (check SUPABASE_ADMIN_SECRET and the stored hash)`);
-  else console.error(`Admin ${what}: store failure`, code || (e && e.name));
-  return sendError(res, 503, 'unavailable', 'The data store is unavailable. Please try again shortly.');
+async function readBody(req, max) {
+  const ct = String(header(req, 'content-type') || '');
+  const len = header(req, 'content-length');
+  if (!ct && (len === undefined || len === '0') && (req.body === undefined || req.body === null || req.body === '')) return {};
+  return readJson(req, max);
 }
+
+function getPaging(req, defSize, maxSize) {
+  const qs = getQuery(req);
+  const num = (v, d) => { const n = Number.parseInt(one(v), 10); return Number.isFinite(n) && n >= 1 ? n : d; };
+  const page = num(qs.page, 1);
+  const pageSize = Math.min(num(qs.pageSize, defSize), maxSize);
+  return { page, pageSize, offset: (page - 1) * pageSize };
+}
+
+const stripPrivate = (r) => { if (!r || typeof r !== 'object') return r; const { ip_hash, ...rest } = r; return rest; };
 
 function filters(req, res) {
   const qs = getQuery(req);
-  const one = (v) => (Array.isArray(v) ? v[0] : v);
   let status = String(one(qs.status) || '').trim();
   if (status === 'active') status = '';
   if (status && status !== 'all' && !STATUSES.includes(status)) {
-    sendError(res, 422, 'invalid_input', 'Invalid filter.', { errors: { status: 'Unknown status' } });
+    invalid(res, { status: 'Unknown status' }, 'Invalid filter.');
     return null;
   }
-  const q = clean(one(qs.q)).slice(0, 200);
-  return { status, q, qs, one };
+  return { status, q: clean(one(qs.q)).slice(0, 200), qs };
 }
 
-async function login(req, res) {
-  if (req.method !== 'POST') return methodNotAllowed(res, 'POST');
-  const cfg = session.adminConfig();
-  if (!cfg.ok) return sendError(res, 503, 'admin_not_configured', 'Admin is not configured on this server.');
-  if (!requireCsrf(req, res)) return;
-  const key = ipHash(clientIp(req));
-  if (loginLimiter.isLimited(key)) {
+async function contentSummary(store) {
+  const st = await store.getContentState();
+  if (!st) return null;
+  const changed = changedSections(st.draft, st.published);
+  return { st, changed };
+}
+
+// ------------------------------------------------------------------ session & account
+async function login(ctx) {
+  const { req, res, store } = ctx;
+  if (!session.authConfig().ok) return sendError(res, 503, 'admin_not_configured', 'Admin is not configured on this server.');
+  const body = await readJson(req, 4096);
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase().slice(0, 254) : '';
+  const pw = typeof body.password === 'string' ? body.password : '';
+  const ipH = ipHash(clientIp(req));
+
+  if (await isLimited(store, { ipHash: ipH, email })) {
     return sendError(res, 429, 'rate_limited', 'Too many attempts. Try again in 15 minutes.', null, { 'Retry-After': '900' });
   }
-  let body;
-  try { body = await readJson(req, 4096); } catch (e) {
-    if (e instanceof HttpError) return sendError(res, e.status, e.code, e.message);
-    throw e;
-  }
-  const pw = typeof body.password === 'string' ? body.password : '';
-  const ok = pw !== '' && crypto.timingSafeEqual(sha(pw), sha(cfg.password));
+  const user = email ? await store.getUserByEmail(email) : null;
+  const usable = Boolean(user && user.active);
+  const candidate = pw.length <= password.MAX_LEN ? pw : '';
+  // One scrypt run in every case (real or dummy hash) so timing does not reveal whether the account exists.
+  const ok = usable && candidate !== '' ? await password.verifyPassword(candidate, user.password_hash) : await password.dummyVerify(candidate);
   if (!ok) {
-    loginLimiter.hit(key);
-    await sleep(FAIL_DELAY_MS);
-    return sendError(res, 401, 'bad_credentials', 'Incorrect password.');
+    await store.recordLoginAttempt({ ip_hash: ipH, email, ok: false });
+    await audit(ctx, 'login_failed', email, {}, usable ? user.id : null);
+    await sleep(settings.failDelayMs);
+    return sendError(res, 401, 'bad_credentials', GENERIC_LOGIN_ERROR);
   }
-  loginLimiter.reset(key);
-  session.setCookie(res, req, session.sign(cfg.secret, Date.now(), session.MAX_AGE, cfg.v));
-  return send(res, 200, { ok: true });
+  await store.recordLoginAttempt({ ip_hash: ipH, email, ok: true });
+  await store.recordLogin(user.id);
+  await audit(ctx, 'login', user.email, {}, user.id);
+  session.setCookie(res, req, session.sign(session.authConfig().secret, { uid: user.id, v: user.session_version }));
+  return send(res, 200, { ok: true, user: publicUser(user) });
 }
 
-async function logout(req, res) {
-  if (req.method !== 'POST') return methodNotAllowed(res, 'POST');
-  if (!requireCsrf(req, res)) return;
+async function logout(ctx) {
+  const { req, res } = ctx;
+  // Logging out needs no valid session: it only clears the cookie. Audit only when we can tell who it was.
+  try {
+    const user = await authenticate(req, ctx.store);
+    if (user) await audit({ ...ctx, user }, 'logout', user.email, {});
+  } catch (e) { /* unavailable / not configured: still clear the cookie */ }
   session.clearCookie(res, req);
   return send(res, 200, { ok: true });
 }
 
-async function sessionInfo(req, res) {
-  if (req.method !== 'GET' && req.method !== 'HEAD') return methodNotAllowed(res, 'GET, HEAD');
-  return send(res, 200, { ok: true, authenticated: configured() && isAuthed(req) });
+async function sessionInfo(ctx) {
+  const { req, res } = ctx;
+  const cfg = session.authConfig();
+  if (!cfg.ok || !session.fromRequest(req, cfg.secret)) return send(res, 200, { ok: true, authenticated: false });
+  const user = await authenticate(req, ctx.store);
+  if (!user) return send(res, 200, { ok: true, authenticated: false });
+  return send(res, 200, { ok: true, authenticated: true, user: publicUser(user) });
 }
 
-async function enquiries(req, res) {
-  if (req.method !== 'GET' && req.method !== 'PATCH') return methodNotAllowed(res, 'GET, PATCH');
-  if (!configured() || !isAuthed(req)) return unauthenticated(res);
+async function changePassword(ctx) {
+  const { req, res, store, user } = ctx;
+  const body = await readJson(req, 4096);
+  const current = typeof body.current === 'string' ? body.current : '';
+  const next = typeof body.next === 'string' ? body.next : '';
+  const ipH = ipHash(clientIp(req));
+  if (await isLimited(store, { ipHash: ipH, email: user.email })) {
+    return sendError(res, 429, 'rate_limited', 'Too many attempts. Try again in 15 minutes.', null, { 'Retry-After': '900' });
+  }
+  const errors = {};
+  const policy = password.passwordPolicyError(next);
+  if (policy) errors.next = policy;
+  if (!current) errors.current = 'Enter your current password';
+  if (Object.keys(errors).length) return invalid(res, errors);
+  const okCurrent = current.length <= password.MAX_LEN && await password.verifyPassword(current, user.password_hash);
+  if (!okCurrent) {
+    await store.recordLoginAttempt({ ip_hash: ipH, email: user.email, ok: false });
+    await audit(ctx, 'password_change_failed', user.email, {});
+    await sleep(settings.failDelayMs);
+    return invalid(res, { current: 'Current password is incorrect' });
+  }
+  if (next === current) return invalid(res, { next: 'Choose a password different from the current one' });
+  const updated = await store.updateUser(user.id, { password_hash: await password.hashPassword(next), must_change_password: false, bump_session: true });
+  await audit(ctx, 'password_change', user.email, {});
+  session.setCookie(res, req, session.sign(session.authConfig().secret, { uid: updated.id, v: updated.session_version }));
+  return send(res, 200, { ok: true, user: publicUser(updated) });
+}
 
+async function account(ctx) {
+  const { req, res, store, user } = ctx;
+  const body = await readJson(req, 4096);
+  const name = clean(body.name);
+  if (typeof body.name !== 'string') return invalid(res, { name: 'Enter your name' });
+  if (name.length > 120) return invalid(res, { name: 'Name must be 120 characters or fewer' });
+  const updated = await store.updateUser(user.id, { name });
+  await audit(ctx, 'account_update', user.email, {});
+  return send(res, 200, { ok: true, user: publicUser(updated) });
+}
+
+// ------------------------------------------------------------------ enquiries
+async function enquiries(ctx) {
+  const { req, res, store } = ctx;
   if (req.method === 'GET') {
     const f = filters(req, res);
-    if (!f) return;
-    const num = (v, d) => { const n = Number.parseInt(v, 10); return Number.isFinite(n) && n >= 1 ? n : d; };
-    const page = num(f.one(f.qs.page), 1);
-    const pageSize = Math.min(num(f.one(f.qs.pageSize), 25), 100);
-    try {
-      const r = await getStore().listEnquiries({ status: f.status, q: f.q, limit: pageSize, offset: (page - 1) * pageSize });
-      return send(res, 200, { ok: true, rows: (r.rows || []).map(stripPrivate), total: r.total, counts: r.counts, page, pageSize });
-    } catch (e) { return storeFailure(res, e, 'list'); }
+    if (!f) return undefined;
+    const { page, pageSize, offset } = getPaging(req, 25, 100);
+    const r = await store.listEnquiries({ status: f.status, q: f.q, limit: pageSize, offset });
+    return send(res, 200, { ok: true, rows: (r.rows || []).map(stripPrivate), total: r.total, counts: r.counts, page, pageSize });
   }
-
-  if (!requireCsrf(req, res)) return;
-  let body;
-  try { body = await readJson(req, 16384); } catch (e) {
-    if (e instanceof HttpError) return sendError(res, e.status, e.code, e.message);
-    throw e;
-  }
+  const body = await readJson(req, 16384);
   const errors = {};
   const id = typeof body.id === 'string' ? body.id.trim() : '';
   if (!UUID_RE.test(id)) errors.id = 'Invalid enquiry id';
@@ -131,42 +184,332 @@ async function enquiries(req, res) {
       if (notes.length > LIMITS.notes) errors.notes = `Notes must be ${LIMITS.notes} characters or fewer`;
     }
   }
-  if (Object.keys(errors).length) return sendError(res, 422, 'invalid_input', 'Please correct the highlighted fields.', { errors });
-  try {
-    const row = await getStore().updateEnquiry({ id, status, notes });
-    return send(res, 200, { ok: true, row: stripPrivate(row) });
-  } catch (e) { return storeFailure(res, e, 'update'); }
+  if (Object.keys(errors).length) return invalid(res, errors);
+  const row = await store.updateEnquiry({ id, status, notes });
+  await audit(ctx, 'enquiry_update', id, { status: status || null, notes_changed: notes !== undefined });
+  return send(res, 200, { ok: true, row: stripPrivate(row) });
 }
 
-async function exportCsv(req, res) {
-  if (req.method !== 'GET') return methodNotAllowed(res, 'GET');
-  if (!configured() || !isAuthed(req)) return unauthenticated(res);
+async function exportCsv(ctx) {
+  const { res, store, req } = ctx;
   const f = filters(req, res);
-  if (!f) return;
-  try {
-    const rows = (await getStore().exportEnquiries({ status: f.status, q: f.q })).map(stripPrivate);
-    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-    return sendText(res, 200, 'text/csv; charset=utf-8', toCsv(rows), {
-      'Content-Disposition': `attachment; filename="vfi-enquiries-${day}.csv"`,
-    });
-  } catch (e) { return storeFailure(res, e, 'export'); }
+  if (!f) return undefined;
+  const rows = (await store.exportEnquiries({ status: f.status, q: f.q })).map(stripPrivate);
+  await audit(ctx, 'enquiry_export', f.status || 'active', { rows: rows.length, search: f.q !== '' });
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return sendText(res, 200, 'text/csv; charset=utf-8', toCsv(rows), { 'Content-Disposition': `attachment; filename="vfi-enquiries-${day}.csv"` });
 }
 
-const ACTIONS = { login, logout, session: sessionInfo, enquiries, export: exportCsv };
-
-module.exports = async function handler(req, res) {
+// ------------------------------------------------------------------ content
+async function content(ctx) {
+  const { req, res, store, user } = ctx;
+  if (req.method === 'GET') {
+    const s = await contentSummary(store);
+    if (!s) return unavailable(res);
+    return send(res, 200, {
+      ok: true, draft: s.st.draft, draft_updated_at: s.st.draft_updated_at, draft_updated_by: s.st.draft_updated_by_name,
+      draft_updated_by_id: s.st.draft_updated_by_id, published_revision: s.st.published_revision,
+      hasUnpublished: s.changed.length > 0, changed_sections: s.changed,
+    });
+  }
+  // PUT
+  const body = await readJson(req, CONTENT_BODY_MAX);
+  const base = typeof body.base_updated_at === 'string' ? new Date(body.base_updated_at) : null;
+  if (!base || Number.isNaN(base.getTime())) return invalid(res, { base_updated_at: 'base_updated_at is required' });
+  if (!body.draft || typeof body.draft !== 'object' || Array.isArray(body.draft)) return invalid(res, { draft: 'draft must be an object' });
+  const v = validate(body.draft, loadSchema());
+  if (!v.ok) return invalid(res, v.errors, 'Some content is not valid. Please correct the highlighted fields.');
+  let saved;
   try {
-    let action = getQuery(req).action;
-    if (Array.isArray(action)) action = action[0];
+    saved = await store.saveDraft({ data: v.value, base_updated_at: base.toISOString(), user_id: user.id });
+  } catch (e) {
+    if (e && e.code === 'conflict') {
+      const cur = e.current || {};
+      return sendError(res, 409, 'conflict', 'Someone else saved changes to this draft since you opened it.', {
+        updated_at: cur.updated_at || null, updated_by: cur.updated_by_name || null, updated_by_id: cur.updated_by_id || null,
+      });
+    }
+    throw e;
+  }
+  await audit(ctx, 'content_save', 'draft', { bytes: Buffer.byteLength(JSON.stringify(v.value)) });
+  const s = await contentSummary(store);
+  return send(res, 200, {
+    ok: true, draft: v.value, draft_updated_at: saved.draft_updated_at, draft_updated_by: user.name || user.email, draft_updated_by_id: user.id,
+    published_revision: s ? s.st.published_revision : null, hasUnpublished: s ? s.changed.length > 0 : true, changed_sections: s ? s.changed : [],
+  });
+}
+
+async function publish(ctx) {
+  const { req, res, store, user } = ctx;
+  const body = await readBody(req, 4096);
+  if (body.note !== undefined && typeof body.note !== 'string') return invalid(res, { note: 'Note must be text' });
+  const note = clean(body.note || '');
+  if (note.length > 200) return invalid(res, { note: 'Note must be 200 characters or fewer' });
+  const s = await contentSummary(store);
+  if (!s) return unavailable(res);
+  const v = validate(s.st.draft, loadSchema());
+  if (!v.ok) return invalid(res, v.errors, 'The draft has content that is not valid, so it cannot be published yet.');
+  const rev = await store.publish({ user_id: user.id, note });
+  await audit(ctx, 'content_publish', `#${rev.id}`, { revision: rev.id, note, sections: s.changed });
+  return send(res, 200, { ok: true, revision: rev, published_revision: rev.id });
+}
+
+async function revisions(ctx) {
+  const { req, res, store } = ctx;
+  const { page, pageSize, offset } = getPaging(req, 25, 100);
+  const r = await store.listRevisions({ limit: pageSize, offset });
+  return send(res, 200, {
+    ok: true, page, pageSize, total: r.total, published_revision: r.published_revision,
+    rows: r.rows.map((x) => ({ id: x.id, note: x.note, published_by: x.published_by_name, published_by_id: x.published_by_id, published_at: x.published_at, is_current: x.id === r.published_revision })),
+  });
+}
+
+async function revision(ctx) {
+  const { req, res, store } = ctx;
+  const raw = one(getQuery(req).id);
+  const id = Number(raw);
+  if (!Number.isInteger(id) || id < 1) return invalid(res, { id: 'Invalid revision id' });
+  const [rev, pub] = await Promise.all([store.getRevision(id), store.getPublished()]);
+  if (!rev) return sendError(res, 404, 'not_found', 'Revision not found.');
+  return send(res, 200, {
+    ok: true,
+    revision: { id: rev.id, note: rev.note, published_by: rev.published_by_name, published_by_id: rev.published_by_id, published_at: rev.published_at, is_current: pub ? pub.revision === rev.id : false, data: rev.data },
+    changed_sections: pub ? changedSections(rev.data, pub.data) : [],
+  });
+}
+
+async function rollback(ctx) {
+  const { req, res, store, user } = ctx;
+  const body = await readJson(req, 1024);
+  const id = Number(body.id);
+  if (!Number.isInteger(id) || id < 1) return invalid(res, { id: 'Invalid revision id' });
+  try {
+    const r = await store.rollback({ id, user_id: user.id });
+    await audit(ctx, 'content_rollback', `#${id}`, { from: id, new_revision: r.revision.id });
+    return send(res, 200, { ok: true, revision: r.revision, published_revision: r.revision.id, draft_updated_at: r.draft_updated_at });
+  } catch (e) {
+    if (e && e.code === 'not_found') return sendError(res, 404, 'not_found', 'Revision not found.');
+    throw e;
+  }
+}
+
+async function discard(ctx) {
+  const { res, store, user } = ctx;
+  const r = await store.discardDraft({ user_id: user.id });
+  await audit(ctx, 'content_discard', 'draft', {});
+  return send(res, 200, { ok: true, draft_updated_at: r.draft_updated_at });
+}
+
+// ------------------------------------------------------------------ media
+const mediaNotConfigured = (res) => sendError(res, 503, 'media_not_configured', 'Image uploads are not configured on this server.');
+
+async function mediaAction(ctx) {
+  const { req, res, store, user } = ctx;
+  if (req.method === 'GET') {
+    const { page, pageSize, offset } = getPaging(req, 50, 100);
+    const r = await store.listMedia({ limit: pageSize, offset });
+    return send(res, 200, { ok: true, rows: r.rows, total: r.total, page, pageSize });
+  }
+  if (req.method === 'PATCH') {
+    const body = await readJson(req, 2048);
+    const id = typeof body.id === 'string' ? body.id : '';
+    if (!UUID_RE.test(id)) return invalid(res, { id: 'Invalid media id' });
+    if (typeof body.alt !== 'string') return invalid(res, { alt: 'Alt text must be text' });
+    const alt = clean(body.alt);
+    if (alt.length > 200) return invalid(res, { alt: 'Alt text must be 200 characters or fewer' });
+    try {
+      const row = await store.updateMedia(id, { alt });
+      await audit(ctx, 'media_update', id, {});
+      return send(res, 200, { ok: true, media: row });
+    } catch (e) {
+      if (e && e.code === 'not_found') return sendError(res, 404, 'not_found', 'Image not found.');
+      throw e;
+    }
+  }
+  if (!media.isConfigured()) return mediaNotConfigured(res);
+
+  if (req.method === 'POST') {
+    let buf;
+    try { buf = await readRaw(req, media.MAX_BYTES); } catch (e) {
+      if (e instanceof HttpError) return sendError(res, e.status, e.code, e.status === 413 ? 'Image is too large (maximum 4 MB).' : e.message);
+      throw e;
+    }
+    let alt = String(header(req, 'x-alt') || '');
+    try { alt = decodeURIComponent(alt); } catch (e) { /* keep raw */ }
+    alt = clean(alt).slice(0, 200);
+    const info = media.inspectUpload(buf, header(req, 'content-type'), header(req, 'x-filename'));
+    if (!info.ok) return sendError(res, info.status, info.code, info.error);
+    const pathname = media.newPathname(info);
+    const uploader = media.getUploader();
+    let put;
+    try { put = await uploader.put(pathname, buf, info.contentType); } catch (e) {
+      console.error('Blob upload failed:', (e && e.name) || 'error');
+      return sendError(res, 502, 'upload_failed', 'The image could not be stored. Please try again.');
+    }
+    let row;
+    try {
+      row = await store.addMedia({ url: put.url, pathname: put.pathname || pathname, content_type: info.contentType, size: buf.length, width: info.width, height: info.height, alt, uploaded_by: user.id });
+    } catch (e) {
+      try { await uploader.del(put.url); } catch (e2) { /* orphaned blob; nothing more to do */ }
+      throw e;
+    }
+    await audit(ctx, 'media_upload', row.pathname, { id: row.id, size: row.size, content_type: row.content_type });
+    return send(res, 200, { ok: true, media: row });
+  }
+
+  // DELETE
+  const id = String(one(getQuery(req).id) || '');
+  if (!UUID_RE.test(id)) return invalid(res, { id: 'Invalid media id' });
+  const row = await store.getMedia(id);
+  if (!row) return sendError(res, 404, 'not_found', 'Image not found.');
+  const st = await store.getContentState();
+  if (!st) return unavailable(res);
+  const used = [
+    ...findUsages(st.draft, row.url).map((path) => ({ where: 'draft', path })),
+    ...findUsages(st.published, row.url).map((path) => ({ where: 'published', path })),
+  ];
+  if (used.length) {
+    return sendError(res, 409, 'in_use', 'This image is used in the site content and cannot be deleted. Remove it from the content first.', { used_in: used });
+  }
+  try { await media.getUploader().del(row.url); } catch (e) {
+    console.error('Blob delete failed:', (e && e.name) || 'error');
+    return sendError(res, 502, 'delete_failed', 'The image could not be deleted. Please try again.');
+  }
+  await store.deleteMedia(id);
+  await audit(ctx, 'media_delete', row.pathname, { id });
+  return send(res, 200, { ok: true });
+}
+
+// ------------------------------------------------------------------ users & audit
+async function users(ctx) {
+  const { req, res, store } = ctx;
+  if (req.method === 'GET') {
+    return send(res, 200, { ok: true, users: (await store.listUsers()).map(publicUser) });
+  }
+  const body = await readJson(req, 4096);
+  if (req.method === 'POST') {
+    const errors = {};
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    if (!email) errors.email = 'Enter an email address';
+    else if (email.length > 200 || !isEmail(email)) errors.email = 'Enter a valid email address';
+    const name = typeof body.name === 'string' ? clean(body.name) : '';
+    if (name.length > 120) errors.name = 'Name must be 120 characters or fewer';
+    if (!ROLES.includes(body.role)) errors.role = 'Choose a role';
+    const policy = password.passwordPolicyError(body.password);
+    if (policy) errors.password = policy;
+    if (Object.keys(errors).length) return invalid(res, errors);
+    try {
+      const u = await store.createUser({ email, name, role: body.role, password_hash: await password.hashPassword(body.password), must_change_password: true });
+      await audit(ctx, 'user_create', email, { role: body.role });
+      return send(res, 200, { ok: true, user: publicUser(u) });
+    } catch (e) {
+      if (e && e.code === 'email_taken') return sendError(res, 409, 'email_taken', 'A user with this email already exists.', { errors: { email: 'A user with this email already exists' } });
+      throw e;
+    }
+  }
+  // PATCH
+  const errors = {};
+  const id = typeof body.id === 'string' ? body.id : '';
+  if (!UUID_RE.test(id)) errors.id = 'Invalid user id';
+  const patch = {};
+  const changes = [];
+  if (body.role !== undefined) { if (!ROLES.includes(body.role)) errors.role = 'Choose a role'; else { patch.role = body.role; changes.push('role'); } }
+  if (body.active !== undefined) { if (typeof body.active !== 'boolean') errors.active = 'active must be true or false'; else { patch.active = body.active; changes.push(body.active ? 'activate' : 'deactivate'); if (!body.active) patch.bump_session = true; } }
+  if (body.name !== undefined) { if (typeof body.name !== 'string' || clean(body.name).length > 120) errors.name = 'Name must be 120 characters or fewer'; else { patch.name = clean(body.name); changes.push('name'); } }
+  let temp = null;
+  if (body.resetPassword !== undefined && body.resetPassword !== false) {
+    if (body.resetPassword !== true) errors.resetPassword = 'resetPassword must be true';
+    else {
+      temp = password.generateTempPassword();
+      patch.password_hash = await password.hashPassword(temp);
+      patch.must_change_password = true;
+      patch.bump_session = true;
+      changes.push('reset_password');
+    }
+  }
+  if (!changes.length && !errors.id && !Object.keys(errors).length) errors.id = 'Nothing to change';
+  if (Object.keys(errors).length) return invalid(res, errors);
+  try {
+    const u = await store.updateUser(id, patch);
+    await audit(ctx, changes.includes('reset_password') ? 'user_reset_password' : 'user_update', u.email, { changes, role: patch.role });
+    return send(res, 200, { ok: true, user: publicUser(u), ...(temp ? { temporary_password: temp } : {}) });
+  } catch (e) {
+    if (e && e.code === 'last_admin') return sendError(res, 409, 'last_admin', 'At least one active administrator must remain. Make another user an administrator first.');
+    if (e && e.code === 'not_found') return sendError(res, 404, 'not_found', 'User not found.');
+    throw e;
+  }
+}
+
+async function auditLog(ctx) {
+  const { req, res, store } = ctx;
+  const { page, pageSize, offset } = getPaging(req, 50, 200);
+  const r = await store.listAudit({ limit: pageSize, offset });
+  return send(res, 200, { ok: true, rows: r.rows, total: r.total, page, pageSize });
+}
+
+// ------------------------------------------------------------------ routing
+// auth: 'none' = no session needed (login, logout, session); otherwise the role table in guard.js decides.
+const ACTIONS = {
+  login: { methods: ['POST'], auth: 'none', fn: login },
+  logout: { methods: ['POST'], auth: 'none', fn: logout },
+  session: { methods: ['GET', 'HEAD'], auth: 'none', fn: sessionInfo },
+  password: { methods: ['POST'], fn: changePassword },
+  account: { methods: ['PATCH'], fn: account },
+  enquiries: { methods: ['GET', 'PATCH'], fn: enquiries },
+  export: { methods: ['GET'], fn: exportCsv },
+  content: { methods: ['GET', 'PUT'], fn: content },
+  publish: { methods: ['POST'], fn: publish },
+  revisions: { methods: ['GET'], fn: revisions },
+  revision: { methods: ['GET'], fn: revision },
+  rollback: { methods: ['POST'], fn: rollback },
+  discard: { methods: ['POST'], fn: discard },
+  media: { methods: ['GET', 'POST', 'PATCH', 'DELETE'], fn: mediaAction },
+  users: { methods: ['GET', 'POST', 'PATCH'], fn: users },
+  audit: { methods: ['GET'], fn: auditLog },
+};
+const SELF_SERVICE = new Set(['session', 'logout', 'password']); // allowed while must_change_password is set
+
+function failure(res, e) {
+  if (e instanceof HttpError) return sendError(res, e.status, e.code, e.message);
+  const code = e && e.code;
+  if (code === 'unavailable') return unavailable(res);
+  if (code === 'not_found') return sendError(res, 404, 'not_found', 'Not found.');
+  if (code === 'invalid_input') return invalid(res, {});
+  console.error('Admin handler error:', code || (e && e.name));
+  return sendError(res, 500, 'server_error', 'Something went wrong.');
+}
+
+async function handler(req, res) {
+  try {
+    let action = one(getQuery(req).action);
     if (!action) {
       const m = /\/api\/admin\/([^/?#]+)/.exec(req.url || '');
       action = m ? decodeURIComponent(m[1]) : '';
     }
-    const fn = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
-    if (!fn) return sendError(res, 404, 'not_found', 'Not found');
-    return await fn(req, res);
+    const spec = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
+    if (!spec) return sendError(res, 404, 'not_found', 'Not found');
+    if (!spec.methods.includes(req.method)) return methodNotAllowed(res, spec.methods.join(', '));
+    if (req.method !== 'GET' && req.method !== 'HEAD' && header(req, 'x-requested-with') !== 'vfi-admin') {
+      return sendError(res, 403, 'csrf', 'Missing or invalid request header.');
+    }
+    const store = getStore();
+    const ctx = { req, res, store, user: null };
+    if (spec.auth !== 'none') {
+      const user = await authenticate(req, store);
+      if (!user) return unauthenticated(res);
+      if (user.must_change_password && !SELF_SERVICE.has(action)) {
+        return sendError(res, 403, 'password_change_required', 'You must change your password before continuing.');
+      }
+      if (!can(user.role, action, req.method)) return sendError(res, 403, 'forbidden', 'You do not have permission to do this.');
+      ctx.user = user;
+    }
+    return await spec.fn(ctx);
   } catch (e) {
-    console.error('Admin handler error:', e && e.name);
-    if (!res.headersSent) return sendError(res, 500, 'server_error', 'Something went wrong.');
+    if (res.headersSent) return undefined;
+    return failure(res, e);
   }
-};
+}
+
+module.exports = handler;
+module.exports.settings = settings;
+module.exports.ACTIONS = ACTIONS;

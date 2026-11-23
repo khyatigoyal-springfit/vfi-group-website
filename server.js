@@ -5,13 +5,14 @@ const fs = require('fs');
 const express = require('express');
 
 const enquiryHandler = require('./api/enquiry');
+const contentHandler = require('./api/content');
 const adminHandler = require('./api/admin/[action]');
 
 const PUBLIC = path.join(__dirname, 'public');
 const VIEWS = ['about', 'manufacturing', 'innovation', 'products', 'brands', 'partnerships', 'sustainability', 'careers', 'contact', 'privacy', 'terms', 'code-of-conduct'];
 
-// Keep in sync with vercel.json (ARCHITECTURE section 8).
-const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
+// Keep in sync with vercel.json.
+const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.public.blob.vercel-storage.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
 const SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
@@ -35,6 +36,7 @@ function createApp() {
 
   // --- API (no body parser: the handlers read the raw stream themselves) ---
   app.all('/api/enquiry', (req, res) => enquiryHandler(req, res));
+  app.all('/api/content', (req, res) => contentHandler(req, res));
   app.all('/api/admin/:action', (req, res) => {
     req.query = Object.assign({}, req.query, { action: req.params.action });
     return adminHandler(req, res);

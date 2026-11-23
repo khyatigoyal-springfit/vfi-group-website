@@ -3,53 +3,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { setupEnv, mockReq } = require('./_helpers');
 setupEnv();
-const session = require('../lib/session');
 const { toCsv, cell } = require('../lib/csv');
-const { createLimiter } = require('../lib/ratelimit');
 const { readJson, clientIp, ipHash, HttpError } = require('../lib/http');
 const { notify } = require('../lib/mail');
-
-const S = 'secret-key';
-
-test('session: sign/verify round trip', () => {
-  const v = session.sign(S, 1000, 60);
-  assert.deepEqual(session.verify(v, S, 2000), { exp: 61000 });
-});
-
-test('session: tampered signature, altered payload, expired, garbage, wrong secret all fail', () => {
-  const v = session.sign(S, 1000, 60);
-  const [p, sig] = v.split('.');
-  assert.equal(session.verify(p + '.' + sig.slice(0, -2) + (sig.endsWith('AA') ? 'BB' : 'AA'), S, 2000), null);
-  const forged = Buffer.from(JSON.stringify({ exp: 9e15 })).toString('base64url');
-  assert.equal(session.verify(forged + '.' + sig, S, 2000), null);
-  assert.equal(session.verify(v, S, 61001), null, 'expired');
-  assert.equal(session.verify(v, 'other', 2000), null, 'wrong secret');
-  for (const g of ['', 'a', 'a.b', 'a.b.c', '.', '..', 'x'.repeat(600), null, undefined, 5, '{}.{}']) assert.equal(session.verify(g, S, 2000), null, String(g));
-  assert.equal(session.verify(v, '', 2000), null, 'empty secret');
-});
-
-test('session: cookie attributes', () => {
-  const c = session.cookieString('abc', 43200, true);
-  for (const part of ['vfi_admin=abc', 'HttpOnly', 'SameSite=Strict', 'Path=/', 'Max-Age=43200', 'Secure']) assert.ok(c.includes(part), part);
-  assert.ok(!session.cookieString('abc', 1, false).includes('Secure'));
-});
-
-test('session: Secure omitted only for non-production localhost', () => {
-  const old = process.env.NODE_ENV;
-  try {
-    process.env.NODE_ENV = 'development';
-    assert.equal(session.isSecure({ headers: { host: 'localhost:3000' } }), false);
-    assert.equal(session.isSecure({ headers: { host: '127.0.0.1:3000' } }), false);
-    assert.equal(session.isSecure({ headers: { host: 'example.com' } }), true);
-    process.env.NODE_ENV = 'production';
-    assert.equal(session.isSecure({ headers: { host: 'localhost:3000' } }), true);
-  } finally { if (old === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = old; }
-});
-
-test('session: parseCookies', () => {
-  assert.deepEqual(session.parseCookies('a=1; vfi_admin=x.y; b=c=d'), { a: '1', vfi_admin: 'x.y', b: 'c=d' });
-  assert.deepEqual(session.parseCookies(undefined), {});
-});
 
 test('csv: BOM, CRLF, quoting round trip', () => {
   const out = toCsv([{ ref: 'R1', name: 'Smith, "Bob"', message: 'line1\nline2' }], ['ref', 'name', 'message']);
@@ -62,19 +18,6 @@ test('csv: injection guard', () => {
   for (const s of ['+1', '-1', '@x', '\tx', '\rx']) assert.ok(cell(s).startsWith("'") || cell(s).startsWith('"\''), s);
   assert.equal(cell('a=b'), 'a=b');
   assert.equal(cell(null), '');
-});
-
-test('ratelimit: sliding window', () => {
-  const l = createLimiter({ max: 3, windowMs: 1000 });
-  l.hit('k', 0); l.hit('k', 100);
-  assert.equal(l.isLimited('k', 200), false);
-  l.hit('k', 300);
-  assert.equal(l.isLimited('k', 400), true);
-  assert.equal(l.isLimited('other', 400), false);
-  assert.equal(l.isLimited('k', 1250), false, 'old hits expired');
-  l.hit('k', 1300); l.hit('k', 1301); l.hit('k', 1302);
-  l.reset('k');
-  assert.equal(l.isLimited('k', 1303), false);
 });
 
 test('http.readJson: object, string and Buffer bodies; errors', async () => {

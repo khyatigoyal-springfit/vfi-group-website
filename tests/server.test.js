@@ -41,11 +41,15 @@ test('vercel.json is valid, equivalent to server.js headers, keeps required keys
   assert.equal(map['Strict-Transport-Security'], HSTS);
   assert.equal(map['X-Frame-Options'], 'DENY');
   assert.ok(v.headers.find((h) => h.source === '/assets/(.*)'));
-  for (const s of ['/admin(.*)', '/api/(.*)']) assert.equal(v.headers.find((h) => h.source === s).headers.find((x) => x.key === 'X-Robots-Tag').value, 'noindex');
+  for (const s of ['/admin(.*)', '/api/((?!content$).*)']) assert.equal(v.headers.find((h) => h.source === s).headers.find((x) => x.key === 'X-Robots-Tag').value, 'noindex');
   assert.ok(v.rewrites.some((r) => r.source === '/admin' && r.destination === '/admin/index.html'));
   assert.ok(!v.rewrites.some((r) => r.source === '/(.*)' || r.source === '/:path*'), 'no catch-all rewrite');
   const files = fs.readdirSync(path.join(__dirname, '..', 'api'), { recursive: true }).filter((f) => f.endsWith('.js'));
   assert.ok(files.length <= 4, 'function count');
+  assert.match(map['Content-Security-Policy'], /img-src 'self' data: https:\/\/\*\.public\.blob\.vercel-storage\.com;/);
+  const fn = v.functions['api/**/*.js'];
+  assert.equal(fn.maxDuration, 15);
+  for (const f of ['db/migrations/*.sql', 'public/content/*.json', 'public/admin/*.json']) assert.ok(fn.includeFiles.includes(f), f);
 });
 
 test('clean URLs serve index.html with 200', async () => {

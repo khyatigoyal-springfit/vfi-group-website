@@ -12,11 +12,14 @@ npm start          # http://localhost:3000
 ```
 server.js            Express dev server: clean URLs, mounts api/ handlers, security headers
 api/enquiry.js       POST /api/enquiry (Vercel function, also mounted by server.js)
-api/admin/[action].js  Admin API: login, logout, session, enquiries, export
-lib/                 validate, http, session, ratelimit, csv, mail, store/ (supabase + memory)
-supabase/migrations/ Database schema and RPC functions
+api/content.js       GET /api/content: published site content (CDN cached), ?draft=1 for the preview
+api/admin/[action].js  Admin API: login, session, users, enquiries, content, publish, history, media, audit
+lib/                 http, validate, csv, mail, media, auth/ (passwords, sessions, roles), content/ (validation,
+                     defaults, diff), db/ (pool, migrations, Postgres store), store/ (selection + memory store)
+db/migrations/       SQL schema, applied automatically on first use
 tests/               node:test suite (npm test)
-public/admin/        Admin dashboard (static)
+public/admin/        Admin panel (static)
+public/content/      default.json: the bundled site content (seed and fallback)
 public/index.html    All page markup (pages are <div class="view" data-view="…">)
 public/css/style.css Styles
 public/js/app.js     Router, configurator, sliders, forms + all editable content
@@ -28,8 +31,10 @@ public/assets/img/   Images and logos
 /sustainability · /careers · /contact · /privacy · /terms · /code-of-conduct (unknown URLs show a 404 page)
 
 ## Editing content
-Most text lives in arrays at the top of `public/js/app.js` (CAPS, APPS, BRANDS, PARTNERS, JOURNEY, ROLES …).
-Contact details, factory list and site URL: `SITE` at the top of `public/js/app.js` (filled from www.vfigroup.org; empty fields stay hidden).
+Site content is served from `/api/content` and edited in the admin panel (`/admin`, Content area): edit a draft,
+preview it at `/?preview=1`, publish it, and roll back from History if needed. The bundled defaults live in
+`public/content/default.json` (first-run seed, and the fallback if the database is unreachable); the editor form is
+described by `public/admin/content-schema.json`.
 
 Content sources: company facts, timeline, brands, technologies, CSR policy and code of conduct were taken from
 www.vfigroup.org (home, /innovation, /vfi-corporate-profile, /vfi-group-code-of-conduct). Images in
@@ -37,63 +42,97 @@ www.vfigroup.org (home, /innovation, /vfi-corporate-profile, /vfi-group-code-of-
 
 ## Backend
 
-**Architecture.** The site is static (`public/`) plus two Vercel Node functions (`api/enquiry.js`, `api/admin/[action].js`).
-The functions store enquiries in Supabase Postgres by calling `SECURITY DEFINER` RPC functions through PostgREST with the
-publishable (anon) key. Tables have RLS on, no policies and no grants, so the key alone can only call the four RPCs.
-All RPCs (submit included, since migration 0002) require `SUPABASE_ADMIN_SECRET`, whose SHA-256 hash lives in `private.app_secrets`.
-Without `SUPABASE_URL` the same handlers use a local memory store persisted to `data/enquiries.json`
-(add `data/` to `.gitignore`); this is for local development and tests only. On Vercel or with `NODE_ENV=production`
-a missing Supabase URL/key makes every store call fail with 503 instead.
+**Architecture.** The site is static (`public/`) plus three Vercel Node functions: `api/enquiry.js`, `api/content.js` and
+`api/admin/[action].js` (the Hobby plan allows 12; we keep at most 4). Data lives in **Neon Postgres** (via the `pg`
+driver, `DATABASE_URL`, server-side only) and uploaded images in **Vercel Blob**. Without `DATABASE_URL` the same handlers use a
+local in-memory store (development and tests only). On Vercel or with `NODE_ENV=production` a missing `DATABASE_URL`
+fails closed: enquiry and admin answer 503 `unavailable`, while `/api/content` serves the bundled defaults
+(header `X-Content-Source: defaults`) so the public site never goes blank.
 
-### Setup
-1. Create a Supabase project.
-2. Run the migrations in the SQL editor, **in order**: first `supabase/migrations/0001_init.sql`, then
-   `supabase/migrations/0002_harden_submit.sql` (both safe to re-run; neither contains secrets). 0002 replaces
-   `submit_enquiry(p jsonb)` with `submit_enquiry(p_secret text, p jsonb)` (secret required, `ip_hash` mandatory), tightens
-   the email regex and text cleaning, and caps CSV export at 2000 rows.
-3. Generate the API secret (`openssl rand -hex 32`) and store its hash (replace `<SECRET>`). The same secret protects
-   every RPC, including `submit_enquiry`:
-   ```sql
-   insert into private.app_secrets(name,hash) values ('admin_api', encode(extensions.digest('<SECRET>','sha256'),'hex'))
-   on conflict (name) do update set hash=excluded.hash;
-   ```
-4. In Vercel (Production and Preview) set the variables listed in `.env.example`:
-   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_ADMIN_SECRET` (the `<SECRET>` from step 3), `ADMIN_PASSWORD`,
-   `SESSION_SECRET` (min 32 characters), `ADMIN_PASSWORD` (min 12 characters), `IP_SALT`, and optionally `SMTP_*`,
-   `ENQUIRY_TO`, `ENQUIRY_FROM`. If `SUPABASE_URL` or `SUPABASE_ANON_KEY` is missing on Vercel, the API fails closed
-   (503 `unavailable`); it never falls back to the memory store.
-5. Check privacy: as `anon`, `select * from public.enquiries;` must fail with `permission denied`
-   (SQL editor: `set role anon; select * from public.enquiries;`).
+**Self-migrating.** On first use each server instance takes a Postgres advisory lock, creates `schema_migrations`,
+applies any pending `db/migrations/NNN_*.sql` in order, then (when the tables are empty) creates the bootstrap admin and
+seeds the content from `public/content/default.json` as the draft and revision #1. There is no manual migration step;
+running it twice or from several instances at once is safe.
+
+### Setup (from scratch)
+1. **Vercel project.** Import the repository. Framework preset "Other"; `vercel.json` handles the rest.
+2. **Database.** Vercel dashboard > Storage > Create > **Neon** (free plan). Connect it to the project for Production and
+   Preview. This sets `DATABASE_URL` for you.
+3. **Blob store.** Vercel dashboard > Storage > Create > **Blob**. Connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`.
+4. **Other variables** (Settings > Environment Variables, Production and Preview), see `.env.example`:
+   - `SESSION_SECRET`: `openssl rand -hex 32` (at least 32 characters, otherwise admin returns 503 `admin_not_configured`)
+   - `IP_SALT`: `openssl rand -hex 32`
+   - `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` (at least 12 characters): the first administrator
+   - optional `SMTP_*`, `ENQUIRY_TO`, `ENQUIRY_FROM` for enquiry notification email
+5. **Deploy.** The first request creates the tables, the first admin and the initial content automatically.
+6. **First login.** Open `/admin`, sign in with the bootstrap email and password. You are asked to choose a new password
+   (12 characters or more) before anything else. Then delete `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` from the
+   Vercel variables (they are only used while the users table is empty), create editor and sales users under **Users**, and
+   check the public site.
+7. **Verify.** Edit one text in Content, Save draft, Preview, Publish, then roll it back in History.
+
+### Roles
+| | admin | editor | sales |
+|---|---|---|---|
+| View, update and export enquiries | yes | yes | yes |
+| Edit draft content, upload media, preview, publish, roll back | yes | yes | no |
+| Manage users, read the audit log | yes | no | no |
+| Change own name and password | yes | yes | yes |
+
+At least one active admin always remains (the last one cannot be demoted or deactivated). Deactivating a user, resetting
+their password or changing their password ends their sessions immediately. After 10 failed logins from one visitor, or 5 for
+one email, in 15 minutes, login returns 429.
 
 ### Local development
 ```
 npm install
-npm start          # http://localhost:3000 (memory store unless SUPABASE_URL is set)
-npm test           # offline, no Supabase needed
+npm start          # http://localhost:3000 (in-memory store unless DATABASE_URL is set)
+npm test           # offline: memory store and a fake Blob uploader; no database or network needed
 ```
-Set `ADMIN_PASSWORD` (at least 12 characters) and `SESSION_SECRET` (at least 32) (see `.env.example`) to use `/admin` locally;
-without them, or if they are too short, login returns 503 `admin_not_configured` (the reason is logged). Session cookies carry a
-version claim derived from both values, so changing either one signs everyone out. The server reads real environment variables, so e.g.
-`ADMIN_PASSWORD=pw SESSION_SECRET=$(openssl rand -hex 32) npm start`.
+To use `/admin` locally set `SESSION_SECRET` (32+ characters) and a bootstrap admin, e.g.
+```
+SESSION_SECRET=$(openssl rand -hex 32) BOOTSTRAP_ADMIN_EMAIL=me@example.com BOOTSTRAP_ADMIN_PASSWORD='a long local password' npm start
+```
+The memory store forgets users and content edits on restart (the bootstrap admin is recreated each time). Image uploads need a real
+`BLOB_READ_WRITE_TOKEN`; without one the Media library answers 503 `media_not_configured` and everything else works.
+
+**Postgres integration tests** run only when `TEST_DATABASE_URL` points at a throwaway database (its `public` schema is dropped
+and recreated for each test):
+```
+TEST_DATABASE_URL=postgres://postgres@127.0.0.1:5432/vfi_test npm test
+```
+The same store test suite then runs against both the memory store and Postgres.
 
 ### API
-All responses are JSON `{ok:true,...}` or `{ok:false,error,code}` with `Cache-Control: no-store`.
+Admin responses are JSON `{ok:true,...}` or `{ok:false,error,code}` with `Cache-Control: no-store`.
+All non-GET admin requests need the header `X-Requested-With: vfi-admin`. Write actions are recorded in the audit log.
 
-| Method and path | Purpose | Notes |
+| Method and path | Role | Purpose |
 |---|---|---|
-| `POST /api/enquiry` | Submit an enquiry | JSON <= 32 KB. 200 `{ref}`, 400, 405, 413, 415, 422 (`errors{}`), 429, 503. Honeypot `website` or `t < 2500` ms returns a fake success and stores nothing |
-| `POST /api/admin/login` | Sign in | `{password}`; sets 12 h `vfi_admin` cookie; 401, 429 after 10 failures/15 min, 503 if not configured |
-| `POST /api/admin/logout` | Sign out | |
-| `GET /api/admin/session` | `{authenticated}` | |
-| `GET /api/admin/enquiries` | List | `?status=&q=&page=&pageSize=`; status empty = all but spam, `all`, or one status |
-| `PATCH /api/admin/enquiries` | Update | `{id, status?, notes?}` |
-| `GET /api/admin/export` | CSV download | same `status`/`q` filters |
+| `POST /api/enquiry` | public | Submit an enquiry. JSON <= 32 KB. 200 `{ref}`, 400, 405, 413, 415, 422 (`errors{}`), 429, 503. Honeypot `website` or `t < 2500` ms returns a fake success and stores nothing |
+| `GET /api/content` | public | Published content JSON. `s-maxage=60, stale-while-revalidate=300`, `ETag` (304 on match) |
+| `GET /api/content?draft=1` | editor, admin | Draft content for the preview, `no-store` |
+| `POST /api/admin/login` | none | `{email,password}` -> `{user}` and a 12 h `vfi_admin` cookie. 401, 429, 503 |
+| `POST /api/admin/logout`, `GET /api/admin/session` | any | Sign out; `{authenticated, user?}` |
+| `POST /api/admin/password` | any | `{current,next}`: change own password (re-issues the cookie, ends other sessions) |
+| `PATCH /api/admin/account` | any | `{name}`: change own name |
+| `GET/PATCH /api/admin/enquiries`, `GET /api/admin/export` | any | List (`?status=&q=&page=&pageSize=`), update `{id,status?,notes?}`, CSV export |
+| `GET/PUT /api/admin/content` | editor, admin | Read the draft; save `{draft, base_updated_at}` (409 `conflict` if someone saved since) |
+| `POST /api/admin/publish` | editor, admin | `{note?}`: publish the draft as a new revision |
+| `GET /api/admin/revisions`, `GET /api/admin/revision?id=` | editor, admin | History list; one revision with the sections that differ from live |
+| `POST /api/admin/rollback` | editor, admin | `{id}`: restore revision `id` as the draft and publish it as a new revision |
+| `POST /api/admin/discard` | editor, admin | Reset the draft to the published revision |
+| `GET/POST/PATCH/DELETE /api/admin/media` | editor, admin | List; upload a raw PNG/JPEG/WebP body (<= 4 MB, header `X-Filename`, optional `X-Alt`); set alt `{id,alt}`; delete `?id=` (409 `in_use` while referenced by draft or published content) |
+| `GET/POST/PATCH /api/admin/users` | admin | List; create `{email,name,role,password}`; update `{id,role?,active?,name?,resetPassword?}` (409 `last_admin`) |
+| `GET /api/admin/audit` | admin | Audit log, paged |
 
-POST/PATCH admin requests need the header `X-Requested-With: vfi-admin`.
+Content is validated on every save against `public/admin/content-schema.json` (512 KB cap, unknown keys rejected, `https://`,
+`/`, `mailto:` or `tel:` links only, images must be `/assets/` files or uploaded Blob images). Images: PNG, JPEG and WebP only
+(checked by magic bytes; SVG is refused).
 
 ### Admin and CSV export
-Open `/admin`, sign in with `ADMIN_PASSWORD`. "Export" downloads the current filter as UTF-8 CSV (BOM, RFC 4180 quoting;
-cells starting with `= + - @` get a leading `'` to defuse spreadsheet formulas). Max 2000 rows (newest first).
+Open `/admin` and sign in with your email and password. "Export" downloads the current filter as UTF-8 CSV (BOM, RFC 4180
+quoting; cells starting with `= + - @` get a leading `'` to defuse spreadsheet formulas). Max 2000 rows (newest first).
 
 ### Client IP and `TRUST_PROXY`
 Rate limiting keys on a salted hash of the client IP (IPv6 reduced to its /64, IPv4-mapped addresses treated as IPv4).
@@ -110,11 +149,15 @@ Raw IP addresses are never stored, logged or returned. Only a salted HMAC (`IP_S
 (5 enquiries per 10 minutes per visitor) and is never exposed by the admin API.
 
 ### Troubleshooting
-- **503 `unavailable`** on submit or in admin: Supabase unreachable, migration not applied, wrong `SUPABASE_URL`/`SUPABASE_ANON_KEY`,
-  or (admin only) `SUPABASE_ADMIN_SECRET` does not match the hash in `private.app_secrets`. Check the function logs.
-- **429 `rate_limited`**: more than 5 enquiries in 10 minutes from one visitor, or 10 failed admin logins in 15 minutes. Wait and retry.
-- **503 `admin_not_configured`**: `ADMIN_PASSWORD` (min 12 chars) or `SESSION_SECRET` (min 32 chars) is missing or too short; check the function log for the reason.
-- **Enquiry form returns 503 right after deploy**: `SUPABASE_URL`/`SUPABASE_ANON_KEY` unset (fail closed), `SUPABASE_ADMIN_SECRET` unset or not matching the stored hash, or migration 0002 not applied (the old `submit_enquiry(jsonb)` is dropped by 0002; apply it together with this code release).
+- **503 `unavailable`** on submit or in admin: the database is unreachable or `DATABASE_URL` is missing/wrong. The public site keeps
+  working from the bundled defaults. Check the function logs (only error codes are logged, never credentials).
+- **429 `rate_limited`**: more than 5 enquiries in 10 minutes from one visitor, or too many failed admin logins (10 per visitor or 5 per email in 15 minutes). Wait and retry.
+- **503 `admin_not_configured`**: `SESSION_SECRET` is missing or shorter than 32 characters.
+- **503 `media_not_configured`**: no Blob store connected (`BLOB_READ_WRITE_TOKEN`).
+- **Cannot log in on a fresh deploy**: the bootstrap admin is created only when the users table is empty and both
+  `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` were set at the first request. Add them, then clear the `users` table or
+  ask an existing admin to reset your password.
+- **A published change is not visible yet**: the public content is cached for up to 60 seconds (plus a few minutes of stale revalidation).
 
 ## Review notes before launch
 Open any page with `?review` (e.g. `/?review`) and press **Review notes** to highlight every
