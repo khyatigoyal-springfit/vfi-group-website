@@ -120,9 +120,8 @@ const capCards=CAPS.map(c=>`<article class="card" data-g="${c.g}"><div class="im
 $$('[data-rail="caps"]').forEach((h,i)=>{makeRail(h,capCards);const tabs=$('#capTabs'+(i?'2':''));const G=["All",...new Set(CAPS.map(c=>c.g))];tabs.innerHTML=G.map((g,j)=>`<button aria-pressed="${j===0}">${g}</button>`).join('');$$('button',tabs).forEach(b=>b.onclick=()=>{$$('button',tabs).forEach(x=>x.setAttribute('aria-pressed',x===b));$$('.card',h).forEach(c=>c.classList.toggle('hide',b.textContent!=='All'&&c.dataset.g!==b.textContent));$('.rail',h).scrollLeft=0;h._upd()})});
 const bName=b=>b.n+(b.s&&b.s!=="Mattresses"?' '+b.s:'');
 const bMark=b=>b.logo?`<img src="/assets/img/brands/${b.logo}.png" alt="${bName(b)}" draggable="false" loading="lazy">`:`<span class="wtxt">${b.n}${b.s?`<small>${b.s}</small>`:''}</span>`;
-const brandCards=BRANDS.map((b,i)=>`<button class="btile${b.dark?' dk':''}" aria-expanded="false" data-i="${i}"><span class="m"><span>${b.since||'VFI Group'}</span><span>Details</span></span><span class="wm">${bMark(b)}</span><span class="m"><span>${b.tag||''}</span></span></button>`).join('');
-$$('[data-rail="brands"]').forEach(h=>{makeRail(h,brandCards);const d=document.createElement('div');d.className='wrap';d.innerHTML=`<div class="bdet"><div><div class="in"></div></div></div>`;h.appendChild(d);
-  const det=$('.bdet',d),inn=$('.in',d);let cur=-1;$$('.btile',h).forEach(t=>t.addEventListener('click',()=>{const i=+t.dataset.i;if(cur===i){cur=-1;det.classList.remove('on');t.setAttribute('aria-expanded','false');return}cur=i;$$('.btile',h).forEach(x=>x.setAttribute('aria-expanded',x===t));const b=BRANDS[i];inn.innerHTML=`<h3>${bName(b)}</h3><p>${b.d}${b.f?` <span class="flag">${b.f}</span>`:''}${b.col?`<br><span style="font-size:.86rem">Collections: ${b.col.join(', ')}</span>`:''}</p>${b.url?`<a class="chev" href="${b.url}" target="_blank" rel="noopener">Visit ${b.n.toLowerCase()==='simmons'?'simmonsbeautyrest.in':new URL(b.url).hostname.replace('www.','')}</a>`:'<span style="font-size:.86rem;color:var(--dk-ink-2)">Website coming soon</span>'}`;det.classList.add('on')}))});
+const brandCards=BRANDS.map(b=>{const dk=b.dark?' dk':'';const inner=`<span class="m"><span>${b.since||'VFI Group'}</span><span>${b.url?'Visit site ↗':'Coming soon'}</span></span><span class="wm">${bMark(b)}</span><span class="m"><span>${b.tag||''}</span></span>`;return b.url?`<a class="btile${dk}" href="${b.url}" data-brandlink draggable="false" aria-label="Visit the ${bName(b)} website">${inner}</a>`:`<div class="btile${dk}">${inner}</div>`}).join('');
+$$('[data-rail="brands"]').forEach(h=>makeRail(h,brandCards));
 
 /* ---------- explorer ---------- */
 $$('[data-explorer]').forEach(host=>{
@@ -229,14 +228,14 @@ $('#whatwedo').innerHTML=WHATWEDO.map(([t,d])=>`<div><h3>${t}</h3><p>${d}</p></d
 $('#glance').innerHTML=GLANCE.map(([n,l])=>`<li><b>${n}</b><span>${l}</span></li>`).join('');
 $('#units').innerHTML=SITE.contact.factories.map(f=>`<div><h3>${f.name}</h3><p>${f.city}</p></div>`).join('');
 $('#tech').innerHTML=TECH.map((t,i)=>`<article class="feat${i%2?' rev':''}"><div class="fim"><img src="/assets/img/tech/${t.img}.jpg" alt="${t.k}: ${t.t}" loading="lazy" width="960" height="801"></div><div class="ftx"><span class="kick">${String(i+1).padStart(2,'0')} · ${t.k}</span><h3 class="h-m">${t.t}</h3><p>${t.d}</p></div></article>`).join('');
-$('#brandRows').innerHTML=BRANDS.filter(b=>b.img||b.range).map((b,i)=>`<article class="feat${i%2?' rev':''}" id="brand-${b.n.toLowerCase().replace(/\s+/g,'-')}"><div class="fim ${b.sq?'sq':'wide'}"><img src="/assets/img/story/${b.img||b.range}.jpg" alt="${bName(b)}" loading="lazy" width="1900" height="650"></div><div class="ftx">${b.logo?`<img class="blogo${b.dark?' dk':''}" src="/assets/img/brands/${b.logo}.png" alt="${bName(b)}" width="300" height="109" loading="lazy">`:`<h3 class="h-l">${b.n}</h3>`}<span class="kick">${b.tag}${b.since?' · '+b.since:''}</span><p>${b.d}</p>${b.col?`<div class="certs" style="margin:1rem 0 1.6rem">${b.col.map(c=>`<span class="cert">${c}</span>`).join('')}</div>`:''}${b.url?`<a class="chev" href="${b.url}" target="_blank" rel="noopener">Visit the ${bName(b)} website</a>`:''}</div></article>`).join('');
+$('#brandRows').innerHTML=BRANDS.filter(b=>b.img||b.range).map((b,i)=>`<article class="feat${i%2?' rev':''}" id="brand-${b.n.toLowerCase().replace(/\s+/g,'-')}"><div class="fim ${b.sq?'sq':'wide'}"><img src="/assets/img/story/${b.img||b.range}.jpg" alt="${bName(b)}" loading="lazy" width="1900" height="650"></div><div class="ftx">${b.logo?`<img class="blogo${b.dark?' dk':''}" src="/assets/img/brands/${b.logo}.png" alt="${bName(b)}" width="300" height="109" loading="lazy">`:`<h3 class="h-l">${b.n}</h3>`}<span class="kick">${b.tag}${b.since?' · '+b.since:''}</span><p>${b.d}</p>${b.col?`<div class="certs" style="margin:1rem 0 1.6rem">${b.col.map(c=>`<span class="cert">${c}</span>`).join('')}</div>`:''}${b.url?`<a class="chev" href="${b.url}" data-brandlink rel="noopener">Visit the ${bName(b)} website</a>`:''}</div></article>`).join('');
 const ce=SITE.contact.careers.email;$('[data-careers-mail]').innerHTML=ce?`Email <a class="chev" href="mailto:${ce}?subject=Job%20application">${ce}</a> or use the form.`:'';
 $('#tl').innerHTML=JOURNEY.map(([y,v,d])=>`<li><span class="y">${y}</span><div><h3>${v}</h3><p>${d}</p></div></li>`).join('');
 $('#proc').innerHTML=PROC.map(([t,d],i)=>`<li><span class="n">Step ${i+1}</span><h3>${t}</h3><p>${d}</p></li>`).join('');
 $('#sus').innerHTML=SUS.map(([t,d],i)=>`<div><span class="kick">${i+1}</span><h3>${t}</h3><p>${d}</p></div>`).join('');
 $('#vals').innerHTML=VALS.map(([t,d])=>`<div><h3>${t}</h3><p>${d}</p></div>`).join('');
 $('#roles').innerHTML=ROLES.map(([t,d])=>`<li><h3>${t}</h3><p>${d}</p><button class="chev" data-enquire="Careers" data-msg="I am interested in a role in ${t.toLowerCase()}.">Send résumé</button></li>`).join('');
-$('#fBrands').innerHTML=BRANDS.map(b=>b.url?`<li><a href="${b.url}" target="_blank" rel="noopener">${bName(b)}</a></li>`:`<li><a href="/brands" data-go="brands">${bName(b)}</a></li>`).join('');
+$('#fBrands').innerHTML=BRANDS.map(b=>b.url?`<li><a href="${b.url}" data-brandlink rel="noopener">${bName(b)}</a></li>`:`<li><a href="/brands" data-go="brands">${bName(b)}</a></li>`).join('');
 $('#yr').textContent=new Date().getFullYear();
 $('#conduct').innerHTML=CONDUCT.map(g=>`<div class="cgroup"><h2 class="h-m">${g.h}</h2><div class="ppl" style="margin-top:1.6rem">${g.i.map(([t,d])=>`<div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></div>`).join('');
 $$('[data-updated]').forEach(e=>e.textContent='Last updated '+SITE.updated);
@@ -294,7 +293,14 @@ document.addEventListener('click',e=>{
   const sn=e.target.closest('[data-sec]');if(sn){e.preventDefault();history.replaceState({},'','/#'+sn.dataset.sec);document.getElementById(sn.dataset.sec).scrollIntoView({behavior:reduce?'auto':'smooth'})}
   const q=e.target.closest('[data-enquire]');if(q){e.preventDefault();openDrawer(q.dataset.enquire,q.dataset.msg)}
 });
+document.addEventListener('click',e=>{
+  const bl=e.target.closest&&e.target.closest('a[data-brandlink]');
+  if(!bl||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+  e.preventDefault();history.replaceState({},'','/');location.assign(bl.href);
+});
 addEventListener('popstate',()=>route());
+if('scrollRestoration' in history)history.scrollRestoration='manual';
+addEventListener('pageshow',e=>{if(e.persisted){route();scrollTo(0,0)}});
 addEventListener('keydown',e=>{if(e.key==='Escape'){setOv(false);closeDrawer()}});
 
 /* ---------- scroll ---------- */
