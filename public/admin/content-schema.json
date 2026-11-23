@@ -127,7 +127,8 @@
      "key": "factories",
      "label": "Manufacturing units",
      "type": "list",
-     "help": [
+     "help": "Factories listed on the Manufacturing and Contact pages.",
+     "fields": [
       {
        "key": "name",
        "label": "Factory name",
@@ -143,14 +144,14 @@
        "help": "For example \"Uttarakhand · since 2007\".",
        "max": 120
       }
-     ],
-     "fields": "Factories listed on the Manufacturing and Contact pages."
+     ]
     },
     {
      "key": "presence",
      "label": "Global presence",
      "type": "list",
-     "help": [
+     "help": "Branches and offices listed on the Contact and Partnerships pages.",
+     "fields": [
       {
        "key": "name",
        "label": "Place",
@@ -166,14 +167,14 @@
        "help": "What happens there, e.g. \"Branch for global exports\".",
        "max": 160
       }
-     ],
-     "fields": "Branches and offices listed on the Contact and Partnerships pages."
+     ]
     },
     {
      "key": "menu",
      "label": "Pop-out menu pages",
      "type": "list",
-     "help": [
+     "help": "The pages in the full-screen menu, in order. The image and sentence show when the page name is hovered.",
+     "fields": [
       {
        "key": "page",
        "label": "Page",
@@ -215,8 +216,7 @@
        "help": "One short line shown under the page name.",
        "max": 160
       }
-     ],
-     "fields": "The pages in the full-screen menu, in order. The image and sentence show when the page name is hovered."
+     ]
     }
    ]
   },
@@ -558,7 +558,8 @@
      "key": "slides",
      "label": "Slides",
      "type": "list",
-     "help": [
+     "help": "Add, remove or reorder slides.",
+     "fields": [
       {
        "key": "kicker",
        "label": "Small label",
@@ -697,8 +698,7 @@
        ],
        "required": true
       }
-     ],
-     "fields": "Add, remove or reorder slides."
+     ]
     }
    ]
   },
@@ -711,7 +711,8 @@
      "key": "figures",
      "label": "Counting figures",
      "type": "list",
-     "help": [
+     "help": "The animated numbers in \"Built big. Built to last.\".",
+     "fields": [
       {
        "key": "value",
        "label": "Number",
@@ -745,14 +746,14 @@
        ],
        "required": true
       }
-     ],
-     "fields": "The animated numbers in \"Built big. Built to last.\"."
+     ]
     },
     {
      "key": "keyFacts",
      "label": "Fact boxes",
      "type": "list",
-     "help": [
+     "help": "The three short facts beside \"We are the true bedmakers.\".",
+     "fields": [
       {
        "key": "value",
        "label": "Figure",
@@ -769,8 +770,7 @@
        "max": 60,
        "required": true
       }
-     ],
-     "fields": "The three short facts beside \"We are the true bedmakers.\"."
+     ]
     },
     {
      "key": "highlights",
@@ -790,7 +790,8 @@
      "key": "categories",
      "label": "Portfolio cards",
      "type": "list",
-     "help": [
+     "help": "One card per product area.",
+     "fields": [
       {
        "key": "title",
        "label": "Card title",
@@ -814,14 +815,14 @@
        "help": "Short chips at the bottom of the card.",
        "max": 60
       }
-     ],
-     "fields": "One card per product area."
+     ]
     },
     {
      "key": "logos",
      "label": "Brand logo strip",
      "type": "list",
-     "help": [
+     "help": "Logos shown under the cards. A logo links to the brand website when the brand below has the same logo or name.",
+     "fields": [
       {
        "key": "name",
        "label": "Brand name",
@@ -837,8 +838,7 @@
        "help": "Upload a transparent PNG logo.",
        "required": true
       }
-     ],
-     "fields": "Logos shown under the cards. A logo links to the brand website when the brand below has the same logo or name."
+     ]
     }
    ]
   },
@@ -851,7 +851,8 @@
      "key": "items",
      "label": "Brands",
      "type": "list",
-     "help": [
+     "help": "Add, remove or reorder brands. A brand needs a photo to get its own section on the Brands page.",
+     "fields": [
       {
        "key": "name",
        "label": "Brand name",
@@ -925,8 +926,7 @@
        "help": "Product ranges shown as chips, one per line.",
        "max": 60
       }
-     ],
-     "fields": "Add, remove or reorder brands. A brand needs a photo to get its own section on the Brands page."
+     ]
     }
    ]
   },
@@ -939,7 +939,7 @@
      "key": "items",
      "label": "Capability cards",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -971,8 +971,7 @@
        "help": "Photo about 4:3, at least 800 px across.",
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -985,7 +984,8 @@
      "key": "items",
      "label": "Technology write-ups",
      "type": "list",
-     "help": [
+     "help": "Shown in order, alternating photo left and right.",
+     "fields": [
       {
        "key": "label",
        "label": "Short name",
@@ -1017,14 +1017,14 @@
        "help": "Square-ish photo, at least 960 px across.",
        "required": true
       }
-     ],
-     "fields": "Shown in order, alternating photo left and right."
+     ]
     },
     {
      "key": "badges",
      "label": "Certification chips",
      "type": "list",
-     "help": [
+     "help": "The small chips under \"Material science\" on the home page.",
+     "fields": [
       {
        "key": "name",
        "label": "Name",
@@ -1046,8 +1046,7 @@
        "type": "image",
        "help": "Small square icon (optional)."
       }
-     ],
-     "fields": "The small chips under \"Material science\" on the home page."
+     ]
     }
    ]
   },
@@ -1060,7 +1059,7 @@
      "key": "items",
      "label": "Foam capabilities",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -1077,8 +1076,7 @@
        "max": 400,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1091,7 +1089,8 @@
      "key": "tabs",
      "label": "Solution tabs",
      "type": "list",
-     "help": [
+     "help": "Each tab has an intro, three bullet points and an enquiry button.",
+     "fields": [
       {
        "key": "name",
        "label": "Tab name",
@@ -1112,7 +1111,8 @@
        "key": "enquiryType",
        "label": "Enquiry type",
        "type": "select",
-       "help": [
+       "help": "Pre-selects this type when the enquiry button is pressed.",
+       "options": [
         "Retail partnership",
         "Hospitality",
         "OEM manufacturing",
@@ -1122,14 +1122,13 @@
         "Careers",
         "Other"
        ],
-       "options": "Pre-selects this type when the enquiry button is pressed.",
        "required": true
       },
       {
        "key": "items",
        "label": "Bullet points",
        "type": "list",
-       "help": [
+       "fields": [
         {
          "key": "title",
          "label": "Title",
@@ -1146,17 +1145,16 @@
          "max": 300,
          "required": true
         }
-       ],
-       "fields": ""
+       ]
       }
-     ],
-     "fields": "Each tab has an intro, three bullet points and an enquiry button."
+     ]
     },
     {
      "key": "categories",
      "label": "Product categories",
      "type": "list",
-     "help": [
+     "help": "The four blocks at the top of the Products page.",
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -1173,21 +1171,21 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": "The four blocks at the top of the Products page."
+     ]
     }
    ]
   },
   {
    "key": "routes",
-   "label": "Partnership routes",
+   "label": "Partnerships: routes",
    "description": "The \"ways to partner\" buttons on the home and Partnerships pages.",
    "fields": [
     {
      "key": "items",
      "label": "Routes",
      "type": "list",
-     "help": [
+     "help": "Each one opens the enquiry form with the same type selected, so the title must match an enquiry type (Retail partnership, Hospitality, OEM manufacturing, Private label, Foam supply, International).",
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -1204,21 +1202,20 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": "Each one opens the enquiry form with the same type selected, so the title must match an enquiry type (Retail partnership, Hospitality, OEM manufacturing, Private label, Foam supply, International)."
+     ]
     }
    ]
   },
   {
    "key": "retail",
-   "label": "Retail partners",
+   "label": "Partnerships: retailers",
    "description": "Logos of retailers that sell VFI products.",
    "fields": [
     {
      "key": "items",
      "label": "Retailers",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "name",
        "label": "Retailer name",
@@ -1234,14 +1231,13 @@
        "help": "Upload a transparent PNG logo.",
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
   {
    "key": "hotels",
-   "label": "Hotels",
+   "label": "Partnerships: hotels",
    "description": "Hotel properties supplied by VFI.",
    "fields": [
     {
@@ -1255,7 +1251,7 @@
   },
   {
    "key": "markets",
-   "label": "Export markets",
+   "label": "Partnerships: export markets",
    "description": "Countries VFI exports to, shown on the Partnerships page.",
    "fields": [
     {
@@ -1276,7 +1272,7 @@
      "key": "items",
      "label": "Awards",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "name",
        "label": "Award name",
@@ -1292,8 +1288,7 @@
        "help": "Upload a PNG image.",
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1306,7 +1301,8 @@
      "key": "items",
      "label": "Milestones",
      "type": "list",
-     "help": [
+     "help": "Shown in order, oldest first.",
+     "fields": [
       {
        "key": "year",
        "label": "Year",
@@ -1331,8 +1327,7 @@
        "max": 400,
        "required": true
       }
-     ],
-     "fields": "Shown in order, oldest first."
+     ]
     }
    ]
   },
@@ -1345,7 +1340,7 @@
      "key": "items",
      "label": "Values",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Value",
@@ -1362,8 +1357,7 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1376,7 +1370,7 @@
      "key": "items",
      "label": "Blocks",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -1393,8 +1387,7 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1407,7 +1400,7 @@
      "key": "items",
      "label": "Figures",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "value",
        "label": "Figure",
@@ -1424,8 +1417,7 @@
        "max": 80,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1438,7 +1430,7 @@
      "key": "items",
      "label": "Focus areas",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Title",
@@ -1455,8 +1447,7 @@
        "max": 600,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1469,7 +1460,7 @@
      "key": "groups",
      "label": "Groups",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "heading",
        "label": "Group heading",
@@ -1482,7 +1473,7 @@
        "key": "items",
        "label": "Principles",
        "type": "list",
-       "help": [
+       "fields": [
         {
          "key": "title",
          "label": "Title",
@@ -1499,11 +1490,9 @@
          "max": 600,
          "required": true
         }
-       ],
-       "fields": ""
+       ]
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1516,7 +1505,8 @@
      "key": "roles",
      "label": "Role areas",
      "type": "list",
-     "help": [
+     "help": "Each has a \"Send résumé\" button that starts an enquiry for that area.",
+     "fields": [
       {
        "key": "title",
        "label": "Area",
@@ -1533,8 +1523,7 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": "Each has a \"Send résumé\" button that starts an enquiry for that area."
+     ]
     }
    ]
   },
@@ -1547,7 +1536,7 @@
      "key": "steps",
      "label": "Steps",
      "type": "list",
-     "help": [
+     "fields": [
       {
        "key": "title",
        "label": "Step name",
@@ -1564,8 +1553,7 @@
        "max": 300,
        "required": true
       }
-     ],
-     "fields": ""
+     ]
     }
    ]
   },
@@ -1640,7 +1628,7 @@
     {
      "key": "home.capabilities.heading",
      "label": "Home · Capabilities · Heading",
-     "type": "text",
+     "type": "textarea",
      "help": "Press Enter to start a new line. Leave empty to keep the original wording.",
      "max": 300
     },
@@ -1794,7 +1782,7 @@
     {
      "key": "home.partners.heading",
      "label": "Home · Partners · Heading",
-     "type": "text",
+     "type": "textarea",
      "help": "Press Enter to start a new line. Leave empty to keep the original wording.",
      "max": 300
     },
