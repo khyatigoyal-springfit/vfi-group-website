@@ -66,7 +66,7 @@
       body: [
         summary,
         h('div', { class: 'field' }, [
-          h('label', { for: noteId, text: 'Short note (required)' }),
+          h('label', { for: noteId, text: 'Short note (optional)' }),
           h('p', { class: 'help muted', id: noteId + '-h', text: 'Say what changed. It appears in History so everyone can see what was published.' }),
           note,
           h('div', { class: 'fmeta' }, [err, count])
@@ -78,7 +78,6 @@
         {
           label: 'Publish', kind: 'primary', onClick: function () {
             var v = note.value.trim();
-            if (!v) { err.textContent = 'Write a short note about this change.'; err.hidden = false; note.setAttribute('aria-invalid', 'true'); note.focus(); return false; }
             return VFI.api('POST', '/api/admin/publish', { note: v }).then(function (j) {
               var rev = (j.revision && j.revision.id) || j.published_revision;
               VFI.toast('Published' + (rev ? ' as revision #' + rev : '') + '. It will be live within about a minute.');

@@ -19,7 +19,7 @@
     Object.keys(d).forEach(function (k) {
       var v = d[k];
       if (v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length)) return;
-      parts.push(k.replace(/_/g, ' ') + ': ' + (typeof v === 'object' ? JSON.stringify(v) : String(v)));
+      parts.push(k.replace(/_/g, ' ') + ': ' + (Array.isArray(v) ? v.map(function (x) { return String(x).replace(/_/g, ' '); }).join(', ') : typeof v === 'object' ? JSON.stringify(v) : String(v)));
     });
     var s = parts.join(', ');
     return s.length > 140 ? s.slice(0, 139) + '…' : s;
