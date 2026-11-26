@@ -1,6 +1,6 @@
 'use strict';
 // POST /api/enquiry  (Vercel function and Express handler)
-const { readJson, send, sendError, clientIp, ipHash, header, HttpError } = require('../lib/http');
+const { readJson, send, sendError, clientIp, ipHash, ipSaltConfig, header, HttpError } = require('../lib/http');
 const { validateEnquiry } = require('../lib/validate');
 const { getStore } = require('../lib/store');
 const mail = require('../lib/mail');
@@ -27,6 +27,8 @@ module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
       return sendError(res, 405, 'method_not_allowed', 'Method not allowed', null, { Allow: 'POST' });
     }
+
+    if (!ipSaltConfig().ok) return sendError(res, 503, 'not_configured', 'Enquiries are not available right now. Please email us instead.');
 
     let body;
     try {

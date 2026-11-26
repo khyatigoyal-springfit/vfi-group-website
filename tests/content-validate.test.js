@@ -17,7 +17,7 @@ const err = (mut) => run(mut).errors;
 test('valid fixture content passes and round-trips unchanged', () => {
   const r = validate(base(), schema);
   assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.deepEqual(r.errors, {});
+  assert.deepEqual({ ...r.errors }, {});
   assert.deepEqual(r.value, base());
 });
 
@@ -186,7 +186,7 @@ test('the real public/content/default.json validates clean against public/admin/
   const content = JSON.parse(fs.readFileSync(cf, 'utf8'));
   const sch = JSON.parse(fs.readFileSync(sf, 'utf8'));
   const r = validate(content, sch);
-  assert.deepEqual(r.errors, {});
+  assert.deepEqual({ ...r.errors }, {});
   assert.deepEqual(r.value, content, 'validation does not alter the defaults');
   assert.ok(Buffer.byteLength(JSON.stringify(content)) < 512 * 1024);
 });

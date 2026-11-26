@@ -194,13 +194,51 @@ test('delete: refuses with 409 while the URL is used in the draft or in publishe
   assert.equal(r.status, 409);
   assert.deepEqual((await r.json()).used_in, [{ where: 'published', path: 'brands[1].logo' }]);
   assert.equal(fake.calls.del.length, 0, 'nothing deleted while in use');
-  // publish the removal, then delete succeeds
+  // publish the removal: the current content no longer uses it, but the revision that did still does -> still refused
   await ed.post('/api/admin/publish', { note: 'remove image' });
   r = await ed.del(`/api/admin/media?id=${m.id}`);
+  assert.equal(r.status, 409);
+  j = await r.json();
+  assert.equal(j.code, 'in_use');
+  assert.equal(j.used_in.length, 1); assert.equal(j.used_in[0].where, 'revision'); assert.ok(Number.isInteger(j.used_in[0].id) && j.used_in[0].id >= 2);
+  assert.equal(fake.calls.del.length, 0);
+  // an image that was only ever in a draft (never published) can be deleted once removed from the draft
+  const m2 = (await (await upload(ed, PNG_1x1, 'image/png', 'draftonly.png')).json()).media;
+  const c3 = await store.getContentState();
+  const d3 = JSON.parse(JSON.stringify(c3.draft)); d3.brands[1].logo = m2.url;
+  assert.equal((await ed.put('/api/admin/content', { draft: d3, base_updated_at: c3.draft_updated_at })).status, 200);
+  assert.equal((await ed.del(`/api/admin/media?id=${m2.id}`)).status, 409);
+  const c4 = await store.getContentState();
+  const d4 = JSON.parse(JSON.stringify(c4.draft)); d4.brands[1].logo = '';
+  assert.equal((await ed.put('/api/admin/content', { draft: d4, base_updated_at: c4.draft_updated_at })).status, 200);
+  r = await ed.del(`/api/admin/media?id=${m2.id}`);
   assert.equal(r.status, 200);
-  assert.deepEqual(fake.calls.del, [m.url]);
-  assert.equal(await store.getMedia(m.id), null);
-  assert.equal((await ed.del(`/api/admin/media?id=${m.id}`)).status, 404);
+  assert.deepEqual(fake.calls.del, [m2.url]);
+  assert.equal(await store.getMedia(m2.id), null);
+  assert.equal((await ed.del(`/api/admin/media?id=${m2.id}`)).status, 404);
+});
+
+test('delete: older revisions are scanned; where "revision" with the revision id (and an escaped LIKE pattern in Postgres)', async () => {
+  const m = (await (await upload(ed, PNG_1x1, 'image/png', 'revonly.png')).json()).media;
+  assert.deepEqual(await store.findRevisionsUsing(m.url), []);
+  const c = await store.getContentState();
+  const d = JSON.parse(JSON.stringify(c.draft)); d.brands[1].logo = m.url;
+  await store.saveDraft({ data: d, base_updated_at: c.draft_updated_at, user_id: null });
+  const rev = await store.publish({ user_id: null, note: 'has image' });
+  const c2 = await store.getContentState();
+  const d2 = JSON.parse(JSON.stringify(c2.draft)); d2.brands[1].logo = '';
+  await store.saveDraft({ data: d2, base_updated_at: c2.draft_updated_at, user_id: null });
+  const rev2 = await store.publish({ user_id: null, note: 'removed image' });
+  assert.deepEqual(await store.findRevisionsUsing(m.url), [rev.id]);
+  const r = await ed.del(`/api/admin/media?id=${m.id}`);
+  assert.equal(r.status, 409);
+  const j = await r.json();
+  assert.equal(j.code, 'in_use');
+  assert.deepEqual(j.used_in, [{ where: 'revision', id: rev.id }]);
+  assert.ok(rev2.id > rev.id);
+  assert.deepEqual(await store.findRevisionsUsing(m.url + '.png'), [], 'a different URL with the same prefix does not match');
+  assert.deepEqual(await store.findRevisionsUsing('%'), [], 'LIKE wildcards are escaped');
+  assert.deepEqual(await store.findRevisionsUsing('_'), []);
 });
 
 test('delete: invalid id 422; a Blob failure gives 502 and keeps the row; every media write is audited', async () => {

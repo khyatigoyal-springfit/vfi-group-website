@@ -61,13 +61,17 @@ running it twice or from several instances at once is safe.
 3. **Blob store.** Vercel dashboard > Storage > Create > **Blob**. Connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`.
 4. **Other variables** (Settings > Environment Variables, Production and Preview), see `.env.example`:
    - `SESSION_SECRET`: `openssl rand -hex 32` (at least 32 characters, otherwise admin returns 503 `admin_not_configured`)
-   - `IP_SALT`: `openssl rand -hex 32`
+   - `IP_SALT`: `openssl rand -hex 32` (**required in production**, at least 16 characters: without it the enquiry form and admin
+     answer 503 `not_configured`. There is no fallback to `SESSION_SECRET`.)
+   - `BLOB_PUBLIC_HOST` (optional): your Blob store's own host, e.g. `abc123xyz.public.blob.vercel-storage.com`. When set, image
+     fields only accept uploaded images from exactly that host; when unset, any `*.public.blob.vercel-storage.com` host is accepted.
    - `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` (at least 12 characters): the first administrator
    - optional `SMTP_*`, `ENQUIRY_TO`, `ENQUIRY_FROM` for enquiry notification email
 5. **Deploy.** The first request creates the tables, the first admin and the initial content automatically.
 6. **First login.** Open `/admin`, sign in with the bootstrap email and password. You are asked to choose a new password
    (12 characters or more) before anything else. Then delete `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` from the
-   Vercel variables (they are only used while the users table is empty), create editor and sales users under **Users**, and
+   Vercel variables (they are only used while the users table is empty; **leaving them set keeps a known initial password in your
+   environment, so delete them right after the first login**), create editor and sales users under **Users**, and
    check the public site.
 7. **Verify.** Edit one text in Content, Save draft, Preview, Publish, then roll it back in History.
 
@@ -80,8 +84,11 @@ running it twice or from several instances at once is safe.
 | Change own name and password | yes | yes | yes |
 
 At least one active admin always remains (the last one cannot be demoted or deactivated). Deactivating a user, resetting
-their password or changing their password ends their sessions immediately. After 10 failed logins from one visitor, or 5 for
-one email, in 15 minutes, login returns 429.
+their password or changing their password ends their sessions immediately. **Logging out also revokes the session server side**
+(the user's `session_version` is bumped, so a copied cookie stops working; this signs that user out of all their browsers).
+Login is rate limited per 15 minutes: 10 failed attempts per visitor (IP), 5 per email from the same visitor, and a loose backstop of
+50 per email overall, after which login returns 429. The attempt is recorded atomically before the password is checked, so
+parallel guesses cannot slip past the limit.
 
 ### Local development
 ```
@@ -146,18 +153,34 @@ request beyond that. Vercel `maxDuration` is 15 s. Routing is case-sensitive: `/
 
 ### Privacy
 Raw IP addresses are never stored, logged or returned. Only a salted HMAC (`IP_SALT`) is kept for rate limiting
-(5 enquiries per 10 minutes per visitor) and is never exposed by the admin API.
+(5 enquiries per 10 minutes per visitor) and is never exposed by the admin API. On Vercel the client address is taken from
+`x-vercel-forwarded-for`, then `x-real-ip` (never from `x-forwarded-for`, which a client can set).
+
+### Content rules and retention
+- Field types in the content schema: `text`, `textarea`, `url`, `image`, `email` (one plain address: no `? & , ; :` or spaces),
+  `tel` (digits, spaces, `+ ( ) -`, 6 to 24 characters), `number`, `select`, `stringList`, `object`, `list`.
+- Images are either `/assets/...` (letters, digits, `. _ - /`) or an uploaded Blob image (`https://<store>.public.blob.vercel-storage.com/<path>`
+  with no query string or fragment; with `BLOB_PUBLIC_HOST` set, only that host).
+- The keys `__proto__`, `constructor` and `prototype` are rejected anywhere in content ("Not allowed").
+- Publishing needs a changed draft (`nothing_to_publish` otherwise). Only the newest 200 revisions are kept (the published one is
+  never deleted); audit entries older than 365 days and login attempts older than 30 days are removed automatically.
+
 
 ### Troubleshooting
 - **503 `unavailable`** on submit or in admin: the database is unreachable or `DATABASE_URL` is missing/wrong. The public site keeps
   working from the bundled defaults. Check the function logs (only error codes are logged, never credentials).
-- **429 `rate_limited`**: more than 5 enquiries in 10 minutes from one visitor, or too many failed admin logins (10 per visitor or 5 per email in 15 minutes). Wait and retry.
+- **429 `rate_limited`**: more than 5 enquiries in 10 minutes from one visitor, or too many failed admin logins (10 per visitor, 5 per email per visitor, 50 per email overall, in 15 minutes). Wait and retry.
 - **503 `admin_not_configured`**: `SESSION_SECRET` is missing or shorter than 32 characters.
+- **503 `not_configured`**: in production `IP_SALT` is missing or shorter than 16 characters (enquiry form and admin are disabled; the reason is in the function log).
+- **409 `nothing_to_publish`**: the draft is identical to the published revision.
+- **409 `conflict`** on publish: the draft was saved by someone else after you opened it (the Publish request carries `base_updated_at`).
+- **409 `missing_media`** on rollback: that revision uses uploaded images that are no longer in the media library.
+- **409 `in_use`** on deleting an image: it is used by the draft, the published content or an older revision (`used_in` entries have `where` of `draft`, `published` or `revision`, the last with the revision `id`).
 - **503 `media_not_configured`**: no Blob store connected (`BLOB_READ_WRITE_TOKEN`).
 - **Cannot log in on a fresh deploy**: the bootstrap admin is created only when the users table is empty and both
   `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` were set at the first request. Add them, then clear the `users` table or
   ask an existing admin to reset your password.
-- **A published change is not visible yet**: the public content is cached for up to 60 seconds (plus a few minutes of stale revalidation).
+- **A published change is not visible yet**: the public content is cached for up to 60 seconds (plus up to 30 seconds of stale revalidation).
 
 ## Review notes before launch
 Open any page with `?review` (e.g. `/?review`) and press **Review notes** to highlight every

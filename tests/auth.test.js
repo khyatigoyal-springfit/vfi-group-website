@@ -195,25 +195,71 @@ test('rate limit: 11th failed login from one IP is 429 (even with the right pass
   assert.equal((await attempt(u.email, PASSWORD, '192.0.2.201')).status, 200, 'another IP is fine');
 });
 
-test('rate limit: 6th failed login for one email (from different IPs) is 429; a success elsewhere does not reset it', async () => {
+test('rate limit: 6th failed login for one (email, ip) is 429; other IPs are not locked out; a success elsewhere does not reset it', async () => {
   const victim = await mk(); const other = await mk();
   const attempt = (email, pw, ip) => client(srv.base).post('/api/admin/login', { email, password: pw }, { headers: { 'x-forwarded-for': ip } });
-  for (let i = 0; i < 5; i++) assert.equal((await attempt(victim.email, 'bad bad bad bad', `198.51.100.${10 + i}`)).status, 401);
+  for (let i = 0; i < 5; i++) assert.equal((await attempt(victim.email, 'bad bad bad bad', '198.51.100.10')).status, 401);
   assert.equal((await attempt(other.email, PASSWORD, '198.51.100.99')).status, 200, 'a successful login for another account');
-  const r = await attempt(victim.email, PASSWORD, '198.51.100.50');
+  const r = await attempt(victim.email, PASSWORD, '198.51.100.10');
   assert.equal(r.status, 429, 'still limited after the other success');
+  assert.equal(r.headers.get('retry-after'), '900');
+  assert.equal((await attempt(victim.email, PASSWORD, '198.51.100.50')).status, 200, 'the real owner, from a different IP, is not locked out');
   assert.equal((await attempt(other.email, PASSWORD, '198.51.100.51')).status, 200, 'other account unaffected');
+});
+
+test('rate limit: an attacker cannot lock a user out by failing from many IPs (per-(email, ip) limit), but a 50-failure global backstop exists', async () => {
+  const victim = await mk();
+  const attempt = (pw, ip) => client(srv.base).post('/api/admin/login', { email: victim.email, password: pw }, { headers: { 'x-forwarded-for': ip } });
+  for (let i = 0; i < 12; i++) assert.equal((await attempt('bad bad bad bad', `203.0.113.${i + 1}`)).status, 401, 'one failure each from 12 IPs');
+  assert.equal((await attempt(PASSWORD, '203.0.113.200')).status, 200, 'owner still gets in');
+  // global backstop: 50 failures for the email inside the window, spread across IPs
+  const victim2 = await mk();
+  for (let i = 0; i < 50; i++) assert.equal((await store.reserveLoginAttempt({ ip_hash: `bf-${victim2.email}-${i}`, email: victim2.email, sinceMs: 900000, limits: { ip: 10, emailIp: 5, email: 50 } })).limited, false);
+  const r = await client(srv.base).post('/api/admin/login', { email: victim2.email, password: PASSWORD }, { headers: { 'x-forwarded-for': '203.0.113.201' } });
+  assert.equal(r.status, 429);
+});
+
+test('rate limit: 20 concurrent bad logins admit at most the limit (401) and refuse the rest (429)', async () => {
+  const u = await mk();
+  const ip = '192.0.2.150';
+  const rs = await Promise.all(Array.from({ length: 20 }, () => client(srv.base).post('/api/admin/login', { email: u.email, password: 'bad bad bad bad' }, { headers: { 'x-forwarded-for': ip } })));
+  const codes = rs.map((r) => r.status);
+  assert.equal(codes.filter((c) => c === 401).length, 5, 'exactly the (email, ip) limit gets to verify');
+  assert.equal(codes.filter((c) => c === 429).length, 15);
+  assert.equal(codes.length, 20);
+  // the same race against the per-IP limit with 25 different emails
+  const ip2 = '192.0.2.151';
+  const rs2 = await Promise.all(Array.from({ length: 25 }, (_, i) => client(srv.base).post('/api/admin/login', { email: `nobody${i}@example.com`, password: 'bad bad bad bad' }, { headers: { 'x-forwarded-for': ip2 } })));
+  assert.equal(rs2.filter((r) => r.status === 401).length, 10);
+  assert.equal(rs2.filter((r) => r.status === 429).length, 15);
+});
+
+test('rate limit: a successful login does not count as a failure (the reserved attempt is flipped to ok)', async () => {
+  const u = await mk();
+  const ip = '192.0.2.160';
+  for (let i = 0; i < 8; i++) assert.equal((await client(srv.base).post('/api/admin/login', { email: u.email, password: PASSWORD }, { headers: { 'x-forwarded-for': ip } })).status, 200);
+  assert.equal((await client(srv.base).post('/api/admin/login', { email: u.email, password: 'bad bad bad bad' }, { headers: { 'x-forwarded-for': ip } })).status, 401);
 });
 
 test('rate limit: failures older than 15 minutes stop counting', async () => {
   const { isLimited } = require('../lib/auth/ratelimit');
   assert.equal(await isLimited(store, { ipHash: 'never-seen', email: 'never@example.com' }), false);
   const calls = [];
-  const fake = { countFailedAttempts: async (a) => { calls.push(a); return { ip: 10, email: 0 }; } };
+  const fake = { countFailedAttempts: async (a) => { calls.push(a); return { ip: 10, email_ip: 0, email: 0 }; } };
   assert.equal(await isLimited(fake, { ipHash: 'h', email: '' }), true);
   assert.equal(calls[0].sinceMs, 15 * 60 * 1000);
-  assert.equal(await isLimited({ countFailedAttempts: async () => ({ ip: 9, email: 4 }) }, { ipHash: 'h', email: 'e' }), false);
-  assert.equal(await isLimited({ countFailedAttempts: async () => ({ ip: 0, email: 5 }) }, { ipHash: 'h', email: 'e' }), true);
+  assert.equal(await isLimited({ countFailedAttempts: async () => ({ ip: 9, email_ip: 4, email: 49 }) }, { ipHash: 'h', email: 'e' }), false);
+  assert.equal(await isLimited({ countFailedAttempts: async () => ({ ip: 0, email_ip: 5, email: 5 }) }, { ipHash: 'h', email: 'e' }), true);
+  assert.equal(await isLimited({ countFailedAttempts: async () => ({ ip: 0, email_ip: 0, email: 50 }) }, { ipHash: 'h', email: 'e' }), true);
+});
+
+test('change password: wrong current password is rate limited atomically (6th attempt per (email, ip) is 429)', async () => {
+  const { u, c } = await loggedIn('editor');
+  const ip = '192.0.2.170';
+  const codes = [];
+  for (let i = 0; i < 7; i++) codes.push((await c.post('/api/admin/password', { current: 'not the password', next: 'another long password' }, { headers: { 'x-forwarded-for': ip } })).status);
+  assert.deepEqual(codes, [422, 422, 422, 422, 422, 429, 429]);
+  assert.ok(u);
 });
 
 // ---------------------------------------------------------------- revocation
@@ -359,9 +405,9 @@ test('changing SESSION_SECRET logs everyone out', async () => {
 
 test('store unavailable: login and authenticated calls answer 503 unavailable with no internals', async () => {
   const { c } = await loggedIn('editor');
-  const orig = { g: store.getUserById, e: store.getUserByEmail, c: store.countFailedAttempts };
+  const orig = { g: store.getUserById, e: store.getUserByEmail, c: store.reserveLoginAttempt };
   const fail = async () => { const e = new Error('connect ECONNREFUSED 10.1.2.3:5432 secrethost'); e.code = 'unavailable'; throw e; };
-  store.getUserById = fail; store.getUserByEmail = fail; store.countFailedAttempts = fail;
+  store.getUserById = fail; store.getUserByEmail = fail; store.reserveLoginAttempt = fail;
   try {
     await quiet(async () => {
       const r = await c.get('/api/admin/enquiries');
@@ -373,7 +419,7 @@ test('store unavailable: login and authenticated calls answer 503 unavailable wi
       assert.equal(l.status, 503);
       assert.equal((await l.json()).code, 'unavailable');
     });
-  } finally { store.getUserById = orig.g; store.getUserByEmail = orig.e; store.countFailedAttempts = orig.c; }
+  } finally { store.getUserById = orig.g; store.getUserByEmail = orig.e; store.reserveLoginAttempt = orig.c; }
 });
 
 test('handler works Vercel-style (req.query.action, req.body object/string)', async () => {

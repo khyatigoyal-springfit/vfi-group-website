@@ -71,6 +71,30 @@ if (!URL_) {
     assert.equal((await pool.query('select count(*)::int as n from users')).rows[0].n, 0);
   });
 
+  test('postgres: pruneOld deletes login_attempts > 30 days and audit_log > 365 days only; login/revision indexes exist', async () => {
+    const s = createPgStore({ DATABASE_URL: URL_ });
+    await s.ensureReady();
+    const pool = getPool(URL_);
+    await pool.query(`insert into login_attempts (ip_hash, email, ok, at) values ('a','', false, now() - interval '31 days'), ('b','', false, now() - interval '29 days'), ('c','', true, now() - interval '400 days')`);
+    await pool.query(`insert into audit_log (action, at) values ('old', now() - interval '366 days'), ('mid', now() - interval '300 days'), ('new', now())`);
+    const r = await s.pruneOld();
+    assert.deepEqual(r, { login_attempts: 2, audit_log: 1 });
+    assert.deepEqual((await pool.query('select ip_hash from login_attempts')).rows.map((x) => x.ip_hash), ['b']);
+    assert.deepEqual((await pool.query('select action from audit_log order by at')).rows.map((x) => x.action), ['mid', 'new']);
+    const idx = (await pool.query(`select indexname from pg_indexes where tablename = 'login_attempts'`)).rows.map((x) => x.indexname);
+    for (const i of ['login_attempts_at', 'login_attempts_email_ip_at']) assert.ok(idx.includes(i), i);
+  });
+
+  test('postgres: concurrent publishes with the same base_updated_at: exactly one wins, the rest conflict or have nothing to publish', async () => {
+    const s = createPgStore({ DATABASE_URL: URL_ });
+    const st = await s.getContentState();
+    const saved = await s.saveDraft({ data: { ...st.draft, settings: { ...st.draft.settings, siteName: 'Race' } }, base_updated_at: st.draft_updated_at, user_id: null });
+    const rs = await Promise.allSettled([1, 2, 3, 4].map((n) => s.publish({ user_id: null, note: 'p' + n, base_updated_at: saved.draft_updated_at })));
+    assert.equal(rs.filter((x) => x.status === 'fulfilled').length, 1);
+    assert.deepEqual(rs.filter((x) => x.status === 'rejected').map((x) => x.reason.code), ['nothing_to_publish', 'nothing_to_publish', 'nothing_to_publish']);
+    assert.equal((await s.listRevisions({})).total, 2);
+  });
+
   test('postgres: db errors surface as code "unavailable" without leaking SQL or hosts', async () => {
     const origErr = console.error; console.error = () => {};
     try {

@@ -96,7 +96,19 @@ At least one active admin must always remain (block demoting/deactivating the la
 - Session cookie `vfi_admin` = `base64url(JSON{uid, v, exp}) + "." + HMAC-SHA256(SESSION_SECRET)`; HttpOnly; Secure
   (except localhost dev); SameSite=Strict; Path=/; 12 h. Every request loads the user (id, role, active,
   session_version) and rejects mismatches with 401.
-- Login rate limit in DB: > 10 failed attempts per ip_hash in 15 min, or > 5 failed per email in 15 min → 429.
+- Login rate limit in DB (15 min window, failures only; successes never reset it): ≥ 10 per `ip_hash`, ≥ 5 per (email, `ip_hash`),
+  or ≥ 50 per email overall (loose backstop) → 429. Check and record are **atomic**: `reserveLoginAttempt` runs in one transaction
+  holding `pg_advisory_xact_lock(hashtext('login:'||email))` and `…('loginip:'||ip_hash)` (taken in ascending key order, so no
+  deadlock), counts, and inserts the attempt with `ok=false` **before** the password is verified; a correct password flips it to
+  `ok=true` (`markLoginSuccess`). The memory store does the same synchronously. Keying the strict limit on (email, ip) means a
+  stranger cannot lock a user out from another address.
+- Logout revokes: when the request carries a valid session, `session_version` is bumped (all of that user's sessions end).
+- `IP_SALT` (≥ 16 chars) is required in production (`VERCEL` / `NODE_ENV=production`): otherwise enquiry and admin answer 503
+  `not_configured` and log why. No fallback to `SESSION_SECRET`. On Vercel the client IP comes from `x-vercel-forwarded-for`,
+  then `x-real-ip` only (never `x-forwarded-for`).
+- Retention (opportunistic, after login/publish/rollback): `login_attempts` older than 30 days and `audit_log` older than 365 days
+  are deleted (indexed on `at`, migration `002_retention.sql`); `content_revisions` beyond the newest 200 are deleted inside the
+  publish/rollback transaction, never the published one.
 - CSRF: all non-GET admin requests require header `X-Requested-With: vfi-admin` (as today).
 - `must_change_password` users can only call `session`, `logout`, `me/password` until they change it.
 - `SESSION_SECRET` ≥ 32 chars, else admin returns 503 `admin_not_configured`. `ADMIN_PASSWORD` is retired.
@@ -118,17 +130,22 @@ Top-level keys (each a section in the editor):
 
 Schema format (`content-schema.json`): `{ "sections": [ { "key", "label", "description", "fields": [Field] } ] }`,
 Field = `{ "key", "label", "type", "help"?, "required"?, "max"?, "options"?, "fields"? (for list/object) }`,
-`type` ∈ `text | textarea | url | number | image | select | stringList | object | list`.
+`type` ∈ `text | textarea | url | email | tel | number | image | select | stringList | object | list`.
+`email` = one plain address (`isEmail`, and none of `? & , ; :` quotes, `<` `>` `/` or spaces); `tel` = `^[+0-9 ()-]{6,24}$`.
+In the schema, `settings.contact.{office,sales,careers}.email` are `email` and `.phone` are `tel`.
 `list` = ordered array of objects with `fields`; editor supports add, remove, reorder, duplicate.
 `image` fields hold a URL: either a bundled `/assets/...` path or an uploaded Blob URL.
 
 Server validation (`lib/content/validate.js`): JSON ≤ 512 KB; walks the schema; strings trimmed and length-capped
-(`max` or 2000); urls must be `https://`, `/` or `mailto:`/`tel:`; image urls must be `/assets/` paths or the Blob
-store host; unknown keys rejected; required fields present. Returns field-path errors (`brands[3].url`).
+(`max` or 2000); urls must be `https://`, `/` or `mailto:`/`tel:`; image urls must be `/assets/…` (`^/assets/[A-Za-z0-9._/-]+$`)
+or an uploaded image: `https://` + the store's host (env `BLOB_PUBLIC_HOST` when set, otherwise any
+`*.public.blob.vercel-storage.com`) + a path matching `^/[A-Za-z0-9._~%/-]+$` with no query or fragment; unknown keys rejected;
+the keys `__proto__`, `constructor`, `prototype` are rejected anywhere ("Not allowed"); required fields present. Returns
+field-path errors (`brands[3].url`) in a prototype-less object.
 
 ## 6. HTTP API (additions)
 
-`GET /api/content` → published JSON. `Cache-Control: public, s-maxage=60, stale-while-revalidate=300`, `ETag`.
+`GET /api/content` → published JSON. `Cache-Control: public, s-maxage=60, stale-while-revalidate=30`, `ETag`.
 `GET /api/content?draft=1` → draft JSON, requires editor/admin session, `Cache-Control: no-store`.
 
 Admin actions (`/api/admin/<action>`), JSON `{ok, ...}` / `{ok:false, error, code}` as before:
@@ -142,14 +159,14 @@ Admin actions (`/api/admin/<action>`), JSON `{ok, ...}` / `{ok:false, error, cod
 | GET/PATCH `enquiries`, GET `export` | any | unchanged contract |
 | GET `content` | editor | `{draft, draft_updated_at, draft_updated_by, published_revision, hasUnpublished}` |
 | PUT `content` | editor | `{draft, base_updated_at}` → validates, saves draft; 409 `conflict` if `base_updated_at` ≠ current (someone else saved) |
-| POST `publish` | editor | `{note}` → new revision from draft, sets published; returns `{revision}` |
+| POST `publish` | editor | `{note?, base_updated_at?}` → new revision from draft, sets published; returns `{revision}`. Under the row lock the server re-validates the draft (422), and if `base_updated_at` is given and ≠ the current `draft_updated_at` answers 409 `conflict` (`updated_at`, `updated_by`, `updated_by_id`). 409 `nothing_to_publish` when the draft equals the published revision. Prunes revisions beyond the newest 200. |
 | GET `revisions` | editor | `?page` → list (id, note, published_by name, published_at, is_current) |
 | GET `revision` | editor | `?id` → full data |
-| POST `rollback` | editor | `{id}` → copies revision into draft AND publishes it as a new revision (note "Rollback to #id") |
+| POST `rollback` | editor | `{id}` → copies revision into draft AND publishes it as a new revision (note "Rollback to #id"). 409 `missing_media` (`missing`: URL list) when the revision references uploaded images that are no longer in the `media` table |
 | POST `discard` | editor | resets draft to the published revision |
 | GET `media` | editor | list (paged) |
 | POST `media` | editor | raw body, `Content-Type: image/png|jpeg|webp|svg+xml`, header `X-Filename`, ≤ 4 MB → Blob `put('media/<uuid>-<safe-name>')` → row |
-| DELETE `media` | editor | `?id` → deletes blob + row (refuse with 409 if the URL is used in draft or published content) |
+| DELETE `media` | editor | `?id` → deletes blob + row (refuse with 409 `in_use` if the URL is used in the draft, the published content or **any stored revision**; `used_in` items are `{where:'draft'|'published', path}` or `{where:'revision', id}`) |
 | GET `users` / POST `users` / PATCH `users` | admin | list / create `{email,name,role,password}` / update `{id, role?, active?, name?, resetPassword?}` (reset → returns a generated temporary password once, sets must_change_password, bumps session_version) |
 | GET `audit` | admin | paged audit log |
 Every write action appends to `audit_log`. SVG uploads: reject unless sanitised — simplest: **do not accept SVG**.
@@ -180,7 +197,13 @@ Never use innerHTML with content values.
 
 ## 9. Environment (Vercel Production + Preview)
 `DATABASE_URL` (from Neon integration), `BLOB_READ_WRITE_TOKEN` (from Blob store), `SESSION_SECRET`, `IP_SALT`,
-`BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD`, optional SMTP_*. Remove `ADMIN_PASSWORD`, `SUPABASE_*`.
+`BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD`, optional SMTP_*, optional `BLOB_PUBLIC_HOST` (the store's own
+`<id>.public.blob.vercel-storage.com` host, to pin image URLs to it). Remove `ADMIN_PASSWORD`, `SUPABASE_*`.
+**Operational note:** `BOOTSTRAP_*` are only read while `users` is empty; delete them from the environment right after the first
+login so no initial password stays stored. `IP_SALT` must be ≥ 16 characters in production.
+
+New error codes: `not_configured` (503, IP_SALT), `nothing_to_publish` (409), `missing_media` (409), `in_use` (409, now also
+`where:'revision'`), `conflict` (409, now also on publish).
 
 ## 10. Tests
 `npm test` (node:test) must run without network: memory store implements users/content/revisions/media/audit;

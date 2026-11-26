@@ -50,14 +50,14 @@
         {
          "key": "phone",
          "label": "Phone number",
-         "type": "text",
+         "type": "tel",
          "help": "Shown as a tap-to-call link.",
          "max": 40
         },
         {
          "key": "email",
          "label": "Email address",
-         "type": "text",
+         "type": "email",
          "help": "Shown as a link, e.g. care@vfigroup.org.",
          "max": 120
         },
@@ -86,14 +86,14 @@
         {
          "key": "phone",
          "label": "Phone number",
-         "type": "text",
+         "type": "tel",
          "help": "Shown as a tap-to-call link.",
          "max": 40
         },
         {
          "key": "email",
          "label": "Email address",
-         "type": "text",
+         "type": "email",
          "help": "Shown as a link.",
          "max": 120
         }
@@ -115,7 +115,7 @@
         {
          "key": "email",
          "label": "Email address",
-         "type": "text",
+         "type": "email",
          "help": "Also used for the \"Email ... or use the form\" line on the Careers page.",
          "max": 120
         }

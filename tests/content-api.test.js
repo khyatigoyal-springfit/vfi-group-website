@@ -103,6 +103,12 @@ test('draft -> preview -> publish: draft saved, public unchanged until publish, 
   assert.equal((await live2.json()).brands[0].description, 'Edited description');
   assert.equal((await getContent()).hasUnpublished, false);
   assert.equal((await ed.post('/api/admin/publish', { note: 'x'.repeat(201) })).status, 422);
+  const again = await ed.post('/api/admin/publish', {});
+  assert.equal(again.status, 409, 'draft equals the published revision');
+  assert.equal((await again.json()).code, 'nothing_to_publish');
+  const c3 = await getContent();
+  const n3 = clone(c3.draft); n3.settings.siteName = 'Test Co v3';
+  assert.equal((await ed.put('/api/admin/content', { draft: n3, base_updated_at: c3.draft_updated_at })).status, 200);
   assert.equal((await ed.post('/api/admin/publish', {})).status, 200, 'note is optional');
 });
 
@@ -198,10 +204,10 @@ test('every content write is audited with the actor and target; no content bodie
 });
 
 // ---------------------------------------------------------------- public endpoint
-test('GET /api/content: published JSON with s-maxage=60 + stale-while-revalidate=300, ETag, nosniff, no cookies', async () => {
+test('GET /api/content: published JSON with s-maxage=60 + stale-while-revalidate=30, ETag, nosniff, no cookies', async () => {
   const r = await pub.get('/api/content');
   assert.equal(r.status, 200);
-  assert.equal(r.headers.get('cache-control'), 'public, s-maxage=60, stale-while-revalidate=300');
+  assert.equal(r.headers.get('cache-control'), 'public, s-maxage=60, stale-while-revalidate=30');
   assert.match(r.headers.get('etag'), /^"[0-9a-f]{40}"$/);
   assert.equal(r.headers.get('content-type'), 'application/json; charset=utf-8');
   assert.equal(r.headers.get('x-content-source'), 'published');
@@ -216,7 +222,7 @@ test('GET /api/content: If-None-Match gives 304 with the same ETag and cache hea
     const r = await fetch(srv.base + '/api/content', { headers: { 'if-none-match': inm } });
     assert.equal(r.status, 304, inm);
     assert.equal(r.headers.get('etag'), etag);
-    assert.equal(r.headers.get('cache-control'), 'public, s-maxage=60, stale-while-revalidate=300');
+    assert.equal(r.headers.get('cache-control'), 'public, s-maxage=60, stale-while-revalidate=30');
     assert.equal(await r.text(), '');
   }
   assert.equal((await fetch(srv.base + '/api/content', { headers: { 'if-none-match': '"stale"' } })).status, 200);

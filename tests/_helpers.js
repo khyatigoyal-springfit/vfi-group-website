@@ -13,7 +13,7 @@ function setupEnv(extra = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vfi-test-'));
   Object.assign(process.env, {
     ENQUIRY_DATA_FILE: path.join(dir, 'enquiries.json'),
-    IP_SALT: 'test-salt',
+    IP_SALT: 'test-ip-salt-0123456789abcdef',
     TRUST_PROXY: '1', // tests seed X-Forwarded-For; individual tests override to exercise the untrusted path
     SESSION_SECRET: 'test-session-secret-0123456789abcdef',
   }, extra);

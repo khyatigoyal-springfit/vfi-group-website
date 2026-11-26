@@ -1,20 +1,20 @@
 'use strict';
 // /api/admin/<action>. Every action is declared in ACTIONS with its allowed methods; the role table lives in
 // lib/auth/guard.js (PERMISSIONS). Order of checks: action exists -> method -> CSRF header -> session -> must_change_password -> role.
-const { readJson, readRaw, send, sendError, sendText, clientIp, ipHash, getQuery, header, HttpError } = require('../../lib/http');
+const { readJson, readRaw, send, sendError, sendText, clientIp, ipHash, ipSaltConfig, getQuery, header, HttpError } = require('../../lib/http');
 const session = require('../../lib/auth/session');
 const password = require('../../lib/auth/password');
-const { isLimited } = require('../../lib/auth/ratelimit');
+const ratelimit = require('../../lib/auth/ratelimit');
 const { authenticate, can, publicUser, ROLES } = require('../../lib/auth/guard');
 const { toCsv } = require('../../lib/csv');
 const { STATUSES, UUID_RE, LIMITS, clean, isEmail } = require('../../lib/validate');
 const { getStore } = require('../../lib/store');
-const { validate } = require('../../lib/content/validate');
+const { validate, isBlobUrl } = require('../../lib/content/validate');
 const { loadSchema } = require('../../lib/content/defaults');
-const { changedSections, findUsages } = require('../../lib/content/diff');
+const { changedSections, findUsages, collectStrings } = require('../../lib/content/diff');
 const media = require('../../lib/media');
 
-const settings = { failDelayMs: 400 }; // exported for tests
+const settings = { failDelayMs: 400, pruneEveryMs: 10 * 60 * 1000 }; // exported for tests
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const one = (v) => (Array.isArray(v) ? v[0] : v);
 const GENERIC_LOGIN_ERROR = 'Incorrect email or password.';
@@ -48,6 +48,15 @@ function getPaging(req, defSize, maxSize) {
   return { page, pageSize, offset: (page - 1) * pageSize };
 }
 
+let lastPrune = 0;
+/** Opportunistic retention (login_attempts > 30 days, audit_log > 365 days), at most once per settings.pruneEveryMs per instance. Never fails a request. */
+async function maybePrune(store) {
+  const now = Date.now();
+  if (now - lastPrune < settings.pruneEveryMs) return;
+  lastPrune = now;
+  try { await store.pruneOld(); } catch (e) { console.error('Retention prune failed:', (e && e.code) || (e && e.name)); }
+}
+
 const stripPrivate = (r) => { if (!r || typeof r !== 'object') return r; const { ip_hash, ...rest } = r; return rest; };
 
 function filters(req, res) {
@@ -77,7 +86,9 @@ async function login(ctx) {
   const pw = typeof body.password === 'string' ? body.password : '';
   const ipH = ipHash(clientIp(req));
 
-  if (await isLimited(store, { ipHash: ipH, email })) {
+  // Check and record in one atomic step BEFORE verifying the password, so concurrent guesses cannot all slip past the limit.
+  const attempt = await ratelimit.reserve(store, { ipHash: ipH, email });
+  if (attempt.limited) {
     return sendError(res, 429, 'rate_limited', 'Too many attempts. Try again in 15 minutes.', null, { 'Retry-After': '900' });
   }
   const user = email ? await store.getUserByEmail(email) : null;
@@ -86,14 +97,14 @@ async function login(ctx) {
   // One scrypt run in every case (real or dummy hash) so timing does not reveal whether the account exists.
   const ok = usable && candidate !== '' ? await password.verifyPassword(candidate, user.password_hash) : await password.dummyVerify(candidate);
   if (!ok) {
-    await store.recordLoginAttempt({ ip_hash: ipH, email, ok: false });
     await audit(ctx, 'login_failed', email, {}, usable ? user.id : null);
     await sleep(settings.failDelayMs);
     return sendError(res, 401, 'bad_credentials', GENERIC_LOGIN_ERROR);
   }
-  await store.recordLoginAttempt({ ip_hash: ipH, email, ok: true });
+  await ratelimit.markSuccess(store, attempt.id);
   await store.recordLogin(user.id);
   await audit(ctx, 'login', user.email, {}, user.id);
+  await maybePrune(store);
   session.setCookie(res, req, session.sign(session.authConfig().secret, { uid: user.id, v: user.session_version }));
   return send(res, 200, { ok: true, user: publicUser(user) });
 }
@@ -103,7 +114,11 @@ async function logout(ctx) {
   // Logging out needs no valid session: it only clears the cookie. Audit only when we can tell who it was.
   try {
     const user = await authenticate(req, ctx.store);
-    if (user) await audit({ ...ctx, user }, 'logout', user.email, {});
+    if (user) {
+      // Revoke: a copied or stolen cookie must stop working. Bumping session_version signs this user out everywhere.
+      await ctx.store.updateUser(user.id, { bump_session: true });
+      await audit({ ...ctx, user }, 'logout', user.email, {});
+    }
   } catch (e) { /* unavailable / not configured: still clear the cookie */ }
   session.clearCookie(res, req);
   return send(res, 200, { ok: true });
@@ -124,21 +139,22 @@ async function changePassword(ctx) {
   const current = typeof body.current === 'string' ? body.current : '';
   const next = typeof body.next === 'string' ? body.next : '';
   const ipH = ipHash(clientIp(req));
-  if (await isLimited(store, { ipHash: ipH, email: user.email })) {
-    return sendError(res, 429, 'rate_limited', 'Too many attempts. Try again in 15 minutes.', null, { 'Retry-After': '900' });
-  }
   const errors = {};
   const policy = password.passwordPolicyError(next);
   if (policy) errors.next = policy;
   if (!current) errors.current = 'Enter your current password';
   if (Object.keys(errors).length) return invalid(res, errors);
+  const attempt = await ratelimit.reserve(store, { ipHash: ipH, email: user.email }); // atomic check + record, as for login
+  if (attempt.limited) {
+    return sendError(res, 429, 'rate_limited', 'Too many attempts. Try again in 15 minutes.', null, { 'Retry-After': '900' });
+  }
   const okCurrent = current.length <= password.MAX_LEN && await password.verifyPassword(current, user.password_hash);
   if (!okCurrent) {
-    await store.recordLoginAttempt({ ip_hash: ipH, email: user.email, ok: false });
     await audit(ctx, 'password_change_failed', user.email, {});
     await sleep(settings.failDelayMs);
     return invalid(res, { current: 'Current password is incorrect' });
   }
+  await ratelimit.markSuccess(store, attempt.id);
   if (next === current) return invalid(res, { next: 'Choose a password different from the current one' });
   const updated = await store.updateUser(user.id, { password_hash: await password.hashPassword(next), must_change_password: false, bump_session: true });
   await audit(ctx, 'password_change', user.email, {});
@@ -239,19 +255,41 @@ async function content(ctx) {
   });
 }
 
+const conflictBody = (e) => {
+  const cur = (e && e.current) || {};
+  return { updated_at: cur.updated_at || null, updated_by: cur.updated_by_name || null, updated_by_id: cur.updated_by_id || null };
+};
+
 async function publish(ctx) {
   const { req, res, store, user } = ctx;
   const body = await readBody(req, 4096);
   if (body.note !== undefined && typeof body.note !== 'string') return invalid(res, { note: 'Note must be text' });
   const note = clean(body.note || '');
   if (note.length > 200) return invalid(res, { note: 'Note must be 200 characters or fewer' });
-  const s = await contentSummary(store);
-  if (!s) return unavailable(res);
-  const v = validate(s.st.draft, loadSchema());
-  if (!v.ok) return invalid(res, v.errors, 'The draft has content that is not valid, so it cannot be published yet.');
-  const rev = await store.publish({ user_id: user.id, note });
-  await audit(ctx, 'content_publish', `#${rev.id}`, { revision: rev.id, note, sections: s.changed });
-  return send(res, 200, { ok: true, revision: rev, published_revision: rev.id });
+  // Optional (backward compatible): the draft_updated_at the editor was looking at. When present, only that exact draft is published.
+  let base = null;
+  if (body.base_updated_at !== undefined && body.base_updated_at !== null) {
+    base = typeof body.base_updated_at === 'string' ? new Date(body.base_updated_at) : null;
+    if (!base || Number.isNaN(base.getTime())) return invalid(res, { base_updated_at: 'base_updated_at must be a timestamp' });
+  }
+  let rev;
+  try {
+    // The store re-validates the locked draft (check), compares base_updated_at, and refuses an unchanged draft, all under one lock.
+    rev = await store.publish({
+      user_id: user.id, note, base_updated_at: base ? base.toISOString() : undefined,
+      check: (draft) => { const v = validate(draft, loadSchema()); return v.ok ? null : v.errors; },
+    });
+  } catch (e) {
+    if (e && e.code === 'conflict') return sendError(res, 409, 'conflict', 'The draft changed since you opened it. Review the latest draft before publishing.', conflictBody(e));
+    if (e && e.code === 'nothing_to_publish') return sendError(res, 409, 'nothing_to_publish', 'There are no unpublished changes to publish.');
+    if (e && e.code === 'invalid_input' && e.errors) return invalid(res, e.errors, 'The draft has content that is not valid, so it cannot be published yet.');
+    if (e && e.code === 'not_found') return unavailable(res);
+    throw e;
+  }
+  const { sections, ...revision } = rev;
+  await audit(ctx, 'content_publish', `#${revision.id}`, { revision: revision.id, note, sections: sections || [] });
+  await maybePrune(store);
+  return send(res, 200, { ok: true, revision, published_revision: revision.id });
 }
 
 async function revisions(ctx) {
@@ -283,9 +321,18 @@ async function rollback(ctx) {
   const body = await readJson(req, 1024);
   const id = Number(body.id);
   if (!Number.isInteger(id) || id < 1) return invalid(res, { id: 'Invalid revision id' });
+  const src = await store.getRevision(id);
+  if (!src) return sendError(res, 404, 'not_found', 'Revision not found.');
+  // Refuse to publish a revision that points at uploaded images which no longer exist (would show broken images on the site).
+  const urls = [...new Set(collectStrings(src.data, isBlobUrl))];
+  const missing = urls.length ? await store.findMissingMedia(urls) : [];
+  if (missing.length) {
+    return sendError(res, 409, 'missing_media', 'This revision uses images that are no longer in the media library, so it cannot be restored.', { missing: missing.slice(0, 50), missing_count: missing.length });
+  }
   try {
     const r = await store.rollback({ id, user_id: user.id });
     await audit(ctx, 'content_rollback', `#${id}`, { from: id, new_revision: r.revision.id });
+    await maybePrune(store);
     return send(res, 200, { ok: true, revision: r.revision, published_revision: r.revision.id, draft_updated_at: r.draft_updated_at });
   } catch (e) {
     if (e && e.code === 'not_found') return sendError(res, 404, 'not_found', 'Revision not found.');
@@ -367,9 +414,11 @@ async function mediaAction(ctx) {
   const used = [
     ...findUsages(st.draft, row.url).map((path) => ({ where: 'draft', path })),
     ...findUsages(st.published, row.url).map((path) => ({ where: 'published', path })),
+    // Every other stored revision too: a rollback would otherwise bring back a broken image. (The live revision is already reported as 'published'.)
+    ...(await store.findRevisionsUsing(row.url, 21)).filter((id) => id !== st.published_revision).slice(0, 20).map((id) => ({ where: 'revision', id })),
   ];
   if (used.length) {
-    return sendError(res, 409, 'in_use', 'This image is used in the site content and cannot be deleted. Remove it from the content first.', { used_in: used });
+    return sendError(res, 409, 'in_use', 'This image is used in the site content or in an earlier revision and cannot be deleted. Remove it from the content first.', { used_in: used });
   }
   try { await media.getUploader().del(row.url); } catch (e) {
     console.error('Blob delete failed:', (e && e.name) || 'error');
@@ -489,6 +538,7 @@ async function handler(req, res) {
     const spec = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
     if (!spec) return sendError(res, 404, 'not_found', 'Not found');
     if (!spec.methods.includes(req.method)) return methodNotAllowed(res, spec.methods.join(', '));
+    if (!ipSaltConfig().ok) return sendError(res, 503, 'not_configured', 'Admin is not configured on this server.'); // reason is logged by ipSaltConfig
     if (req.method !== 'GET' && req.method !== 'HEAD' && header(req, 'x-requested-with') !== 'vfi-admin') {
       return sendError(res, 403, 'csrf', 'Missing or invalid request header.');
     }

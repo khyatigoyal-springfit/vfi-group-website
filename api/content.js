@@ -7,7 +7,7 @@ const { getStore } = require('../lib/store');
 const { authenticate, can } = require('../lib/auth/guard');
 const { loadDefaultContent } = require('../lib/content/defaults');
 
-const PUBLISHED_CC = 'public, s-maxage=60, stale-while-revalidate=300';
+const PUBLISHED_CC = 'public, s-maxage=60, stale-while-revalidate=30';
 const DEFAULTS_CC = 'public, s-maxage=30, stale-while-revalidate=60';
 
 const etagOf = (body) => '"' + crypto.createHash('sha1').update(body).digest('hex') + '"';

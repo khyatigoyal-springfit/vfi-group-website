@@ -70,14 +70,14 @@ test('clientIp: not on Vercel, X-Forwarded-For is ignored unless TRUST_PROXY=1',
   });
 });
 
-test('clientIp: on Vercel prefers x-vercel-forwarded-for, then x-real-ip, then first x-forwarded-for hop', async () => {
+test('clientIp: on Vercel prefers x-vercel-forwarded-for, then x-real-ip; x-forwarded-for is never trusted', async () => {
   await withEnv({ VERCEL: '1', TRUST_PROXY: undefined }, () => {
     const all = { 'x-vercel-forwarded-for': '7.7.7.7, 1.1.1.1', 'x-real-ip': '8.8.8.8', 'x-forwarded-for': '9.9.9.9, 2.2.2.2' };
     assert.equal(clientIp(mockReq({ headers: all })), '7.7.7.7');
     delete all['x-vercel-forwarded-for'];
     assert.equal(clientIp(mockReq({ headers: all })), '8.8.8.8');
     delete all['x-real-ip'];
-    assert.equal(clientIp(mockReq({ headers: all })), '9.9.9.9');
+    assert.equal(clientIp(mockReq({ headers: all })), '127.0.0.1', 'client-controlled x-forwarded-for is ignored on Vercel');
     assert.equal(clientIp(mockReq({})), '127.0.0.1');
   });
 });

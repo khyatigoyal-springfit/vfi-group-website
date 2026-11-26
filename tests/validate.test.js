@@ -8,7 +8,7 @@ const good = { type: 'Hospitality', name: 'A', company: 'C', email: 'a@b.co', co
 test('valid body maps msg->message and page->source_page', () => {
   const r = validateEnquiry(good);
   assert.equal(r.ok, true);
-  assert.deepEqual(r.errors, {});
+  assert.deepEqual({ ...r.errors }, {});
   assert.equal(r.value.message, 'hi');
   assert.equal(r.value.source_page, '/x');
   assert.equal('msg' in r.value, false);
@@ -32,7 +32,7 @@ test('boundary lengths: name 120, company 160, email 200, country 80, message 50
   const email = (n) => 'a'.repeat(n - 8) + '@b.co.in'; // exactly n chars
   assert.equal(email(200).length, 200);
   const ok = validateEnquiry({ ...good, name: 'n'.repeat(120), company: 'c'.repeat(160), email: email(200), country: 'k'.repeat(80), msg: 'm'.repeat(5000), page: 'p'.repeat(200) });
-  assert.deepEqual(ok.errors, {});
+  assert.deepEqual({ ...ok.errors }, {});
   const bad = validateEnquiry({ ...good, name: 'n'.repeat(121), company: 'c'.repeat(161), email: email(201), country: 'k'.repeat(81), msg: 'm'.repeat(5001), page: 'p'.repeat(201) });
   assert.deepEqual(Object.keys(bad.errors).sort(), ['company', 'country', 'email', 'message', 'name', 'page']);
 });

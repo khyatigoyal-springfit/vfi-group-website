@@ -103,13 +103,39 @@ function defineStoreSuite(name, make, { teardown } = {}) {
   });
 
   // ------------------------------------------------------------ login attempts
-  t('login attempts: failures counted per ip and per email; successes ignored', async (s) => {
-    for (let i = 0; i < 3; i++) await s.recordLoginAttempt({ ip_hash: 'ipA', email: 'x@example.com', ok: false });
-    await s.recordLoginAttempt({ ip_hash: 'ipB', email: 'x@example.com', ok: false });
-    await s.recordLoginAttempt({ ip_hash: 'ipA', email: 'x@example.com', ok: true });
-    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipA', email: 'x@example.com', sinceMs: 900000 }), { ip: 3, email: 4 });
-    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipC', email: '', sinceMs: 900000 }), { ip: 0, email: 0 });
-    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipA', email: 'x@example.com', sinceMs: 1 }).then((r) => r.ip <= 3), true);
+  const LIM = { ip: 10, emailIp: 5, email: 50 };
+  const reserve = (s, ip, email, limits = LIM) => s.reserveLoginAttempt({ ip_hash: ip, email, sinceMs: 900000, limits });
+  t('login attempts: reserve records a failure; markLoginSuccess stops it counting; counts per ip, (email, ip) and email', async (s) => {
+    for (let i = 0; i < 3; i++) assert.equal((await reserve(s, 'ipA', 'x@example.com')).limited, false);
+    assert.equal((await reserve(s, 'ipB', 'x@example.com')).limited, false);
+    const ok = await reserve(s, 'ipA', 'x@example.com');
+    assert.equal(ok.limited, false); assert.ok(ok.id);
+    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipA', email: 'x@example.com', sinceMs: 900000 }), { ip: 4, email_ip: 4, email: 5 });
+    await s.markLoginSuccess(ok.id);
+    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipA', email: 'x@example.com', sinceMs: 900000 }), { ip: 3, email_ip: 3, email: 4 });
+    assert.deepEqual(await s.countFailedAttempts({ ip_hash: 'ipC', email: '', sinceMs: 900000 }), { ip: 0, email_ip: 0, email: 0 });
+    assert.equal((await s.countFailedAttempts({ ip_hash: 'ipA', email: 'x@example.com', sinceMs: 1 })).ip <= 3, true);
+  });
+  t('login attempts: limited when ip >= 10, (email, ip) >= 5 or email >= 50; a limited request records nothing', async (s) => {
+    for (let i = 0; i < 5; i++) assert.equal((await reserve(s, 'ip1', 'a@example.com')).limited, false);
+    assert.equal((await reserve(s, 'ip1', 'a@example.com')).limited, true, '6th for the same (email, ip)');
+    assert.equal((await reserve(s, 'ip2', 'a@example.com')).limited, false, 'same email from another ip is not locked out by ip1');
+    assert.equal((await s.countFailedAttempts({ ip_hash: 'ip1', email: 'a@example.com', sinceMs: 900000 })).ip, 5, 'the refused attempt was not recorded');
+    for (let i = 0; i < 5; i++) assert.equal((await reserve(s, 'ip3', `u${i}@example.com`)).limited, false);
+    for (let i = 5; i < 10; i++) assert.equal((await reserve(s, 'ip3', `u${i}@example.com`)).limited, false);
+    assert.equal((await reserve(s, 'ip3', 'new@example.com')).limited, true, '11th from one ip');
+    assert.equal((await reserve(s, 'ip3', '')).limited, true, 'ip limit also applies to an empty email');
+    // global per-email backstop (small limit to keep the test quick)
+    const small = { ip: 1000, emailIp: 1000, email: 4 };
+    for (let i = 0; i < 4; i++) assert.equal((await reserve(s, `ipx${i}`, 'victim@example.com', small)).limited, false);
+    assert.equal((await reserve(s, 'ipx9', 'victim@example.com', small)).limited, true);
+  });
+  t('login attempts: 20 concurrent reservations for one (email, ip) admit exactly the limit', async (s) => {
+    const rs = await Promise.all(Array.from({ length: 20 }, () => reserve(s, 'ipC1', 'race@example.com')));
+    assert.equal(rs.filter((r) => !r.limited).length, 5);
+    assert.equal(rs.filter((r) => r.limited).length, 15);
+    const rs2 = await Promise.all(Array.from({ length: 25 }, (_, i) => reserve(s, 'ipC2', `race${i}@example.com`)));
+    assert.equal(rs2.filter((r) => !r.limited).length, 10, 'the ip limit holds across different emails');
   });
 
   // ------------------------------------------------------------ content
@@ -175,6 +201,67 @@ function defineStoreSuite(name, make, { teardown } = {}) {
     assert.deepEqual((await s.getRevision(3)).data, (await s.getRevision(1)).data);
     assert.equal(await code(s.rollback({ id: 99, user_id: u.id })), 'not_found');
     assert.equal((await s.listRevisions({})).total, 3, 'failed rollback adds nothing');
+  });
+  t('content: publish refuses an unchanged draft (nothing_to_publish) and creates no revision', async (s) => {
+    assert.equal(await code(s.publish({ user_id: null, note: 'x' })), 'nothing_to_publish');
+    assert.equal((await s.listRevisions({})).total, 1);
+    // an edit that is then reverted by hand is equal again
+    const u = await makeUser(s, { email: 'np@example.com' });
+    const st = await s.getContentState();
+    const saved = await s.saveDraft({ data: { ...st.draft, settings: { ...st.draft.settings, siteName: 'Other' } }, base_updated_at: st.draft_updated_at, user_id: u.id });
+    await s.saveDraft({ data: st.draft, base_updated_at: saved.draft_updated_at, user_id: u.id });
+    assert.equal(await code(s.publish({ user_id: u.id, note: 'x' })), 'nothing_to_publish');
+  });
+  t('content: publish pins base_updated_at under the lock and re-validates the locked draft', async (s) => {
+    const u = await makeUser(s, { email: 'pin@example.com', name: 'Pia' });
+    const st = await s.getContentState();
+    const mk = (v) => ({ ...st.draft, settings: { ...st.draft.settings, siteName: v } });
+    const s1 = await s.saveDraft({ data: mk('A'), base_updated_at: st.draft_updated_at, user_id: u.id });
+    const s2 = await s.saveDraft({ data: mk('B'), base_updated_at: s1.draft_updated_at, user_id: u.id });
+    let err;
+    try { await s.publish({ user_id: u.id, note: 'stale', base_updated_at: s1.draft_updated_at }); } catch (e) { err = e; }
+    assert.equal(err.code, 'conflict');
+    assert.equal(err.current.updated_at, s2.draft_updated_at); assert.equal(err.current.updated_by_name, 'Pia');
+    assert.equal((await s.listRevisions({})).total, 1);
+    // check() sees the locked draft; returning errors aborts with invalid_input
+    let seen = null;
+    err = null;
+    try { await s.publish({ user_id: u.id, base_updated_at: s2.draft_updated_at, check: (d) => { seen = d.settings.siteName; return { 'settings.siteName': 'nope' }; } }); } catch (e) { err = e; }
+    assert.equal(seen, 'B'); assert.equal(err.code, 'invalid_input'); assert.deepEqual({ ...err.errors }, { 'settings.siteName': 'nope' });
+    assert.equal((await s.listRevisions({})).total, 1);
+    const rev = await s.publish({ user_id: u.id, note: 'ok', base_updated_at: s2.draft_updated_at, check: () => null });
+    assert.equal(rev.id, 2); assert.deepEqual(rev.sections, ['settings']);
+    // no base: still allowed (backward compatible)
+    const s3 = await s.saveDraft({ data: mk('C'), base_updated_at: s2.draft_updated_at, user_id: u.id });
+    assert.equal((await s.publish({ user_id: u.id, note: 'no base' })).id, 3);
+    assert.ok(s3.draft_updated_at);
+  });
+  t('content: only the newest 200 revisions are kept and the published one is never deleted', async (s) => {
+    const u = await makeUser(s, { email: 'ret@example.com' });
+    let base = (await s.getContentState());
+    for (let i = 0; i < 204; i++) {
+      const saved = await s.saveDraft({ data: { ...base.draft, settings: { ...base.draft.settings, siteName: `Rev ${i}` } }, base_updated_at: base.draft_updated_at, user_id: u.id });
+      base = { draft: base.draft, draft_updated_at: saved.draft_updated_at };
+      await s.publish({ user_id: u.id, note: `n${i}` });
+    }
+    const list = await s.listRevisions({ limit: 100 });
+    assert.equal(list.total, 200);
+    assert.equal(list.rows[0].id, 205);
+    assert.equal(await s.getRevision(1), null, 'oldest revisions are gone');
+    assert.equal(await s.getRevision(5), null);
+    assert.ok(await s.getRevision(6));
+    // a rollback to a surviving revision keeps the count at 200 and the published row intact
+    const rb = await s.rollback({ id: 10, user_id: u.id });
+    assert.equal(rb.revision.id, 206);
+    assert.equal((await s.listRevisions({})).total, 200);
+    assert.equal((await s.getPublished()).revision, 206);
+    assert.equal(await code(s.rollback({ id: 1, user_id: u.id })), 'not_found');
+  });
+  t('media: findMissingMedia returns the URLs without a media row; findRevisionsUsing is exact', async (s) => {
+    const row = await s.addMedia({ url: 'https://x.public.blob.vercel-storage.com/media/here.png', pathname: 'media/here.png', content_type: 'image/png', size: 10 });
+    assert.deepEqual(await s.findMissingMedia([row.url, 'https://x.public.blob.vercel-storage.com/media/gone.png', 'https://x.public.blob.vercel-storage.com/media/gone.png']), ['https://x.public.blob.vercel-storage.com/media/gone.png']);
+    assert.deepEqual(await s.findMissingMedia([]), []);
+    assert.deepEqual(await s.findRevisionsUsing('/assets/img/does-not-exist.png'), []);
   });
   t('content: discard resets the draft to the published revision', async (s) => {
     const u = await makeUser(s, { email: 'd@example.com' });
