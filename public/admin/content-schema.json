@@ -1220,7 +1220,7 @@
        "key": "name",
        "label": "Retailer name",
        "type": "text",
-       "help": "",
+       "help": "Used as the logo's description for screen readers and search engines (not shown as text).",
        "max": 60,
        "required": true
       },
@@ -1277,7 +1277,7 @@
        "key": "name",
        "label": "Award name",
        "type": "text",
-       "help": "Also used as the picture description.",
+       "help": "Used as the logo's description for screen readers and search engines, and as a hover tip (not shown as visible text).",
        "max": 100,
        "required": true
       },
