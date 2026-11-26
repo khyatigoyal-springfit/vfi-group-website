@@ -1,50 +1,120 @@
+/* VFI admin: shell, router, api helper, dialogs, login. Other views register themselves via VFI.register(). */
 (function () {
   'use strict';
 
-  var STATUSES = ['new', 'in_progress', 'contacted', 'closed', 'spam'];
-  var LABELS = { new: 'New', in_progress: 'In progress', contacted: 'Contacted', closed: 'Closed', spam: 'Spam' };
-  var TABS = [
-    { key: 'active', label: 'Active', param: '' },
-    { key: 'new', label: 'New', param: 'new' },
-    { key: 'in_progress', label: 'In progress', param: 'in_progress' },
-    { key: 'contacted', label: 'Contacted', param: 'contacted' },
-    { key: 'closed', label: 'Closed', param: 'closed' },
-    { key: 'spam', label: 'Spam', param: 'spam' },
-    { key: 'all', label: 'All', param: 'all' }
-  ];
-  var PAGE_SIZE = 25;
-  var SESSION_MSG = 'Your session expired. Please sign in again.';
+  var VFI = window.VFI = { views: {}, user: null, schema: null };
 
-  function $(id) { return document.getElementById(id); }
-  function el(tag, cls, text) {
+  /* ---------- DOM helpers (never innerHTML) ---------- */
+  function append(n, kids) {
+    if (kids == null || kids === false) return;
+    if (!Array.isArray(kids)) kids = [kids];
+    kids.forEach(function (c) {
+      if (c == null || c === false) return;
+      if (Array.isArray(c)) return append(n, c);
+      n.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+    });
+  }
+  var PROPS = { value: 1, checked: 1, disabled: 1, hidden: 1, selected: 1, indeterminate: 1, tabIndex: 1 };
+  function h(tag, attrs, kids) {
     var n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (text != null) n.textContent = text;
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v == null || v === false) return;
+        if (k === 'class') n.className = v;
+        else if (k === 'text') n.textContent = v;
+        else if (k === 'on') Object.keys(v).forEach(function (ev) { n.addEventListener(ev, v[ev]); });
+        else if (k === 'dataset') Object.keys(v).forEach(function (d) { n.dataset[d] = v[d]; });
+        else if (PROPS[k]) n[k] = v;
+        else n.setAttribute(k, v === true ? '' : String(v));
+      });
+    }
+    append(n, kids);
     return n;
   }
+  function $(id) { return document.getElementById(id); }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+  function btn(label, cls, onClick, attrs) {
+    var a = { type: 'button', class: 'btn' + (cls ? ' ' + cls : ''), text: label };
+    if (attrs) Object.keys(attrs).forEach(function (k) { a[k] = attrs[k]; });
+    if (onClick) a.on = { click: onClick };
+    return h('button', a);
+  }
+  var uid = 0;
+  function nextId(p) { return (p || 'id') + '-' + (++uid); }
 
-  var state = {
-    tab: 'active', q: '', page: 1,
-    rows: [], total: 0, counts: null,
-    reqId: 0, loaded: false,
-    open: null,        // {row, origin}
-    draft: null,       // preserved after 401
-    exporting: false
+  VFI.h = h; VFI.$ = $; VFI.clear = clear; VFI.btn = btn; VFI.nextId = nextId;
+
+  /* ---------- formatting ---------- */
+  VFI.fmtDate = function (iso, opts) {
+    var d = new Date(iso);
+    if (isNaN(d)) return iso ? String(iso) : '';
+    return d.toLocaleString(undefined, opts || { dateStyle: 'medium', timeStyle: 'short' });
+  };
+  VFI.fmtTime = function (iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  };
+  VFI.fmtBytes = function (n) {
+    if (n == null) return '';
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return Math.round(n / 1024) + ' KB';
+    return (n / 1048576).toFixed(1) + ' MB';
+  };
+  VFI.timeEl = function (iso) {
+    var t = document.createElement('time');
+    t.setAttribute('datetime', iso || '');
+    t.textContent = VFI.fmtDate(iso);
+    return t;
   };
 
-  var loginView = $('loginView'), appView = $('appView'), bootView = $('bootView');
-  var loginForm = $('loginForm'), pw = $('pw'), loginBtn = $('loginBtn'), loginMsg = $('loginMsg');
-  var logoutBtn = $('logoutBtn'), listBody = $('listBody'), listBox = $('listBox'), listStatus = $('listStatus');
-  var tabsEl = $('tabs'), qEl = $('q'), qClear = $('qClear'), pager = $('pager');
-  var detail = $('detail'), scrim = $('scrim');
+  /* ---------- toast + live region ---------- */
+  var toastTimer;
+  VFI.toast = function (msg, isErr) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast' + (isErr ? ' err' : ''); }, isErr ? 6000 : 3500);
+  };
+  VFI.announce = function (msg) {
+    var l = $('live');
+    l.textContent = '';
+    setTimeout(function () { l.textContent = msg; }, 30);
+  };
+
+  /* ---------- clipboard + download ---------- */
+  VFI.copyText = function (text) {
+    function fallback() {
+      return new Promise(function (resolve, reject) {
+        var ta = h('textarea', { 'aria-hidden': 'true', tabIndex: -1, class: 'offscreen' });
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        ta.remove();
+        ok ? resolve() : reject(new Error('copy failed'));
+      });
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(fallback);
+    }
+    return fallback();
+  };
+  VFI.download = function (filename, text, mime) {
+    var url = URL.createObjectURL(new Blob([text], { type: mime || 'application/octet-stream' }));
+    var a = h('a', { href: url, download: filename, hidden: true });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  };
 
   /* ---------- API ---------- */
-  function api(method, path, body) {
-    var opts = {
-      method: method,
-      credentials: 'same-origin',
-      headers: { 'X-Requested-With': 'vfi-admin', 'Accept': 'application/json' }
-    };
+  var expiredHandling = false;
+  VFI.api = function (method, path, body) {
+    var opts = { method: method, credentials: 'same-origin', headers: { 'X-Requested-With': 'vfi-admin', 'Accept': 'application/json' } };
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
@@ -52,564 +122,514 @@
     return fetch(path, opts).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (j) {
         if (r.ok && j && j.ok !== false) return j;
-        var err = { status: r.status, code: (j && j.code) || '', error: (j && j.error) || '', data: j };
-        if (r.status === 401 && path.indexOf('/api/admin/login') !== 0) {
-          handleExpired();
-        }
-        throw err;
+        var err = { status: r.status, code: (j && j.code) || '', error: (j && j.error) || '', data: j || {} };
+        throw handleApiError(err, path);
       });
     }, function () {
-      throw { status: 0, code: 'network', error: 'Could not reach the server.' };
+      throw { status: 0, code: 'network', error: '', data: {} };
     });
-  }
-
-  function handleExpired() {
-    if (state.open) {
-      state.draft = {
-        row: state.open.row,
-        status: $('dStatus').value,
-        notes: $('dNotes').value
-      };
-      closeDetail(true);
+  };
+  function handleApiError(err, path) {
+    if (err.status === 401 && path.indexOf('/api/admin/login') !== 0 && path.indexOf('/api/admin/session') !== 0) {
+      err.handled = true;
+      VFI.sessionExpired();
+    } else if (err.status === 403 && err.code === 'password_change_required') {
+      err.handled = true;
+      if (VFI.user) VFI.user.must_change_password = true;
+      showForced();
     }
-    showLogin(SESSION_MSG);
+    return err;
   }
+  VFI.handleApiError = handleApiError;
+  /** Plain-language message for a failed request. */
+  VFI.errMsg = function (err, fallback) {
+    if (!err) return fallback || 'Something went wrong. Please try again.';
+    if (err.status === 0) return 'Could not reach the server. Check your connection and try again.';
+    if (err.status === 401) return 'Your session expired. Please sign in again.';
+    if (err.status === 403) return err.code === 'password_change_required' ? 'You need to set a new password first.' : 'You do not have permission to do this.';
+    if (err.status === 429) return 'Too many attempts. Try again in 15 minutes.';
+    if (err.status === 503) return err.code === 'media_not_configured' ? 'Image uploads are not set up on this server yet.' : 'The service is unavailable right now. Please try again shortly.';
+    return err.error || fallback || 'Something went wrong. Please try again.';
+  };
 
-  /* ---------- toast ---------- */
-  var toastTimer;
-  function toast(msg, isErr) {
-    var t = $('toast');
-    t.textContent = msg;
-    t.className = 'toast show' + (isErr ? ' err' : '');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.className = 'toast' + (isErr ? ' err' : ''); }, 3500);
-  }
+  /* ---------- dialogs ---------- */
+  var dialogs = [];
+  var FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  function visible(n) { return n.offsetParent !== null || n === document.activeElement; }
 
-  /* ---------- views ---------- */
-  function setView(v) {
-    bootView.hidden = v !== 'boot';
-    loginView.hidden = v !== 'login';
-    appView.hidden = v !== 'app';
-    logoutBtn.hidden = v !== 'app';
-  }
-  function showLogin(msg) {
-    state.reqId++;
-    state.loaded = false;
-    setView('login');
-    pw.value = '';
-    setLoginMsg(msg || '');
-    loginBtn.disabled = false;
-    pw.focus();
-  }
-  function setLoginMsg(msg) {
-    loginMsg.hidden = !msg;
-    loginMsg.textContent = msg || '';
-  }
-  function showApp() {
-    setView('app');
-    readUrl();
-    syncControls();
-    if (!state.loaded) { state.loaded = true; }
-    load(function () {
-      if (state.draft) {
-        var d = state.draft; state.draft = null;
-        var row = null;
-        for (var i = 0; i < state.rows.length; i++) if (state.rows[i].id === d.row.id) row = state.rows[i];
-        openDetail(row || d.row, null, d);
-        toast('Signed in again. Your unsaved changes were restored.');
+  /**
+   * opts: {title, body: Node|Node[], actions: [{label, kind: 'primary'|'danger'|'', onClick(ctrl) -> false to stay open}],
+   *        size: 'sm'|'md'|'lg', onClose, focus: Node|function, dismissable (default true), role}
+   */
+  VFI.dialog = function (opts) {
+    var titleId = nextId('dlg-t');
+    var prevFocus = document.activeElement;
+    var closed = false;
+    var bodyEl = h('div', { class: 'dlg-body' }, opts.body);
+    var footer = h('div', { class: 'dlg-foot' });
+    var ctrl = { el: null, body: bodyEl, footer: footer };
+    var buttons = [];
+    var busy = false;
+
+    function setBusy(b) {
+      busy = b;
+      buttons.forEach(function (x) { x.disabled = b; });
+    }
+    function close(result) {
+      if (closed) return;
+      closed = true;
+      var i = dialogs.indexOf(ctrl);
+      if (i >= 0) dialogs.splice(i, 1);
+      scrim.remove();
+      updateInert();
+      if (opts.onClose) opts.onClose(result);
+      if (prevFocus && document.body.contains(prevFocus) && typeof prevFocus.focus === 'function') prevFocus.focus();
+      else { var m = $('main'); if (m) m.focus(); }
+    }
+    (opts.actions || []).forEach(function (a) {
+      var b = btn(a.label, a.kind === 'primary' ? 'btn-primary' : a.kind === 'danger' ? 'btn-danger' : '', function () {
+        if (busy) return;
+        var r = a.onClick ? a.onClick(ctrl) : undefined;
+        if (r && typeof r.then === 'function') {
+          setBusy(true);
+          r.then(function (v) { if (!closed) { setBusy(false); } if (v !== false) close(a.value); }, function () { if (!closed) setBusy(false); });
+        } else if (r !== false) close(a.value);
+      });
+      if (a.id) b.id = a.id;
+      buttons.push(b);
+      footer.appendChild(b);
+      a._btn = b;
+    });
+    var dlg = h('div', { class: 'dlg dlg-' + (opts.size || 'md'), role: opts.role || 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId, tabIndex: -1 }, [
+      h('div', { class: 'dlg-head' }, [
+        h('h2', { id: titleId, text: opts.title }),
+        opts.dismissable === false ? null : h('button', { type: 'button', class: 'dlg-x', 'aria-label': 'Close', text: '×', on: { click: function () { if (!busy) close(); } } })
+      ]),
+      bodyEl,
+      (opts.actions && opts.actions.length) ? footer : null
+    ]);
+    var scrim = h('div', { class: 'modal-scrim' }, dlg);
+    ctrl.el = dlg;
+    ctrl.close = close;
+    ctrl.setBusy = setBusy;
+    ctrl.buttons = buttons;
+
+    scrim.addEventListener('mousedown', function (e) { if (e.target === scrim && opts.dismissable !== false && !busy) close(); });
+    dlg.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (opts.dismissable === false || busy) return;
+        e.preventDefault(); e.stopPropagation(); close(); return;
       }
+      if (e.key !== 'Tab') return;
+      var f = Array.prototype.filter.call(dlg.querySelectorAll(FOCUSABLE), visible);
+      if (!f.length) { e.preventDefault(); dlg.focus(); return; }
+      var first = f[0], last = f[f.length - 1];
+      if (!dlg.contains(document.activeElement) || document.activeElement === dlg) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    document.body.appendChild(scrim);
+    dialogs.push(ctrl);
+    updateInert();
+    var target = typeof opts.focus === 'function' ? opts.focus(ctrl) : opts.focus;
+    if (!target) target = dlg.querySelector('[data-autofocus]') || dlg.querySelector('input:not([type=hidden]),select,textarea') || footer.querySelector('.btn-primary,.btn-danger') || dlg.querySelector('.dlg-x');
+    (target || dlg).focus();
+    return ctrl;
+  };
+  function updateInert() {
+    var app = $('app');
+    if (dialogs.length || VFI.drawerOpen) app.setAttribute('inert', ''); else app.removeAttribute('inert');
+    document.body.classList.toggle('lock', dialogs.length > 0 || !!VFI.drawerOpen);
+    dialogs.forEach(function (d, i) {
+      var scr = d.el.parentNode;
+      if (i < dialogs.length - 1) scr.setAttribute('inert', ''); else scr.removeAttribute('inert');
+    });
+  }
+  VFI.updateInert = updateInert;
+  VFI.closeAllDialogs = function () { dialogs.slice().forEach(function (d) { d.close(); }); };
+
+  /** confirm({title, message, confirmLabel, cancelLabel, danger}) -> Promise<boolean> */
+  VFI.confirm = function (o) {
+    return new Promise(function (resolve) {
+      var answered = false;
+      var d = VFI.dialog({
+        title: o.title || 'Are you sure?',
+        size: 'sm',
+        role: 'alertdialog',
+        body: (Array.isArray(o.message) ? o.message : [o.message || '']).map(function (m) { return typeof m === 'string' ? h('p', { text: m }) : m; }),
+        actions: [
+          { label: o.cancelLabel || 'Cancel', onClick: function () { answered = true; resolve(false); } },
+          { label: o.confirmLabel || 'OK', kind: o.danger ? 'danger' : 'primary', onClick: function () { answered = true; resolve(true); } }
+        ],
+        focus: function (c) { return o.danger ? c.buttons[0] : c.buttons[1]; },
+        onClose: function () { if (!answered) resolve(false); }
+      });
+      return d;
+    });
+  };
+  /** A one-button information dialog. */
+  VFI.alertDialog = function (title, body, label) {
+    return new Promise(function (resolve) {
+      VFI.dialog({ title: title, size: 'sm', body: body, actions: [{ label: label || 'OK', kind: 'primary' }], onClose: resolve });
+    });
+  };
+
+  /* ---------- states ---------- */
+  VFI.stateBox = function (title, text, actions, isAlert) {
+    var s = h('div', { class: 'state' }, [h('h2', { text: title }), text ? h('p', { class: 'muted', text: text }) : null]);
+    if (isAlert) s.setAttribute('role', 'alert');
+    (actions || []).forEach(function (a) { s.appendChild(a); });
+    return s;
+  };
+  VFI.loadingBox = function () { return h('div', { class: 'skel' }, [h('div'), h('div'), h('div')]); };
+  VFI.errorBox = function (err, retry) {
+    if (err && err.status === 403 && err.code === 'forbidden') {
+      return VFI.stateBox('You do not have access to this page', 'Ask an administrator if you need it.', [], true);
+    }
+    return VFI.stateBox('Could not load this page', VFI.errMsg(err), retry ? [btn('Try again', 'btn-primary', retry)] : [], true);
+  };
+  VFI.pageHead = function (title, sub, actions) {
+    return h('div', { class: 'head-row' }, [
+      h('div', null, [h('h1', { text: title, tabIndex: -1, 'data-view-title': '' }), sub ? h('p', { class: 'muted head-sub', text: sub }) : null]),
+      actions ? h('div', { class: 'head-actions' }, actions) : null
+    ]);
+  };
+  /** Previous / Next pager. */
+  VFI.pager = function (info, onPrev, onNext) {
+    var prev = btn('Previous', '', onPrev, { disabled: info.page <= 1 });
+    var next = btn('Next', '', onNext, { disabled: info.page * info.pageSize >= info.total });
+    var from = info.total ? (info.page - 1) * info.pageSize + 1 : 0;
+    var to = Math.min(info.total, info.page * info.pageSize);
+    return h('nav', { class: 'pager', 'aria-label': 'Pagination' }, [
+      h('span', { class: 'muted', text: info.total ? 'Showing ' + from + '–' + to + ' of ' + info.total : 'Nothing to show' }),
+      h('span', { class: 'pager-btns' }, [prev, next])
+    ]);
+  };
+
+  /* ---------- router ---------- */
+  var NAV = [
+    { route: 'enquiries', label: 'Enquiries', roles: ['admin', 'editor', 'sales'] },
+    { route: 'content', label: 'Content', roles: ['admin', 'editor'] },
+    { route: 'media', label: 'Media', roles: ['admin', 'editor'] },
+    { route: 'history', label: 'History', roles: ['admin', 'editor'] },
+    { route: 'users', label: 'Users', roles: ['admin'] },
+    { route: 'audit', label: 'Audit log', roles: ['admin'] },
+    { route: 'account', label: 'My account', roles: ['admin', 'editor', 'sales'] }
+  ];
+  var current = null; // { route, ctrl }
+  var lastHash = '';
+  var ignoreHash = false;
+  var routing = false;
+
+  VFI.register = function (route, view) { VFI.views[route] = view; };
+  VFI.parseHash = function (hash) {
+    var raw = String(hash == null ? location.hash : hash).replace(/^#\/?/, '');
+    var q = '', i = raw.indexOf('?');
+    if (i >= 0) { q = raw.slice(i + 1); raw = raw.slice(0, i); }
+    var parts = raw.split('/').filter(Boolean).map(function (p) { try { return decodeURIComponent(p); } catch (e) { return p; } });
+    return { route: parts[0] || '', param: parts[1] || '', query: new URLSearchParams(q) };
+  };
+  VFI.navigate = function (hash) { if (location.hash === hash) route(true); else location.hash = hash; };
+  VFI.defaultRoute = function () { return VFI.user && VFI.user.role === 'sales' ? 'enquiries' : 'content'; };
+  VFI.canView = function (r) {
+    var v = VFI.views[r];
+    return !!(v && VFI.user && v.roles.indexOf(VFI.user.role) >= 0);
+  };
+  /** Ask the current view whether it may be left. */
+  VFI.canLeave = function () {
+    if (current && current.ctrl && current.ctrl.canLeave) return Promise.resolve(current.ctrl.canLeave());
+    return Promise.resolve(true);
+  };
+
+  function setActiveNav(r) {
+    Array.prototype.forEach.call($('navList').querySelectorAll('a'), function (a) {
+      if (a.dataset.route === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
   }
 
-  /* ---------- login ---------- */
+  function route(forceRemount) {
+    if (!VFI.user || VFI.user.must_change_password) return;
+    var p = VFI.parseHash();
+    var r = p.route;
+    if (!r || !VFI.views[r]) { replaceHash('#/' + VFI.defaultRoute()); return route(); }
+    if (!VFI.canView(r)) { renderForbidden(r); return; }
+    var same = current && current.route === r && !forceRemount;
+    if (same) {
+      lastHash = location.hash;
+      if (current.ctrl && current.ctrl.update) current.ctrl.update(p);
+      return;
+    }
+    if (routing) return;
+    routing = true;
+    VFI.canLeave().then(function (ok) {
+      routing = false;
+      if (!ok) { ignoreHash = true; replaceHash(lastHash || '#/' + VFI.defaultRoute()); setTimeout(function () { ignoreHash = false; }, 0); return; }
+      mount(r, p);
+    });
+  }
+  function replaceHash(h2) { history.replaceState(null, '', location.pathname + location.search + h2); }
+  function unmountCurrent() {
+    if (current && current.ctrl && current.ctrl.unmount) { try { current.ctrl.unmount(); } catch (e) { /* ignore */ } }
+    current = null;
+  }
+  function mount(r, p) {
+    unmountCurrent();
+    var root = clear($('view'));
+    var view = VFI.views[r];
+    lastHash = location.hash;
+    document.title = view.title + ' | VFI Group admin';
+    setActiveNav(r);
+    closeMenu();
+    current = { route: r, ctrl: null };
+    var ctrl = view.mount({ root: root, params: p, user: VFI.user });
+    current.ctrl = ctrl || {};
+    window.scrollTo(0, 0);
+    var first = !VFI.firstMountDone;
+    VFI.firstMountDone = true;
+    if (!first) { var t = root.querySelector('[data-view-title]'); if (t) t.focus({ preventScroll: true }); }
+  }
+  function renderForbidden(r) {
+    unmountCurrent();
+    var root = clear($('view'));
+    root.appendChild(h('div', { class: 'wrap' }, VFI.stateBox('You do not have access to this page', 'Your role does not include it. Ask an administrator if you need it.', [btn('Go to ' + VFI.views[VFI.defaultRoute()].title, 'btn-primary', function () { VFI.navigate('#/' + VFI.defaultRoute()); })], true)));
+    setActiveNav('');
+  }
+  window.addEventListener('hashchange', function () {
+    if (ignoreHash) { ignoreHash = false; return; }
+    route();
+  });
+  /** Used by views that change their own query string without remounting. */
+  VFI.setHash = function (hash, push) {
+    history[push ? 'pushState' : 'replaceState'](null, '', location.pathname + location.search + hash);
+    lastHash = location.hash;
+  };
+
+  /* ---------- shell ---------- */
+  function buildNav() {
+    var list = clear($('navList'));
+    NAV.forEach(function (n) {
+      if (!VFI.views[n.route] || n.roles.indexOf(VFI.user.role) < 0) return;
+      list.appendChild(h('li', null, h('a', { href: '#/' + n.route, text: n.label, dataset: { route: n.route } })));
+    });
+  }
+  function closeMenu() {
+    $('sidenav').classList.remove('open');
+    $('menuBtn').setAttribute('aria-expanded', 'false');
+  }
+  $('menuBtn').addEventListener('click', function () {
+    var open = !$('sidenav').classList.contains('open');
+    $('sidenav').classList.toggle('open', open);
+    $('menuBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  function setScreen(name) {
+    $('bootView').hidden = name !== 'boot';
+    $('loginView').hidden = name !== 'login';
+    $('forceView').hidden = name !== 'force';
+    $('view').hidden = name !== 'app';
+    var authed = name === 'app' || name === 'force';
+    $('topUser').hidden = !authed;
+    var showNav = name === 'app';
+    $('sidenav').hidden = !showNav;
+    $('menuBtn').hidden = !showNav;
+    $('shell').classList.toggle('has-nav', showNav);
+    if (!showNav) closeMenu();
+    if (authed && VFI.user) {
+      $('userName').textContent = VFI.user.name || VFI.user.email;
+      $('userRole').textContent = VFI.user.role;
+    }
+  }
+  VFI.refreshUser = function (u) {
+    VFI.user = u;
+    $('userName').textContent = u.name || u.email;
+    $('userRole').textContent = u.role;
+  };
+
+  function startApp() {
+    setScreen('app');
+    buildNav();
+    var p = VFI.pendingHash;
+    VFI.pendingHash = null;
+    if (p && p !== '#' && p !== '#/') replaceHash(p);
+    else if (!location.hash || location.hash === '#' || location.hash === '#/') replaceHash('#/' + VFI.defaultRoute());
+    current = null;
+    route(true);
+  }
+
+  var loginForm = $('loginForm'), loginEmail = $('loginEmail'), loginPw = $('loginPw'), loginBtn = $('loginBtn'), loginMsg = $('loginMsg');
+  function setLoginMsg(m) { loginMsg.hidden = !m; loginMsg.textContent = m || ''; }
+  function showLogin(msg) {
+    setScreen('login');
+    document.title = 'Sign in | VFI Group admin';
+    loginPw.value = '';
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Sign in';
+    setLoginMsg(msg || '');
+    (loginEmail.value ? loginPw : loginEmail).focus();
+  }
+  VFI.sessionExpired = function () {
+    if (expiredHandling) return;
+    expiredHandling = true;
+    VFI.closeAllDialogs();
+    if (VFI.onSessionExpired) VFI.onSessionExpired();
+    VFI.pendingHash = location.hash;
+    unmountCurrent();
+    VFI.user = null;
+    showLogin('Your session expired. Please sign in again.');
+  };
+
   loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
     if (loginBtn.disabled) return;
-    if (!pw.value) { setLoginMsg('Enter the password.'); pw.focus(); return; }
-    loginBtn.disabled = true;
-    loginBtn.textContent = 'Signing in…';
-    setLoginMsg('');
-    api('POST', '/api/admin/login', { password: pw.value }).then(function () {
-      loginBtn.textContent = 'Sign in';
-      pw.value = '';
-      showApp();
+    var email = loginEmail.value.trim(), pw = loginPw.value;
+    if (!email || !pw) { setLoginMsg(!email ? 'Enter your email address.' : 'Enter your password.'); (!email ? loginEmail : loginPw).focus(); return; }
+    loginBtn.disabled = true; loginBtn.textContent = 'Signing in…'; setLoginMsg('');
+    VFI.api('POST', '/api/admin/login', { email: email, password: pw }).then(function (j) {
+      loginPw.value = ''; pw = '';
+      expiredHandling = false;
+      VFI.user = j.user;
+      if (j.user.must_change_password) showForced(); else startApp();
     }, function (err) {
-      loginBtn.textContent = 'Sign in';
-      loginBtn.disabled = false;
-      var m = 'Something went wrong. Please try again.';
-      if (err.status === 401) m = 'Incorrect password';
-      else if (err.status === 429) m = 'Too many attempts. Try again in 15 minutes.';
-      else if (err.status === 503) m = 'Admin is not configured on this server.';
-      else if (err.status === 0) m = 'Could not reach the server.';
+      loginBtn.disabled = false; loginBtn.textContent = 'Sign in';
+      var m = err.status === 401 ? 'Incorrect email or password.' : err.status === 429 ? 'Too many attempts. Try again in 15 minutes.'
+        : err.status === 503 ? 'Admin is not configured on this server.' : VFI.errMsg(err);
       setLoginMsg(m);
-      pw.select();
-      pw.focus();
+      loginPw.value = '';
+      loginPw.focus();
     });
   });
 
-  logoutBtn.addEventListener('click', function () {
-    logoutBtn.disabled = true;
-    api('POST', '/api/admin/logout').then(done, done);
-    function done() {
-      logoutBtn.disabled = false;
-      closeDetail(true);
-      state.draft = null; state.rows = []; state.counts = null; state.q = ''; state.page = 1; state.tab = 'active';
-      history.replaceState(null, '', location.pathname);
-      listBody.textContent = '';
-      showLogin('');
-    }
-  });
-
-  /* ---------- URL state ---------- */
-  function readUrl() {
-    var p = new URLSearchParams(location.search);
-    var s = p.get('status') || '';
-    var tab = 'active';
-    TABS.forEach(function (t) { if (t.param && t.param === s) tab = t.key; });
-    state.tab = tab;
-    state.q = (p.get('q') || '').slice(0, 200);
-    var pg = parseInt(p.get('page'), 10);
-    state.page = pg > 0 ? pg : 1;
-  }
-  function writeUrl(push) {
-    var p = new URLSearchParams();
-    var t = TABS.filter(function (x) { return x.key === state.tab; })[0];
-    if (t.param) p.set('status', t.param);
-    if (state.q) p.set('q', state.q);
-    if (state.page > 1) p.set('page', String(state.page));
-    var qs = p.toString();
-    var url = location.pathname + (qs ? '?' + qs : '');
-    if (url === location.pathname + location.search) return;
-    history[push ? 'pushState' : 'replaceState'](null, '', url);
-  }
-  window.addEventListener('popstate', function () {
-    if (appView.hidden) return;
-    readUrl(); syncControls(); load();
-  });
-
-  function syncControls() {
-    qEl.value = state.q;
-    qClear.hidden = !state.q;
-    renderTabs();
-  }
-
-  /* ---------- tabs ---------- */
-  function countFor(key) {
-    var c = state.counts;
-    if (!c) return null;
-    var active = (c.new || 0) + (c.in_progress || 0) + (c.contacted || 0) + (c.closed || 0);
-    if (key === 'active') return active;
-    if (key === 'all') return active + (c.spam || 0);
-    return c[key] || 0;
-  }
-  function renderTabs() {
-    tabsEl.textContent = '';
-    TABS.forEach(function (t) {
-      var b = el('button', 'tab' + (t.key === 'new' ? ' is-new' : ''));
-      b.type = 'button';
-      b.id = 'tab-' + t.key;
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-selected', t.key === state.tab ? 'true' : 'false');
-      b.tabIndex = t.key === state.tab ? 0 : -1;
-      b.dataset.key = t.key;
-      b.appendChild(el('span', null, t.label));
-      var n = countFor(t.key);
-      if (n !== null) {
-        var cs = el('span', 'count' + (n === 0 ? ' zero' : ''), String(n));
-        b.appendChild(cs);
-      }
-      tabsEl.appendChild(b);
+  VFI.logout = function () {
+    return VFI.canLeave().then(function (ok) {
+      if (!ok) return;
+      var b = $('logoutBtn'); b.disabled = true;
+      var done = function () {
+        b.disabled = false;
+        VFI.closeAllDialogs();
+        if (VFI.onLogout) VFI.onLogout();
+        unmountCurrent();
+        VFI.user = null; VFI.pendingHash = null;
+        history.replaceState(null, '', location.pathname);
+        clear($('view'));
+        expiredHandling = false;
+        showLogin('');
+      };
+      VFI.api('POST', '/api/admin/logout').then(done, done);
     });
+  };
+  $('logoutBtn').addEventListener('click', function () { VFI.logout(); });
+
+  /* ---------- password form (forced change + My account) ---------- */
+  function strength(pw) {
+    if (!pw) return { text: 'Use at least 12 characters.', cls: '' };
+    if (pw.length < 12) return { text: (12 - pw.length) + ' more character' + (12 - pw.length === 1 ? '' : 's') + ' needed (' + pw.length + ' of 12 minimum).', cls: 'weak' };
+    var kinds = (/[a-z]/.test(pw) ? 1 : 0) + (/[A-Z]/.test(pw) ? 1 : 0) + (/[0-9]/.test(pw) ? 1 : 0) + (/[^A-Za-z0-9]/.test(pw) ? 1 : 0);
+    if (pw.length >= 16 && kinds >= 3) return { text: 'Strong password.', cls: 'strong' };
+    if (kinds >= 2 || pw.length >= 16) return { text: 'Good password.', cls: 'good' };
+    return { text: 'Long enough. Mixing letters, numbers and symbols makes it stronger.', cls: 'ok' };
   }
-  function selectTab(key) {
-    if (key === state.tab) return;
-    state.tab = key; state.page = 1;
-    writeUrl(true);
-    renderTabs();
-    load();
-  }
-  tabsEl.addEventListener('click', function (e) {
-    var b = e.target.closest('.tab');
-    if (b) selectTab(b.dataset.key);
-  });
-  tabsEl.addEventListener('keydown', function (e) {
-    var keys = TABS.map(function (t) { return t.key; });
-    var i = keys.indexOf(state.tab), n = -1;
-    if (e.key === 'ArrowRight') n = (i + 1) % keys.length;
-    else if (e.key === 'ArrowLeft') n = (i - 1 + keys.length) % keys.length;
-    else if (e.key === 'Home') n = 0;
-    else if (e.key === 'End') n = keys.length - 1;
-    if (n < 0) return;
-    e.preventDefault();
-    selectTab(keys[n]);
-    var nb = $('tab-' + keys[n]);
-    if (nb) { nb.focus(); nb.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
-  });
-
-  /* ---------- search ---------- */
-  var qTimer;
-  qEl.addEventListener('input', function () {
-    qClear.hidden = !qEl.value;
-    clearTimeout(qTimer);
-    qTimer = setTimeout(applySearch, 300);
-  });
-  qEl.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(qTimer); applySearch(); }
-  });
-  function applySearch() {
-    clearTimeout(qTimer);
-    var v = qEl.value.trim();
-    if (v === state.q) return;
-    state.q = v; state.page = 1;
-    writeUrl(false);
-    load();
-  }
-  qClear.addEventListener('click', function () {
-    qEl.value = ''; qClear.hidden = true;
-    clearTimeout(qTimer);
-    if (state.q) { state.q = ''; state.page = 1; writeUrl(false); load(); }
-    qEl.focus();
-  });
-
-  /* ---------- list ---------- */
-  function query(extra) {
-    var t = TABS.filter(function (x) { return x.key === state.tab; })[0];
-    var p = new URLSearchParams();
-    p.set('status', t.param);
-    p.set('q', state.q);
-    if (extra) for (var k in extra) p.set(k, extra[k]);
-    return p.toString();
-  }
-
-  function load(cb, silent) {
-    var id = ++state.reqId;
-    if (!silent) {
-      listBox.setAttribute('aria-busy', 'true');
-      renderSkeleton();
-      listStatus.textContent = 'Loading enquiries…';
-    }
-    if (!navigator.onLine) { /* still try; fetch will fail and show error */ }
-    api('GET', '/api/admin/enquiries?' + query({ page: state.page, pageSize: PAGE_SIZE })).then(function (j) {
-      if (id !== state.reqId) return;
-      state.rows = j.rows || [];
-      state.total = j.total || 0;
-      state.counts = j.counts || state.counts;
-      var pages = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
-      if (state.page > pages) { state.page = pages; writeUrl(false); return load(cb, silent); }
-      listBox.setAttribute('aria-busy', 'false');
-      renderTabs();
-      renderList();
-      if (cb) cb();
-    }, function (err) {
-      if (id !== state.reqId || err.status === 401) return;
-      listBox.setAttribute('aria-busy', 'false');
-      renderError(err.status === 0 ? 'Could not reach the server. Check your connection.' : 'Could not load enquiries.');
-    });
-  }
-
-  function renderSkeleton() {
-    listBody.textContent = '';
-    var s = el('div', 'skel');
-    for (var i = 0; i < 5; i++) s.appendChild(el('div'));
-    listBody.appendChild(s);
-    pager.hidden = true;
-  }
-  function renderError(msg) {
-    listBody.textContent = '';
-    pager.hidden = true;
-    var s = el('div', 'state');
-    s.setAttribute('role', 'alert');
-    s.appendChild(el('h2', null, msg));
-    var b = el('button', 'btn btn-primary', 'Retry'); b.type = 'button';
-    b.addEventListener('click', function () { load(); });
-    s.appendChild(b);
-    listBody.appendChild(s);
-    listStatus.textContent = msg;
-  }
-
-  function snippet(s) {
-    s = String(s || '').replace(/\s+/g, ' ').trim();
-    return s.length > 120 ? s.slice(0, 117) + '…' : s;
-  }
-  function fmtAbs(iso) {
-    var d = new Date(iso);
-    if (isNaN(d)) return String(iso || '');
-    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  }
-  function fmtRel(iso) {
-    var d = new Date(iso), s = (Date.now() - d.getTime()) / 1000;
-    if (isNaN(d)) return '';
-    if (s < 60) return 'just now';
-    if (s < 3600) return Math.floor(s / 60) + ' min ago';
-    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
-    if (s < 86400 * 7) return Math.floor(s / 86400) + ' d ago';
-    return '';
-  }
-  function timeEl(iso) {
-    var t = document.createElement('time');
-    t.setAttribute('datetime', iso || '');
-    t.textContent = fmtAbs(iso);
-    return t;
-  }
-  function badge(status) {
-    return el('span', 'badge b-' + (LABELS[status] ? status : 'closed'), LABELS[status] || status);
-  }
-  function msgOf(r) { return r.message != null ? r.message : (r.msg || ''); }
-
-  function renderList() {
-    listBody.textContent = '';
-    if (!state.rows.length) {
-      pager.hidden = true;
-      var s = el('div', 'state');
-      s.appendChild(el('h2', null, 'No enquiries match'));
-      s.appendChild(el('p', 'muted', state.q ? 'Try a different search or status.' : 'Nothing here yet.'));
-      if (state.q || state.tab !== 'active') {
-        var b = el('button', 'btn', 'Clear filters'); b.type = 'button';
-        b.addEventListener('click', function () {
-          state.q = ''; state.tab = 'active'; state.page = 1;
-          writeUrl(true); syncControls(); load();
-        });
-        s.appendChild(b);
-      }
-      listBody.appendChild(s);
-      listStatus.textContent = 'No enquiries match.';
-      return;
-    }
-    var table = el('table');
-    var cap = el('caption', 'sr', 'Enquiries'); table.appendChild(cap);
-    var thead = el('thead'), hr = el('tr');
-    ['Reference', 'Received', 'From', 'Type', 'Country', 'Message', 'Status'].forEach(function (h) {
-      var th = el('th', null, h); th.scope = 'col'; hr.appendChild(th);
-    });
-    thead.appendChild(hr); table.appendChild(thead);
-    var tb = el('tbody');
-    state.rows.forEach(function (r) {
-      var tr = el('tr', r.status === 'new' ? 'unread' : '');
-      tr.dataset.id = r.id;
-
-      var c1 = el('td', 'c-ref');
-      var rb = el('button', 'ref', r.ref); rb.type = 'button';
-      rb.setAttribute('aria-label', 'Open enquiry ' + r.ref);
-      c1.appendChild(rb);
-
-      var c2 = el('td', 'c-when when');
-      c2.appendChild(timeEl(r.created_at));
-      c2.title = fmtRel(r.created_at) ? fmtRel(r.created_at) : '';
-      var rel = fmtRel(r.created_at);
-      if (rel) c2.appendChild(el('div', 'sub', rel));
-
-      var c3 = el('td', 'c-who');
-      c3.appendChild(el('div', 'who', r.name));
-      c3.appendChild(el('div', 'sub', r.company));
-
-      var c4 = el('td', 'c-type', r.type);
-      var c5 = el('td', 'c-country', r.country || '—');
-      c5.classList.add('c-country');
-      var c6 = el('td', 'c-snip');
-      c6.appendChild(el('div', 'snip', snippet(msgOf(r))));
-      var c7 = el('td', 'c-status'); c7.appendChild(badge(r.status));
-
-      [c1, c2, c3, c4, c5, c6, c7].forEach(function (c) { tr.appendChild(c); });
-      tb.appendChild(tr);
-    });
-    table.appendChild(tb);
-    listBody.appendChild(table);
-
-    var from = (state.page - 1) * PAGE_SIZE + 1, to = from + state.rows.length - 1;
-    var info = 'Showing ' + from + '–' + to + ' of ' + state.total;
-    $('pagerInfo').textContent = info;
-    $('prevBtn').disabled = state.page <= 1;
-    $('nextBtn').disabled = to >= state.total;
-    pager.hidden = false;
-    listStatus.textContent = info + ' enquiries.';
-  }
-
-  listBody.addEventListener('click', function (e) {
-    var tr = e.target.closest('tr');
-    if (!tr || !tr.dataset.id) return;
-    var row = state.rows.filter(function (r) { return r.id === tr.dataset.id; })[0];
-    if (row) openDetail(row, tr.querySelector('.ref'));
-  });
-  $('prevBtn').addEventListener('click', function () { if (state.page > 1) { state.page--; writeUrl(true); load(); scrollTo(0, 0); } });
-  $('nextBtn').addEventListener('click', function () { state.page++; writeUrl(true); load(); scrollTo(0, 0); });
-  $('refreshBtn').addEventListener('click', function () { load(); });
-
-  /* ---------- detail ---------- */
-  var dStatus = $('dStatus'), dNotes = $('dNotes'), dSave = $('dSave');
-  STATUSES.forEach(function (s) {
-    var o = el('option', null, LABELS[s]); o.value = s; dStatus.appendChild(o);
-  });
-  var saved = { status: '', notes: '' };
-
-  function field(dl, label, valueNode) {
-    dl.appendChild(el('dt', null, label));
-    var dd = el('dd'); dd.appendChild(valueNode); dl.appendChild(dd);
-  }
-  function txt(s) { return document.createTextNode(s == null || s === '' ? '—' : String(s)); }
-
-  function fillDetail(row, draft) {
-    $('dTitle').textContent = row.ref;
-    $('dSub').textContent = 'Received ' + fmtAbs(row.created_at);
-    var dl = $('dFields'); dl.textContent = '';
-    field(dl, 'Received', timeEl(row.created_at));
-    var up = timeEl(row.updated_at); field(dl, 'Updated', up);
-    field(dl, 'Type', txt(row.type));
-    field(dl, 'Name', txt(row.name));
-    field(dl, 'Company', txt(row.company));
-    var em;
-    if (row.email) { em = el('a', null, row.email); em.href = 'mailto:' + encodeURIComponent(row.email).replace(/%40/g, '@'); }
-    else em = txt('');
-    field(dl, 'Email', em);
-    field(dl, 'Country', txt(row.country));
-    field(dl, 'Volume', txt(row.volume));
-    field(dl, 'Source page', txt(row.source_page));
-    $('dMsg').textContent = msgOf(row);
-    saved.status = row.status; saved.notes = row.notes || '';
-    dStatus.value = draft ? draft.status : row.status;
-    dNotes.value = draft ? draft.notes : saved.notes;
-    updateDirty();
-    ['dStatusErr', 'dNotesErr', 'dMsgStatus'].forEach(function (i) { $(i).hidden = true; });
-  }
-  function isDirty() { return dStatus.value !== saved.status || dNotes.value !== saved.notes; }
-  function updateDirty() {
-    $('dCount').textContent = String(dNotes.value.length);
-    $('dDirty').hidden = !isDirty();
-  }
-  dNotes.addEventListener('input', updateDirty);
-  dStatus.addEventListener('change', updateDirty);
-
-  var bgEls = function () { return [document.querySelector('header.top'), $('main')]; };
-
-  function openDetail(row, origin, draft) {
-    state.open = { row: row, origin: origin };
-    state.lastId = row.id;
-    fillDetail(row, draft);
-    detail.hidden = false; scrim.hidden = false;
-    document.body.classList.add('lock');
-    bgEls().forEach(function (n) { if (n) n.setAttribute('inert', ''); });
-    $('dClose').focus();
-    detail.querySelector('.d-body').scrollTop = 0;
-  }
-  function closeDetail(force) {
-    if (!state.open) return true;
-    if (!force && isDirty() && !confirm('You have unsaved changes. Close without saving?')) return false;
-    var origin = state.open.origin;
-    state.open = null;
-    detail.hidden = true; scrim.hidden = true;
-    document.body.classList.remove('lock');
-    bgEls().forEach(function (n) { if (n) n.removeAttribute('inert'); });
-    var rid = state.lastId;
-    if (origin && document.body.contains(origin)) origin.focus();
-    else if (origin && rid && !appView.hidden) {
-      var tr = listBody.querySelector('tr[data-id="' + rid + '"] .ref');
-      if (tr) tr.focus(); else $('main').focus();
-    }
-    return true;
-  }
-  $('dClose').addEventListener('click', function () { closeDetail(); });
-  scrim.addEventListener('click', function () { closeDetail(); });
-  document.addEventListener('keydown', function (e) {
-    if (!state.open) return;
-    if (e.key === 'Escape') { e.preventDefault(); closeDetail(); return; }
-    if (e.key !== 'Tab') return;
-    var f = Array.prototype.filter.call(
-      detail.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])'),
-      function (n) { return !n.disabled && n.offsetParent !== null; });
-    if (!f.length) return;
-    var first = f[0], last = f[f.length - 1];
-    if (!detail.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
-    else if (e.shiftKey && (document.activeElement === first || document.activeElement === detail)) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  });
-
-  function dMessage(msg, cls) {
-    var m = $('dMsgStatus');
-    m.hidden = !msg; m.textContent = msg || ''; m.className = 'msg' + (cls ? ' ' + cls : '');
-    if (cls !== 'ok' && cls !== 'info') m.setAttribute('role', 'alert'); else m.setAttribute('role', 'status');
-  }
-  function fieldErr(id, msg) { var n = $(id); n.hidden = !msg; n.textContent = msg || ''; }
-
-  $('dForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (!state.open || dSave.disabled) return;
-    var row = state.open.row, body = { id: row.id };
-    if (dStatus.value !== saved.status) body.status = dStatus.value;
-    if (dNotes.value !== saved.notes) body.notes = dNotes.value;
-    if (Object.keys(body).length === 1) { dMessage('Nothing to save.', 'info'); return; }
-    dSave.disabled = true; dSave.textContent = 'Saving…';
-    dMessage(''); fieldErr('dStatusErr'); fieldErr('dNotesErr');
-    api('PATCH', '/api/admin/enquiries', body).then(function (j) {
-      dSave.disabled = false; dSave.textContent = 'Save';
-      if (!state.open || state.open.row.id !== row.id) return;
-      dSave.focus();
-      var nr = j.row || {};
-      for (var k in nr) row[k] = nr[k];
-      if (!j.row) { if (body.status) row.status = body.status; if ('notes' in body) row.notes = body.notes; }
-      saved.status = row.status; saved.notes = row.notes || '';
-      dStatus.value = saved.status; dNotes.value = saved.notes;
-      updateDirty();
-      dMessage('Saved', 'ok');
-      toast('Saved');
-      load(null, true);
-    }, function (err) {
-      dSave.disabled = false; dSave.textContent = 'Save';
-      if (err.status === 401) return;
-      if (err.status === 404) {
-        dMessage('This enquiry no longer exists.');
-        saved.status = dStatus.value; saved.notes = dNotes.value; updateDirty();
-        load(null, true);
-        return;
-      }
-      if (err.status === 422) {
+  /** opts: {submitLabel, onDone(user)} -> form element */
+  VFI.passwordForm = function (opts) {
+    var ids = { cur: nextId('pw'), nw: nextId('pw'), cf: nextId('pw'), hint: nextId('pwh') };
+    var msg = h('p', { class: 'msg', role: 'alert', hidden: true });
+    var cur = h('input', { id: ids.cur, type: 'password', autocomplete: 'current-password', required: true });
+    var nw = h('input', { id: ids.nw, type: 'password', autocomplete: 'new-password', required: true, 'aria-describedby': ids.hint });
+    var cf = h('input', { id: ids.cf, type: 'password', autocomplete: 'new-password', required: true });
+    var curErr = h('p', { class: 'ferr', hidden: true }), nwErr = h('p', { class: 'ferr', hidden: true }), cfErr = h('p', { class: 'ferr', hidden: true });
+    var hint = h('p', { id: ids.hint, class: 'pw-hint muted', text: strength('').text });
+    var submit = h('button', { type: 'submit', class: 'btn btn-primary', text: opts.submitLabel || 'Change password' });
+    var form = h('form', { novalidate: true, class: 'pw-form' }, [
+      msg,
+      h('div', { class: 'field' }, [h('label', { for: ids.cur, text: 'Current password' }), cur, curErr]),
+      h('div', { class: 'field' }, [h('label', { for: ids.nw, text: 'New password' }), nw, hint, nwErr]),
+      h('div', { class: 'field' }, [h('label', { for: ids.cf, text: 'Confirm new password' }), cf, cfErr]),
+      submit
+    ]);
+    function setErr(el, input, m) { el.hidden = !m; el.textContent = m || ''; if (m) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); }
+    nw.addEventListener('input', function () { var s = strength(nw.value); hint.textContent = s.text; hint.className = 'pw-hint ' + (s.cls ? 'pw-' + s.cls : 'muted'); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submit.disabled) return;
+      msg.hidden = true; setErr(curErr, cur, ''); setErr(nwErr, nw, ''); setErr(cfErr, cf, '');
+      var bad = null;
+      if (!cur.value) { setErr(curErr, cur, 'Enter your current password.'); bad = bad || cur; }
+      if (nw.value.length < 12) { setErr(nwErr, nw, 'The new password must be at least 12 characters.'); bad = bad || nw; }
+      else if (nw.value === cur.value) { setErr(nwErr, nw, 'Choose a password different from the current one.'); bad = bad || nw; }
+      if (cf.value !== nw.value) { setErr(cfErr, cf, 'The two passwords do not match.'); bad = bad || cf; }
+      if (bad) { bad.focus(); return; }
+      submit.disabled = true;
+      var old = submit.textContent; submit.textContent = 'Saving…';
+      var body = { current: cur.value, next: nw.value };
+      VFI.api('POST', '/api/admin/password', body).then(function (j) {
+        cur.value = nw.value = cf.value = ''; body = null;
+        submit.disabled = false; submit.textContent = old;
+        hint.textContent = strength('').text; hint.className = 'pw-hint muted';
+        if (opts.onDone) opts.onDone(j.user);
+      }, function (err) {
+        submit.disabled = false; submit.textContent = old;
+        cur.value = ''; body = null;
+        if (err.handled) return;
         var errs = (err.data && err.data.errors) || {};
-        if (errs.status) fieldErr('dStatusErr', errs.status);
-        if (errs.notes) fieldErr('dNotesErr', errs.notes);
-        dMessage(errs.status || errs.notes ? 'Please correct the highlighted fields.' : 'Could not save: invalid input.');
-        return;
-      }
-      dMessage(err.status === 0 ? 'Could not reach the server. Your changes are still here; try again.' : 'Could not save. Please try again.');
+        if (err.status === 422 && (errs.current || errs.next)) {
+          if (errs.current) { setErr(curErr, cur, errs.current); cur.focus(); }
+          if (errs.next) { setErr(nwErr, nw, errs.next); if (!errs.current) nw.focus(); }
+        } else { msg.textContent = VFI.errMsg(err); msg.hidden = false; }
+      });
     });
-  });
+    return form;
+  };
 
-  /* ---------- export ---------- */
-  $('exportBtn').addEventListener('click', function () {
-    var btn = $('exportBtn');
-    if (state.exporting) return;
-    state.exporting = true; btn.disabled = true; btn.textContent = 'Exporting…';
-    fetch('/api/admin/export?' + query(), {
-      credentials: 'same-origin',
-      headers: { 'X-Requested-With': 'vfi-admin' }
-    }).then(function (r) {
-      if (r.status === 401) { handleExpired(); throw { handled: true }; }
-      if (!r.ok) throw new Error('bad');
-      var cd = r.headers.get('Content-Disposition') || '';
-      var m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
-      var name = m ? decodeURIComponent(m[1]) : 'vfi-enquiries.csv';
-      return r.blob().then(function (b) { return { b: b, name: name }; });
-    }).then(function (x) {
-      var url = URL.createObjectURL(x.b);
-      var a = document.createElement('a');
-      a.href = url; a.download = x.name; a.hidden = true;
-      document.body.appendChild(a); a.click();
-      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
-      toast('Export downloaded');
-    }).catch(function (e) {
-      if (e && e.handled) return;
-      toast('Export failed. Please try again.', true);
-    }).then(function () {
-      state.exporting = false; btn.disabled = false; btn.textContent = 'Export CSV';
+  function showForced() {
+    VFI.closeAllDialogs();
+    unmountCurrent();
+    setScreen('force');
+    document.title = 'Set a new password | VFI Group admin';
+    var box = clear($('forceView'));
+    var form = VFI.passwordForm({
+      submitLabel: 'Set new password',
+      onDone: function (u) {
+        VFI.user = u; VFI.toast('Password updated.');
+        startApp();
+      }
     });
-  });
+    box.appendChild(h('div', { class: 'card login force' }, [
+      h('h1', { text: 'Set a new password', tabIndex: -1, id: 'forceTitle' }),
+      h('p', { class: 'muted', text: 'For your security, choose a new password before you continue. It must be at least 12 characters.' }),
+      form
+    ]));
+    $('forceTitle').focus();
+  }
+  VFI.showForced = showForced;
+
+  /* ---------- schema ---------- */
+  var schemaPromise = null;
+  VFI.loadSchema = function () {
+    if (VFI.schema) return Promise.resolve(VFI.schema);
+    if (!schemaPromise) {
+      schemaPromise = fetch('/admin/content-schema.json', { credentials: 'same-origin' }).then(function (r) {
+        if (!r.ok) throw { status: r.status, code: 'schema', error: 'Could not load the content schema.', data: {} };
+        return r.json();
+      }).then(function (s) { VFI.schema = s; return s; }, function (e) { schemaPromise = null; throw (e && e.status !== undefined ? e : { status: 0, code: 'network', error: '', data: {} }); });
+    }
+    return schemaPromise;
+  };
+
+  /* ---------- global events ---------- */
+  window.addEventListener('offline', function () { VFI.toast('You are offline.', true); });
+  window.addEventListener('online', function () { VFI.toast('Back online.'); });
 
   /* ---------- boot ---------- */
-  window.addEventListener('offline', function () { toast('You are offline.', true); });
-  window.addEventListener('online', function () { toast('Back online.'); if (!appView.hidden) load(null, true); });
-
-  setView('boot');
-  api('GET', '/api/admin/session').then(function (j) {
-    if (j.authenticated) showApp(); else showLogin('');
-  }, function (err) {
-    setView('login');
-    setLoginMsg(err.status === 503 ? 'Admin is not configured on this server.' : 'Could not reach the server.');
-  });
+  function boot() {
+    setScreen('boot');
+    VFI.api('GET', '/api/admin/session').then(function (j) {
+      if (!j.authenticated) { showLogin(''); return; }
+      VFI.user = j.user;
+      if (j.user.must_change_password) showForced(); else startApp();
+    }, function (err) {
+      setScreen('login');
+      setLoginMsg(err.status === 503 ? 'Admin is not configured on this server.' : 'Could not reach the server. Check your connection and reload.');
+    });
+  }
+  // Deferred scripts have all run by DOMContentLoaded, so every view is registered before boot.
+  document.addEventListener('DOMContentLoaded', boot);
 })();
