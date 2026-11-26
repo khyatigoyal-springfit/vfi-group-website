@@ -16,7 +16,7 @@ function buildForm(host,key){host.appendChild($('#formTpl').content.cloneNode(tr
   try{const d=JSON.parse(store.get(key)||'null');if(d){F.forEach(f=>{if(d[f.name])f.value=d[f.name]});if(d.type)setType(d.type)}}catch(er){}
   F.forEach(f=>f.addEventListener('input',()=>{save();f.closest('.fl').classList.remove('bad');$('.err',f.closest('.fl')).textContent=''}));
   const EMAIL='care@vfigroup.org',GENERIC='We could not send your enquiry right now. Your message is saved on this device. Please try again, or email '+EMAIL+'.';
-  const say=(txt,err)=>{stat.textContent='';stat.setAttribute('role',err?'alert':'status');txt.split(EMAIL).forEach((p,i)=>{if(i){const a=document.createElement('a');a.href='mailto:'+EMAIL;a.textContent=EMAIL;stat.appendChild(a)}stat.appendChild(document.createTextNode(p))})};
+  const say=(txt,err)=>{stat.textContent='';stat.setAttribute('role',err?'alert':'status');txt.split(EMAIL).forEach((p,i)=>{if(i){const a=document.createElement('a');a.href='mailto:'+encodeURIComponent(EMAIL).replace(/%40/g,'@');a.textContent=EMAIL;stat.appendChild(a)}stat.appendChild(document.createTextNode(p))})};
   const showErr=(name,msg)=>{const f=$('[name='+name+']',form);if(!f)return false;const fl=f.closest('.fl');fl.classList.add('bad');$('.err',fl).textContent=msg;f.setAttribute('aria-invalid','true');return true};
   form.addEventListener('submit',ev=>{ev.preventDefault();if(busy)return;let ok=true,first=null;F.forEach(f=>{const fl=f.closest('.fl'),er=$('.err',fl);let m='';if(f.required&&!f.value.trim())m='Enter your '+({name:'full name',msg:'message',company:'company',email:'work email'}[f.name]);else if(f.type==='email'&&f.value&&!/^\S+@\S+\.\S+$/.test(f.value))m='Enter an email address like name@company.com';fl.classList.toggle('bad',!!m);er.textContent=m;if(m){ok=false;first=first||f}});F.forEach(f=>f.setAttribute('aria-invalid',f.closest('.fl').classList.contains('bad')));if(!ok){first.focus();return}
     busy=true;
@@ -62,6 +62,8 @@ const A=v=>Array.isArray(v)?v:[],S=v=>v==null?'':String(v);
 const e=v=>S(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const u=v=>{v=S(v).trim();return /^(https?:|mailto:|tel:|#|\/(?!\/))/i.test(v)?v:''};
 const im=v=>{v=S(v).trim();return /^(\/(?!\/)|https:\/\/)/.test(v)?v:''};
+// URL for use inside CSS url("..."): percent-encodes quotes, parentheses and backslashes so a value cannot close the url() or inject declarations
+const cssUrl=s=>encodeURI(String(s)).replace(/["'()\\]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
 const O=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 const P=(x,a,b)=>A(x).map(i=>[O(i)[a],O(i)[b]]);
 const sec=(k,f)=>A(O(C[k])[f]);
@@ -106,7 +108,7 @@ const HL={'Open enquiry form':['enquire',''],'Open enquiry form (International)'
 ['about','manufacturing','innovation','products','brands','partnerships','sustainability','careers','contact'].forEach(p=>{HL['Go to '+p.charAt(0).toUpperCase()+p.slice(1)+' page']=['go',p]});HL['Go to Home page']=['go','home'];
 const heroBtn=(cls,label,link)=>{const [k,v]=HL[link]||HL['Open enquiry form'];return k==='go'?`<a class="cta ${cls}" href="${v==='home'?'/':'/'+v}" data-go="${v}">${e(label)}</a>`:k==='scroll'?`<button class="cta ${cls}" data-scroll="${v}">${e(label)}</button>`:`<button class="cta ${cls}" data-enquire="${e(v)}">${e(label)}</button>`};
 {const HS=sec('hero','slides').map(O);if(HS.length){const h=$('#hero');$$('.slide',h).forEach(s=>s.remove());
-  $('.hctl',h).insertAdjacentHTML('beforebegin',HS.map((s,i)=>{const t=i===0?'h1':'h2';return `<div class="slide${i===0?' on':' shade'}" aria-roledescription="slide" aria-label="${i+1} of ${HS.length}"><div class="bg${s.imageFocus==='Soft left crop'?' p-beauty':''}" style="background-image:url(${e(im(s.image))})"></div>${s.imageNote?`<span class="cap-note">${e(s.imageNote)}</span>`:''}<div class="txt wrap"><span class="kick">${e(s.kicker)}</span><${t} class="h-xl">${e(s.heading)}</${t}><p class="sub">${e(s.text)}</p><div class="acts">${heroBtn('pri',s.primaryLabel,s.primaryLink)}${heroBtn('sec',s.secondaryLabel,s.secondaryLink)}</div></div></div>`}).join(''));
+  $('.hctl',h).insertAdjacentHTML('beforebegin',HS.map((s,i)=>{const t=i===0?'h1':'h2';return `<div class="slide${i===0?' on':' shade'}" aria-roledescription="slide" aria-label="${i+1} of ${HS.length}"><div class="bg${s.imageFocus==='Soft left crop'?' p-beauty':''}" style="background-image:url(&quot;${e(cssUrl(im(s.image)))}&quot;)"></div>${s.imageNote?`<span class="cap-note">${e(s.imageNote)}</span>`:''}<div class="txt wrap"><span class="kick">${e(s.kicker)}</span><${t} class="h-xl">${e(s.heading)}</${t}><p class="sub">${e(s.text)}</p><div class="acts">${heroBtn('pri',s.primaryLabel,s.primaryLink)}${heroBtn('sec',s.secondaryLabel,s.secondaryLink)}</div></div></div>`}).join(''));
   $('#bars').innerHTML=HS.map((s,i)=>`<button${i===0?' aria-current="true"':''}><span></span>${e(s.tabLabel)}</button>`).join('')}}
 {const SC=O(C.scale);if(Array.isArray(SC.figures)&&SC.figures.length)$('[data-scale]').innerHTML=SC.figures.map(f=>`<div class="sc rv"><div class="n"><span data-count="${+O(f).value||0}"${O(f).numberStyle==='Thousands separators'?' data-fmt':''}>0</span>${O(f).suffix?`<sup>${e(O(f).suffix)}</sup>`:''}</div><div class="l">${e(O(f).label)}</div></div>`).join('');
   if(Array.isArray(SC.highlights))$('[data-highlights]').innerHTML=SC.highlights.map(x=>`<span class="cert">${e(x)}</span>`).join('');
@@ -161,7 +163,7 @@ $('#glance').innerHTML=GLANCE.map(([n,l])=>`<li><b>${e(n)}</b><span>${e(l)}</spa
 $('#units').innerHTML=SITE.contact.factories.map(f=>td(f.name,f.city)).join('');
 $('#tech').innerHTML=TECH.map((t,i)=>`<article class="feat${i%2?' rev':''}"><div class="fim"><img src="${e(im(t.img))}" alt="${e(t.k)}: ${e(t.t)}" loading="lazy" width="960" height="801"></div><div class="ftx"><span class="kick">${String(i+1).padStart(2,'0')} · ${e(t.k)}</span><h3 class="h-m">${e(t.t)}</h3><p>${e(t.d)}</p></div></article>`).join('');
 $('#brandRows').innerHTML=BRANDS.filter(b=>b.img).map((b,i)=>`<article class="feat${i%2?' rev':''}" id="brand-${e(S(b.n).toLowerCase().replace(/\s+/g,'-'))}"><div class="fim ${b.sq?'sq':'wide'}"><img src="${e(im(b.img))}" alt="${e(bName(b))}" loading="lazy" width="1900" height="650"></div><div class="ftx">${b.logo?`<img class="blogo${b.dark?' dk':''}" src="${e(im(b.logo))}" alt="${e(bName(b))}" width="300" height="109" loading="lazy">`:`<h3 class="h-l">${e(b.n)}</h3>`}<span class="kick">${e(b.tag)}${b.since?' · '+e(b.since):''}</span><p>${e(b.d)}</p>${b.col.length?`<div class="certs" style="margin:1rem 0 1.6rem">${b.col.map(c=>`<span class="cert">${e(c)}</span>`).join('')}</div>`:''}${b.url?`<a class="chev" href="${e(b.url)}" data-brandlink rel="noopener">Visit the ${e(bName(b))} website</a>`:''}</div></article>`).join('');
-const ce=S(SITE.contact.careers.email);$('[data-careers-mail]').innerHTML=ce?`Email <a class="chev" href="mailto:${e(ce)}?subject=Job%20application">${e(ce)}</a> or use the form.`:'';
+const ce=S(SITE.contact.careers.email);$('[data-careers-mail]').innerHTML=ce?`Email <a class="chev" href="mailto:${e(encodeURIComponent(ce).replace(/%40/g,'@'))}?subject=Job%20application">${e(ce)}</a> or use the form.`:'';
 $('#tl').innerHTML=JOURNEY.map(([y,v,d])=>`<li><span class="y">${e(y)}</span><div><h3>${e(v)}</h3><p>${e(d)}</p></div></li>`).join('');
 $('#proc').innerHTML=PROC.map(([t,d],i)=>`<li><span class="n">Step ${i+1}</span><h3>${e(t)}</h3><p>${e(d)}</p></li>`).join('');
 $('#sus').innerHTML=SUS.map(([t,d],i)=>`<div><span class="kick">${i+1}</span><h3>${e(t)}</h3><p>${e(d)}</p></div>`).join('');
@@ -172,19 +174,19 @@ $('#yr').textContent=new Date().getFullYear();
 $('#conduct').innerHTML=CONDUCT.map(g=>`<div class="cgroup"><h2 class="h-m">${e(g.h)}</h2><div class="ppl" style="margin-top:1.6rem">${g.i.map(([t,d])=>td(t,d)).join('')}</div></div>`).join('');
 $$('[data-updated]').forEach(el=>el.textContent='Last updated '+SITE.updated);
 (function(){const CT=SITE.contact;
-  const line=(k,v)=>!v?'':k==='email'?`<li><span>Email</span><a href="mailto:${e(v)}">${e(v)}</a></li>`:k==='phone'?`<li><span>Phone</span><a href="tel:${e(S(v).replace(/[^+\d]/g,''))}">${e(v)}</a></li>`:`<li><span>Address</span><address>${e(v).replace(/\n/g,'<br>')}</address></li>`;
+  const line=(k,v)=>!v?'':k==='email'?`<li><span>Email</span><a href="mailto:${e(encodeURIComponent(S(v)).replace(/%40/g,'@'))}">${e(v)}</a></li>`:k==='phone'?`<li><span>Phone</span><a href="tel:${e(S(v).replace(/[^+\d]/g,''))}">${e(v)}</a></li>`:`<li><span>Address</span><address>${e(v).replace(/\n/g,'<br>')}</address></li>`;
   const blocks=[CT.office,CT.sales,CT.careers].map(b=>{const ls=['address','phone','email'].map(k=>line(k,b[k])).join('');return ls?`<div class="cblock"><h2 class="h-m">${e(b.title)}</h2><ul class="cinfo">${ls}</ul></div>`:''}).join('');
   const mp=u(CT.office.map)?`<a class="chev" style="margin-top:1.2rem" href="${e(u(CT.office.map))}" target="_blank" rel="noopener">Open in Google Maps</a>`:'';
   const brs=`<div class="cblock"><h2 class="h-m">Global presence</h2><ul class="cinfo">${PRESENCE.map(([t,d])=>`<li><span>${e(t)}</span><span>${e(d)}</span></li>`).join('')}</ul></div>`;
   const fac=CT.factories.length?`<div class="cblock"><h2 class="h-m">Manufacturing units</h2><ul class="cinfo">${CT.factories.map(f=>`<li><span>${e(f.name)}</span><span>${e(f.city)}</span></li>`).join('')}</ul></div>`:'';
-  const o=CT.office;$('#fAddr').innerHTML=[o.address&&e(o.address).replace(/\n/g,'<br>'),o.phone&&`<a href="tel:${e(S(o.phone).replace(/[^+\d]/g,''))}">${e(o.phone)}</a>`,o.email&&`<a href="mailto:${e(o.email)}">${e(o.email)}</a>`].filter(Boolean).join('<br>');
+  const o=CT.office;$('#fAddr').innerHTML=[o.address&&e(o.address).replace(/\n/g,'<br>'),o.phone&&`<a href="tel:${e(S(o.phone).replace(/[^+\d]/g,''))}">${e(o.phone)}</a>`,o.email&&`<a href="mailto:${e(encodeURIComponent(S(o.email)).replace(/%40/g,'@'))}">${e(o.email)}</a>`].filter(Boolean).join('<br>');
   $('#contactInfo').innerHTML=(blocks||fac)?blocks.replace('</ul></div>','</ul>'+mp+'</div>')+brs+fac:`<h2 class="h-m">Corporate office</h2><p style="color:var(--ink-2);margin-top:1rem">Send us an enquiry with the form and the right team will reply directly.</p>`;
 })();
 
 /* ---------- overlay menu ---------- */
 const ov=$('#ov'),mb=$('#menuBtn'),prev=$('#ovPrev');
 $('#ovList').innerHTML=PAGES.map(([k,n],i)=>`<li style="transition-delay:${80+i*35}ms"><a href="${k==="home"?"/":"/"+e(k)}" data-go="${e(k)}" data-pv="${i}">${e(n)}</a></li>`).join('');
-prev.innerHTML=PAGES.map(([k,n,imgp],i)=>`<div class="pv${i===0?' on':''}" style="background-image:url(${e(im(imgp))})"></div>`).join('')+`<div class="pvt"><h3 class="h-l"></h3><p></p></div>`;
+prev.innerHTML=PAGES.map(([k,n,imgp],i)=>`<div class="pv${i===0?' on':''}" style="background-image:url(&quot;${e(cssUrl(im(imgp)))}&quot;)"></div>`).join('')+`<div class="pvt"><h3 class="h-l"></h3><p></p></div>`;
 const setPv=i=>{if(!PAGES[i])return;$$('.pv',prev).forEach((p,j)=>p.classList.toggle('on',j===i));$('.pvt h3',prev).textContent=S(PAGES[i][1]);$('.pvt p',prev).textContent=S(PAGES[i][3])};setPv(0);
 $$('[data-pv]').forEach(a=>{a.addEventListener('mouseenter',()=>setPv(+a.dataset.pv));a.addEventListener('focus',()=>setPv(+a.dataset.pv))});
 const INERT=['header.nav','#main','footer','.tools'];
