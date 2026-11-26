@@ -129,8 +129,12 @@
       throw { status: 0, code: 'network', error: '', data: {} };
     });
   };
+  var NOT_READY = { not_configured: 1, admin_not_configured: 1, unavailable: 1 };
   function handleApiError(err, path) {
-    if (err.status === 401 && path.indexOf('/api/admin/login') !== 0 && path.indexOf('/api/admin/session') !== 0) {
+    if (err.status === 503 && NOT_READY[err.code]) {
+      err.handled = true;
+      showSetup();
+    } else if (err.status === 401 && path.indexOf('/api/admin/login') !== 0 && path.indexOf('/api/admin/session') !== 0) {
       err.handled = true;
       VFI.sessionExpired();
     } else if (err.status === 403 && err.code === 'password_change_required') {
@@ -145,7 +149,7 @@
   VFI.errMsg = function (err, fallback) {
     if (!err) return fallback || 'Something went wrong. Please try again.';
     if (err.status === 0) return 'Could not reach the server. Check your connection and try again.';
-    if (err.status === 401) return 'Your session expired. Please sign in again.';
+    if (err.status === 401) return 'You were signed out. Please sign in again.';
     if (err.status === 403) return err.code === 'password_change_required' ? 'You need to set a new password first.' : 'You do not have permission to do this.';
     if (err.status === 429) return 'Too many attempts. Try again in 15 minutes.';
     if (err.status === 503) return err.code === 'media_not_configured' ? 'Image uploads are not set up on this server yet.' : 'The service is unavailable right now. Please try again shortly.';
@@ -426,8 +430,10 @@
     $('bootView').hidden = name !== 'boot';
     $('loginView').hidden = name !== 'login';
     $('forceView').hidden = name !== 'force';
+    $('setupView').hidden = name !== 'setup';
     $('view').hidden = name !== 'app';
     var authed = name === 'app' || name === 'force';
+    if (name === 'setup') { $('topUser').hidden = true; $('sidenav').hidden = true; $('menuBtn').hidden = true; $('shell').classList.remove('has-nav'); closeMenu(); return; }
     $('topUser').hidden = !authed;
     var showNav = name === 'app';
     $('sidenav').hidden = !showNav;
@@ -475,7 +481,7 @@
     VFI.pendingHash = location.hash;
     unmountCurrent();
     VFI.user = null;
-    showLogin('Your session expired. Please sign in again.');
+    showLogin('You were signed out. Please sign in again.');
   };
 
   loginForm.addEventListener('submit', function (e) {
@@ -491,8 +497,8 @@
       if (j.user.must_change_password) showForced(); else startApp();
     }, function (err) {
       loginBtn.disabled = false; loginBtn.textContent = 'Sign in';
-      var m = err.status === 401 ? 'Incorrect email or password.' : err.status === 429 ? 'Too many attempts. Try again in 15 minutes.'
-        : err.status === 503 ? 'Admin is not configured on this server.' : VFI.errMsg(err);
+      if (err.handled) return;
+      var m = err.status === 401 ? 'Incorrect email or password.' : err.status === 429 ? 'Too many attempts. Try again in 15 minutes.' : VFI.errMsg(err);
       setLoginMsg(m);
       loginPw.value = '';
       loginPw.focus();
@@ -601,6 +607,30 @@
   }
   VFI.showForced = showForced;
 
+  /* ---------- "not set up yet" full-page message ---------- */
+  function showSetup() {
+    VFI.closeAllDialogs();
+    if (current) unmountCurrent();
+    var wasAuthed = !!VFI.user;
+    setScreen('setup');
+    document.title = 'Admin not ready | VFI Group admin';
+    var retry = btn('Retry', 'btn-primary', function () {
+      retry.disabled = true; retry.textContent = 'Checking…';
+      expiredHandling = false;
+      VFI.firstMountDone = false;
+      boot();
+    });
+    var box = clear($('setupView'));
+    box.appendChild(h('div', { class: 'card login force', role: 'alert' }, [
+      h('h1', { text: 'Admin panel not ready', tabIndex: -1, id: 'setupTitle' }),
+      h('p', { class: 'muted', text: 'The admin panel isn\u2019t fully set up yet. Please contact your website administrator.' }),
+      retry
+    ]));
+    if (wasAuthed) VFI.user = null; // boot() asks the server again
+    $('setupTitle').focus();
+  }
+  VFI.showSetup = showSetup;
+
   /* ---------- schema ---------- */
   var schemaPromise = null;
   VFI.loadSchema = function () {
@@ -626,8 +656,9 @@
       VFI.user = j.user;
       if (j.user.must_change_password) showForced(); else startApp();
     }, function (err) {
+      if (err.handled) return;
       setScreen('login');
-      setLoginMsg(err.status === 503 ? 'Admin is not configured on this server.' : 'Could not reach the server. Check your connection and reload.');
+      setLoginMsg('Could not reach the server. Check your connection and reload.');
     });
   }
   // Deferred scripts have all run by DOMContentLoaded, so every view is registered before boot.

@@ -310,6 +310,7 @@
     var upBtn = VFI.btn('Upload images', 'btn-primary', function () { openUpload({ onDone: function () { load(1); } }); });
     var wrap = h('div', { class: 'wrap media-page' }, [
       VFI.pageHead('Media library', 'Pictures you can use in any image field. Drag files onto this page to upload.', [upBtn]),
+      h('p', { class: 'muted small media-note', text: 'Images used by the live site or saved versions can’t be deleted.' }),
       notice, gridBox, pagerBox
     ]);
     root.appendChild(wrap);
@@ -407,11 +408,15 @@
       var ul = h('ul', { class: 'used-list' });
       var fill = function (schema) {
         used.forEach(function (u) {
-          var desc = schema ? VFI.form.describePath(schema, u.path) : { labels: [u.path] };
+          var desc = u.where === 'revision' ? null : schema ? VFI.form.describePath(schema, u.path) : { labels: [u.path] };
           ul.appendChild(h('li', null, [
-            h('strong', { text: u.where === 'published' ? 'Live site' : 'Draft' }),
-            h('span', { text: ': ' + desc.labels.join(' › ') }),
-            h('span', { class: 'muted small used-path', text: ' (' + u.path + ')' })
+            u.where === 'revision'
+              ? h('span', null, [h('strong', { text: 'Used in published version #' + u.id }), ' (History)'])
+              : [
+                h('strong', { text: u.where === 'published' ? 'Live site' : 'Draft' }),
+                h('span', { text: ': ' + desc.labels.join(' › ') }),
+                h('span', { class: 'muted small used-path', text: ' (' + u.path + ')' })
+              ]
           ]));
         });
       };
@@ -420,8 +425,11 @@
         title: 'This image is in use',
         size: 'md',
         body: [
-          h('p', { text: 'It was not deleted. Remove or replace it in these places first' + (used.some(function (u) { return u.where === 'published'; }) ? ', then publish the change' : '') + ':' }),
-          ul
+          h('p', { text: 'It was not deleted. It is used here:' }),
+          ul,
+          h('p', { class: 'muted small', text: used.some(function (u) { return u.where === 'revision'; })
+            ? 'Remove or replace it in the draft or live site first. Images used by saved versions (History) stay in the library so those versions can be restored.'
+            : 'Remove or replace it in these places first' + (used.some(function (u) { return u.where === 'published'; }) ? ', then publish the change' : '') + '.' })
         ],
         actions: [{ label: 'OK', kind: 'primary' }]
       });

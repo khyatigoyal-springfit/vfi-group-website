@@ -8,7 +8,10 @@
 
   function sectionLabels(keys) {
     var secs = (VFI.schema && VFI.schema.sections) || [];
-    return keys.map(function (k) { var s = secs.filter(function (x) { return x.key === k; })[0]; return s ? s.label : k; });
+    var order = function (k) { for (var i = 0; i < secs.length; i++) if (secs[i].key === k) return i; return 9999; };
+    // same order as the section list in the editor
+    return keys.slice().sort(function (a, b) { return order(a) - order(b); })
+      .map(function (k) { var s = secs.filter(function (x) { return x.key === k; })[0]; return s ? s.label : k; });
   }
 
   /** Ask to save first. Resolves true when the draft is saved (or was never dirty). */
@@ -49,7 +52,7 @@
   function openPublishDialog() {
     var S = C().state;
     var noteId = VFI.nextId('note');
-    var note = h('textarea', { id: noteId, rows: 3, maxlength: 200, 'aria-describedby': noteId + '-h ' + noteId + '-e', placeholder: 'For example: Updated the Kenstar brand description' });
+    var note = h('textarea', { id: noteId, rows: 3, maxlength: 200, 'aria-describedby': noteId + '-h ' + noteId + '-e', placeholder: 'e.g. Updated Springfit description and key figures' });
     var err = h('p', { class: 'ferr', id: noteId + '-e', hidden: true });
     var count = h('span', { class: 'counter muted', text: '0 / 200', 'aria-hidden': 'true' });
     note.addEventListener('input', function () { count.textContent = note.value.length + ' / 200'; if (note.value.trim()) { err.hidden = true; note.removeAttribute('aria-invalid'); } });
@@ -66,8 +69,8 @@
       body: [
         summary,
         h('div', { class: 'field' }, [
-          h('label', { for: noteId, text: 'Short note (optional)' }),
-          h('p', { class: 'help muted', id: noteId + '-h', text: 'Say what changed. It appears in History so everyone can see what was published.' }),
+          h('label', { for: noteId, text: 'Note for this version' }),
+          h('p', { class: 'help muted', id: noteId + '-h', text: 'Optional. Helps your team understand this version in History.' }),
           note,
           h('div', { class: 'fmeta' }, [err, count])
         ]),
@@ -78,7 +81,8 @@
         {
           label: 'Publish', kind: 'primary', onClick: function () {
             var v = note.value.trim();
-            return VFI.api('POST', '/api/admin/publish', { note: v }).then(function (j) {
+            // base_updated_at = the exact draft this editor last loaded or saved; the server refuses if someone changed it since
+            return VFI.api('POST', '/api/admin/publish', { note: v, base_updated_at: S.base }).then(function (j) {
               var rev = (j.revision && j.revision.id) || j.published_revision;
               VFI.toast('Published' + (rev ? ' as revision #' + rev : '') + '. It will be live within about a minute.');
               VFI.announce('Published.');
@@ -88,6 +92,18 @@
               if (e.status === 422 && e.data && e.data.errors) {
                 setTimeout(function () { C().applyErrors(e.data.errors, e.error || 'The draft cannot be published until these are fixed'); }, 0);
                 return true; // close the dialog; the editor shows the problems
+              }
+              if (e.status === 409 && e.code === 'conflict') {
+                // close this dialog, then let the person choose; every path refetches before anything is retried
+                setTimeout(function () {
+                  C().publishConflict(e.data).then(function (r) { if (r === 'overwritten') openPublishDialog(); });
+                }, 0);
+                return true;
+              }
+              if (e.status === 409 && e.code === 'nothing_to_publish') {
+                VFI.toast('No unpublished changes.');
+                C().reload().then(function () { C().refresh(); }, function () {});
+                return true;
               }
               err.textContent = VFI.errMsg(e, 'Could not publish.'); err.hidden = false; return false;
             });
@@ -103,7 +119,7 @@
     if (C().isDirty()) {
       needSave({
         title: 'Save before publishing?',
-        text: 'You have unsaved changes. Save the draft first, then publish it.',
+        text: 'Publishing uses your saved draft, and you have unsaved changes. Save them first; the publish step follows right after.',
         confirm: 'Save draft and continue',
         run: function (ctrl, resolve) {
           return C().save().then(function (ok) { resolve(ok); if (ok) setTimeout(openPublishDialog, 0); });
@@ -111,7 +127,7 @@
       });
       return;
     }
-    if (!S.hasUnpublished) { VFI.toast('There is nothing new to publish.'); return; }
+    if (!S.hasUnpublished) { VFI.toast('No unpublished changes.'); return; }
     openPublishDialog();
   }
 

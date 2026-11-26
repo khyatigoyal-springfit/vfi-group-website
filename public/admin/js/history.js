@@ -93,7 +93,28 @@
           VFI.toast('Rolled back to #' + r.id + '. The live site updates within about a minute.');
           VFI.announce('Rolled back to version ' + r.id + '.');
           load(1);
-        }, function (err) { if (!err.handled) VFI.toast(VFI.errMsg(err, 'Could not roll back.'), true); });
+        }, function (err) {
+          if (err.handled) return;
+          if (err.status === 409 && err.code === 'missing_media') return showMissing(r, err.data || {});
+          VFI.toast(VFI.errMsg(err, 'Could not roll back.'), true);
+        });
+      });
+    }
+
+    function showMissing(r, d) {
+      var list = d.missing || [], total = d.missing_count || list.length;
+      var ul = h('ul', { class: 'used-list' }, list.map(function (u) { return h('li', null, h('span', { class: 'mono small used-path', text: String(u) })); }));
+      VFI.dialog({
+        title: 'Cannot roll back to version #' + r.id,
+        size: 'md',
+        role: 'alertdialog',
+        body: [
+          h('p', { text: 'Nothing was published. This version uses ' + total + (total === 1 ? ' image' : ' images') + ' that ' + (total === 1 ? 'was' : 'were') + ' deleted from the media library, so the live site would show broken pictures.' }),
+          ul,
+          list.length < total ? h('p', { class: 'muted small', text: 'and ' + (total - list.length) + ' more.' }) : null,
+          h('p', { class: 'muted', text: 'Upload the missing images again and use them in the content, or choose a different version.' })
+        ],
+        actions: [{ label: 'OK', kind: 'primary' }]
       });
     }
 

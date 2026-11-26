@@ -10,6 +10,9 @@
   var SITE_PATH_RE = /^\/(?![/\\])[^\s\\\u0000-\u001F\u007F]*$/;
   var MAIL_RE = /^mailto:[^\s<>"]{1,300}$/i;
   var TEL_RE = /^tel:\+?[0-9 ()./-]{3,40}$/i;
+  var EMAIL_JUNK_RE = /[?&,;:<>"\\/\s]/;
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var TEL_FIELD_RE = /^[+0-9 ()-]{6,24}$/;
   var REQ = 'This field is required';
 
   /* ---------- validation (same rules and messages as the server) ---------- */
@@ -30,7 +33,7 @@
         return '';
       } catch (e) { return 'Enter a valid https:// link'; }
     }
-    return 'Links must start with https://, / , mailto: or tel:';
+    return 'Links must start with https://, /, mailto: or tel:';
   }
   function imageError(s) {
     var bad = 'Image must be a /assets/ file or an uploaded image';
@@ -60,6 +63,16 @@
         if (s === '') return req ? REQ : '';
         if (f.type === 'url') return urlError(s);
         if (f.type === 'image') return imageError(s);
+        return '';
+      }
+      case 'email': case 'tel': {
+        if (missing) return req ? REQ : '';
+        if (typeof v !== 'string') return 'Must be text';
+        var es = cleanStr(v, false), emax = maxOf(f);
+        if (es.length > emax) return 'Must be ' + emax + ' characters or fewer';
+        if (es === '') return req ? REQ : '';
+        if (f.type === 'email' && (!EMAIL_RE.test(es) || es.length > 254 || EMAIL_JUNK_RE.test(es))) return 'Enter one valid email address, e.g. name@example.com';
+        if (f.type === 'tel' && !TEL_FIELD_RE.test(es)) return 'Enter a phone number using digits, spaces, + ( ) and - only (6 to 24 characters)';
         return '';
       }
       case 'number':
@@ -165,7 +178,7 @@
   /* ---------- value helpers ---------- */
   function newValue(f) {
     switch (f.type) {
-      case 'text': case 'textarea': case 'url': case 'image': return '';
+      case 'text': case 'textarea': case 'url': case 'image': case 'email': case 'tel': return '';
       case 'stringList': case 'list': return [];
       case 'object': return newObject(f.fields || []);
       case 'select': return f.required && f.options && f.options.length ? optVal(f.options[0]) : undefined;
@@ -260,7 +273,7 @@
 
   function renderScalar(f, obj, path, ctx) {
     var t = f.type, max = maxOf(f);
-    var shell = fieldShell(f, path, ctx, { counter: (t === 'text' || t === 'textarea' || t === 'url') && typeof f.max === 'number' });
+    var shell = fieldShell(f, path, ctx, { counter: (t === 'text' || t === 'textarea' || t === 'url' || t === 'email' || t === 'tel') && typeof f.max === 'number' });
     var input;
     var cur = obj[f.key];
 
@@ -288,8 +301,9 @@
     } else if (t === 'image') {
       return renderImage(f, obj, path, ctx, shell, validateNow, commit);
     } else {
-      input = h('input', { id: shell.id, type: 'text', autocomplete: 'off' });
+      input = h('input', { id: shell.id, type: t === 'email' ? 'email' : t === 'tel' ? 'tel' : 'text', autocomplete: t === 'email' ? 'email' : t === 'tel' ? 'tel' : 'off' });
       if (t === 'url') input.setAttribute('inputmode', 'url');
+      if (t === 'email') input.setAttribute('spellcheck', 'false');
       input.value = typeof cur === 'string' ? cur : '';
     }
     shell.describedBy(input);
@@ -304,7 +318,8 @@
       if (t === 'number' && v !== undefined && isNaN(v)) v = undefined;
       commit(v);
       upd();
-      if (ctx.errors[path] || t === 'select') validateNow();
+      // show over-length problems straight away; other errors appear on blur (and clear as soon as they are fixed)
+      if (ctx.errors[path] || t === 'select' || (typeof f.max === 'number' && t !== 'number' && v != null && String(v).length > f.max)) validateNow();
     });
     input.addEventListener('blur', validateNow);
     if (t === 'select') input.addEventListener('change', function () { /* input handler covers it */ });
@@ -394,6 +409,7 @@
     var arr = function () { return Array.isArray(obj[f.key]) ? obj[f.key] : fallback; };
     var attach = function () { if (!Array.isArray(obj[f.key])) obj[f.key] = fallback; };
     var labelId = VFI.nextId('g');
+    var sNoun = singular(f.label || 'item');
     var errEl = h('p', { class: 'ferr', hidden: true });
     var ol = h('ol', { class: 'slist' });
     var addBtn = VFI.btn('Add ' + singular(f.label), 'btn-sm', function () { attach(); arr().push(''); ctx.changed(path, f); render(); var ins = ol.querySelectorAll('input'); if (ins.length) ins[ins.length - 1].focus(); });
@@ -412,11 +428,11 @@
         var p = path + '[' + i + ']';
         var id = VFI.nextId('s');
         var e = h('p', { class: 'ferr', hidden: true, id: id + '-e' });
-        var input = h('input', { type: 'text', id: id, autocomplete: 'off', 'aria-label': (f.label || f.key) + ' ' + (i + 1), 'aria-describedby': id + '-e' });
+        var input = h('input', { type: 'text', id: id, autocomplete: 'off', 'aria-label': sNoun + ' ' + (i + 1), 'aria-describedby': id + '-e' });
         input.value = typeof val === 'string' ? val : '';
         input.addEventListener('input', function () {
           arr()[i] = input.value; ctx.changed(p, f);
-          if (ctx.errors[p]) check();
+          if (ctx.errors[p] || cleanStr(input.value, false).length > maxOf(f)) check();
         });
         function check() {
           var s = cleanStr(input.value, false), max = maxOf(f), m = '';
@@ -425,9 +441,9 @@
         }
         input.addEventListener('blur', check);
         var last = i === arr().length - 1;
-        var up = VFI.btn('↑', 'btn-icon', function () { move(i, -1, 'up'); }, { 'aria-label': 'Move ' + (f.label || 'item') + ' ' + (i + 1) + ' up', 'aria-disabled': i === 0 ? 'true' : null, dataset: { act: 'up' } });
-        var down = VFI.btn('↓', 'btn-icon', function () { move(i, 1, 'down'); }, { 'aria-label': 'Move ' + (f.label || 'item') + ' ' + (i + 1) + ' down', 'aria-disabled': last ? 'true' : null, dataset: { act: 'down' } });
-        var rm = VFI.btn('Remove', 'btn-icon btn-text', function () { arr().splice(i, 1); ctx.changed(path, f); render(); VFI.announce('Removed. ' + arr().length + ' items remain.'); var ins = ol.querySelectorAll('input'); (ins[Math.min(i, ins.length - 1)] || addBtn).focus(); }, { 'aria-label': 'Remove ' + (f.label || 'item') + ' ' + (i + 1) });
+        var up = VFI.btn('↑', 'btn-icon', function () { move(i, -1, 'up'); }, { 'aria-label': 'Move ' + sNoun + ' ' + (i + 1) + ' up', 'aria-disabled': i === 0 ? 'true' : null, dataset: { act: 'up' } });
+        var down = VFI.btn('↓', 'btn-icon', function () { move(i, 1, 'down'); }, { 'aria-label': 'Move ' + sNoun + ' ' + (i + 1) + ' down', 'aria-disabled': last ? 'true' : null, dataset: { act: 'down' } });
+        var rm = VFI.btn('Remove', 'btn-icon btn-text', function () { arr().splice(i, 1); ctx.changed(path, f); render(); VFI.announce('Removed. ' + arr().length + ' items remain.'); var ins = ol.querySelectorAll('input'); (ins[Math.min(i, ins.length - 1)] || addBtn).focus(); }, { 'aria-label': 'Remove ' + sNoun + ' ' + (i + 1) });
         ctx.reg[p] = { focusEl: input, node: input, setError: function (m) { e.textContent = m || ''; e.hidden = !m; if (m) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); } };
         if (ctx.errors[p]) { e.textContent = ctx.errors[p]; e.hidden = false; input.setAttribute('aria-invalid', 'true'); }
         ol.appendChild(h('li', { class: 'srow' }, [h('div', { class: 'srow-in' }, [input, up, down, rm]), e]));
@@ -442,7 +458,7 @@
       ctx.changed(path, f);
       revalidateIfShown();
       render({ i: j, act: act });
-      VFI.announce((f.label || 'Item') + ' moved ' + act + ' to position ' + (j + 1) + ' of ' + a.length);
+      VFI.announce(sNoun.charAt(0).toUpperCase() + sNoun.slice(1) + ' moved ' + act + ' to position ' + (j + 1) + ' of ' + a.length);
     }
     function revalidateIfShown() { if (Object.keys(ctx.errors).some(function (k) { return k === path || k.indexOf(path + '[') === 0; })) revalidateSubtree(ctx, f, path, arr()); }
     render();
@@ -528,7 +544,7 @@
       }
       refreshTitle();
       var toggle = h('button', { type: 'button', class: 'card-toggle', 'aria-expanded': open ? 'true' : 'false', 'aria-controls': bodyId }, [chev, noEl, titleEl]);
-      var labelFor = function () { return noun + ' ' + (i + 1) + (itemTitle(fields, item) ? ', ' + itemTitle(fields, item) : ''); };
+      var labelFor = function () { return noun + ' ' + (i + 1); };
       var up = VFI.btn('↑', 'btn-icon', function () { move(i, -1); }, { 'aria-label': 'Move ' + labelFor() + ' up', title: 'Move up', 'aria-disabled': i === 0 ? 'true' : null, dataset: { act: 'up' } });
       var down = VFI.btn('↓', 'btn-icon', function () { move(i, 1); }, { 'aria-label': 'Move ' + labelFor() + ' down', title: 'Move down', 'aria-disabled': i === n - 1 ? 'true' : null, dataset: { act: 'down' } });
       var dup = VFI.btn('Duplicate', 'btn-icon btn-text', function () { duplicate(i); }, { 'aria-label': 'Duplicate ' + labelFor() });

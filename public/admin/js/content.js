@@ -57,20 +57,20 @@
   }
 
   /* ---------- save ---------- */
-  function conflictDialog(info) {
+  function conflictDialog(info, forPublish) {
     return new Promise(function (resolve) {
       var who = info.updated_by || 'Another user';
       var at = info.updated_at ? VFI.fmtDate(info.updated_at, { dateStyle: 'medium', timeStyle: 'short' }) : 'a moment ago';
       var answered = false;
       VFI.dialog({
-        title: 'Someone else saved changes',
+        title: forPublish ? 'The draft changed before publishing' : 'Someone else saved changes',
         size: 'lg',
         role: 'alertdialog',
         body: [
-          h('p', null, [h('strong', { text: who }), ' saved changes to the draft at ', h('strong', { text: at }), '. Your changes have not been saved yet.']),
+          h('p', null, [h('strong', { text: who }), ' saved changes to the draft at ', h('strong', { text: at }), forPublish ? '. Nothing was published, because the draft is no longer the one you were looking at.' : '. Your changes have not been saved yet.']),
           h('ul', { class: 'opt-list' }, [
-            h('li', null, [h('strong', { text: 'Reload their version' }), ' – shows their draft. Your unsaved edits are lost.']),
-            h('li', null, [h('strong', { text: 'Keep my edits' }), ' – saves your version over theirs. Their changes to this draft are replaced.']),
+            h('li', null, [h('strong', { text: 'Reload their version' }), forPublish ? ' – shows their draft so you can review it, then publish again.' : ' – shows their draft. Your unsaved edits are lost.']),
+            h('li', null, [h('strong', { text: 'Keep my edits' }), forPublish ? ' – saves your version over theirs, then lets you publish it. Their changes to this draft are replaced.' : ' – saves your version over theirs. Their changes to this draft are replaced.']),
             h('li', null, [h('strong', { text: 'Download my draft' }), ' – saves a copy of your version as a JSON file so nothing is lost. This dialog stays open.'])
           ])
         ],
@@ -106,9 +106,13 @@
       var unchanged = snapshot() === sent;
       adopt(j, false);
       S.saved = JSON.stringify(j.draft);
+      // IMPORTANT: keep the S.draft object the open form is bound to. The form's inputs write into the section
+      // objects of S.draft; replacing S.draft with the response object would leave the form editing a detached copy,
+      // so later edits would never be seen by snapshot()/dirty tracking. Only swap (and re-render) when the server
+      // normalised something (trimmed text etc.), so the form shows exactly what was stored.
       if (unchanged) {
-        S.draft = j.draft; S.dirty = false;
-        if (S.saved !== sent && view) view.rerender();
+        S.dirty = false;
+        if (S.saved !== sent) { S.draft = j.draft; if (view) view.rerender(); }
       } else recomputeDirty();
       replaceErrors({}); S.showSummary = false;
       if (view) { view.refreshStatus(); view.refreshErrors(); }
@@ -144,6 +148,24 @@
       return false;
     });
   }
+  /** A publish was refused with 409 conflict. Resolves 'reload' | 'overwritten' | 'cancel'. */
+  function publishConflict(info) {
+    return conflictDialog(info || {}, true).then(function (choice) {
+      if (choice === 'reload') {
+        return reload().then(function (j) {
+          if (view) view.rerender();
+          VFI.toast('Loaded ' + (j.draft_updated_by || 'the other') + '’s version. Check it, then publish again.');
+          return 'reload';
+        }, function (e) { VFI.toast(VFI.errMsg(e), true); return 'cancel'; });
+      }
+      if (choice === 'overwrite') {
+        // refetch the latest timestamp, then save our draft on top of it (so the next publish matches exactly)
+        return VFI.api('GET', '/api/admin/content').then(function (j) { S.base = j.draft_updated_at; return send(true); })
+          .then(function (ok) { return ok ? 'overwritten' : 'cancel'; }, function (e) { if (!e.handled) VFI.toast(VFI.errMsg(e), true); return 'cancel'; });
+      }
+      return 'cancel';
+    });
+  }
   function showErrors(errs, headline) {
     replaceErrors(errs);
     S.showSummary = true;
@@ -173,19 +195,22 @@
     var pill = h('span', { class: 'st-pill' });
     var meta = h('span', { class: 'st-meta muted' });
     var statusLive = h('div', { class: 'st-text', role: 'status', 'aria-live': 'polite' }, [pill]);
-    var saveBtn = VFI.btn('Save draft', 'btn-primary', function () { save(); });
+    var saveBtn = VFI.btn('Save draft', 'btn-primary', function () { if (saveBtn.disabled) return; save(); });
     var previewBtn = VFI.btn('Preview', '', function () { VFI.publish.preview(); });
     var publishBtn = VFI.btn('Publish…', '', function () { VFI.publish.publish(); });
     var discardBtn = VFI.btn('Discard draft', 'btn-text', function () { VFI.publish.discard(); });
+    var noPub = h('span', { class: 'sr', text: 'No unpublished changes. Publish is unavailable.' });
     var bar = h('div', { class: 'statusbar' }, [
-      h('div', { class: 'st-left' }, [statusLive, meta]),
+      h('div', { class: 'st-left' }, [statusLive, meta, noPub]),
       h('div', { class: 'st-actions' }, [discardBtn, previewBtn, saveBtn, publishBtn])
     ]);
     var summaryBox = h('div', { class: 'err-summary', hidden: true, tabIndex: -1 });
 
     function refreshStatus() {
       var text, cls;
-      if (S.dirty) { text = 'Unsaved changes'; cls = 'st-dirty'; }
+      var nErr = Object.keys(S.errors).length;
+      if (nErr) { text = 'Fix ' + nErr + (nErr === 1 ? ' field' : ' fields') + (S.dirty ? ' before saving' : ' before publishing'); cls = 'st-error'; }
+      else if (S.dirty) { text = 'Unsaved changes'; cls = 'st-dirty'; }
       else if (S.hasUnpublished) {
         var n = S.changed.length;
         text = 'Draft saved — not published' + (n ? ' (' + n + (n === 1 ? ' section' : ' sections') + ' changed)' : '');
@@ -200,9 +225,15 @@
       if (S.revision) m.push('Live: revision #' + S.revision);
       meta.textContent = m.join(' · ');
       saveBtn.disabled = S.saving || !S.dirty;
+      // blocked by validation: stay clickable (it lists the problems) but say why
+      var blocked = !S.saving && S.dirty && nErr > 0;
+      if (blocked) { saveBtn.setAttribute('aria-disabled', 'true'); saveBtn.title = 'Fix ' + nErr + (nErr === 1 ? ' field' : ' fields') + ' first. Select to see which.'; }
+      else { saveBtn.removeAttribute('aria-disabled'); saveBtn.title = S.dirty ? '' : 'No unsaved changes'; }
       publishBtn.disabled = S.saving || (!S.hasUnpublished && !S.dirty);
+      publishBtn.title = publishBtn.disabled && !S.saving ? 'No unpublished changes' : (S.dirty ? 'Your unsaved changes are saved first, then published' : '');
       discardBtn.disabled = S.saving || (!S.hasUnpublished && !S.dirty);
       saveBtn.textContent = S.saving ? 'Saving…' : 'Save draft';
+      noPub.hidden = !!(S.hasUnpublished || S.dirty || S.saving);
       refreshNav();
     }
 
@@ -228,10 +259,11 @@
         r.dot.hidden = !diff;
         r.dot.className = 'sec-dot' + (dirty ? ' unsaved' : '');
         r.dotText.textContent = diff ? (dirty ? ' (unsaved changes)' : ' (changed, not yet published)') : '';
+        if (r.opt) r.opt.textContent = s.label + (n ? ' — ' + n + (n === 1 ? ' problem' : ' problems') : dirty ? ' — unsaved' : diff ? ' — changed' : '');
       });
     }
     function refreshErrors() {
-      refreshNav();
+      refreshStatus();
       if (formNode) VFI.form.refreshCards(formNode);
       renderSummary();
     }
@@ -260,11 +292,17 @@
 
     // ----- sections
     var formHolder = h('div', { class: 'form-holder' });
+    // phones: the section list collapses into this select
+    var selId = VFI.nextId('secsel');
+    var secSel = h('select', { id: selId, class: 'secsel-input' });
+    secSel.addEventListener('change', function () { VFI.navigate('#/content/' + encodeURIComponent(secSel.value)); });
+    var secSelWrap = h('div', { class: 'secsel' }, [h('label', { for: selId, text: 'Section' }), secSel]);
     var titleEl = h('h1', { class: 'section-title', tabIndex: -1, 'data-view-title': '' });
     var descEl = h('p', { class: 'muted section-desc' });
     function showSection(key, focusTitle) {
       var s = sectionByKey(key) || schema.sections[0];
       sectionKey = s.key;
+      secSel.value = s.key;
       Object.keys(navRefs).forEach(function (k) { if (k === s.key) navRefs[k].a.setAttribute('aria-current', 'page'); else navRefs[k].a.removeAttribute('aria-current'); });
       titleEl.textContent = s.label;
       descEl.textContent = s.description || '';
@@ -290,7 +328,9 @@
         var dotText = h('span', { class: 'sr' });
         var dot = h('span', { class: 'sec-dot', hidden: true, 'aria-hidden': 'true' });
         var a = h('a', { href: '#/content/' + encodeURIComponent(s.key) }, [h('span', { class: 'sec-label', text: s.label }), dot, err, dotText]);
-        navRefs[s.key] = { a: a, err: err, dot: dot, dotText: dotText };
+        var opt = h('option', { value: s.key, text: s.label });
+        secSel.appendChild(opt);
+        navRefs[s.key] = { a: a, err: err, dot: dot, dotText: dotText, opt: opt };
         ul.appendChild(h('li', null, a));
       });
       nav.appendChild(ul);
@@ -299,7 +339,7 @@
         bar,
         h('div', { class: 'editor-cols' }, [
           nav,
-          h('div', { class: 'editor-main' }, [titleEl, descEl, summaryBox, formHolder])
+          h('div', { class: 'editor-main' }, [secSelWrap, titleEl, descEl, summaryBox, formHolder])
         ])
       ]));
       var key = ctx.params.param;
@@ -386,7 +426,7 @@
   }
 
   VFI.content = {
-    state: S, save: save, reload: reload, isDirty: function () { return S.dirty; },
+    state: S, save: save, reload: reload, publishConflict: publishConflict, isDirty: function () { return S.dirty; },
     refresh: function () { if (view) view.rerender(); },
     applyErrors: function (errs, headline) { showErrors(errs, headline || 'The draft has content that is not valid'); },
     inEditor: function () { return !!view; }
