@@ -58,6 +58,8 @@ running it twice or from several instances at once is safe.
 1. **Vercel project.** Import the repository. Framework preset "Other"; `vercel.json` handles the rest.
 2. **Database.** Vercel dashboard > Storage > Create > **Neon** (free plan). Connect it to the project for Production and
    Preview. This sets `DATABASE_URL` for you.
+   Functions are pinned to `sin1` in `vercel.json`: keep that equal to the Neon region. Neon scales to zero when idle, so the first
+   queries after a pause may fail while it wakes; the DB layer retries connection-level failures (300/1000/2000 ms).
 3. **Blob store.** Vercel dashboard > Storage > Create > **Blob**. Connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`.
 4. **Other variables** (Settings > Environment Variables, Production and Preview), see `.env.example`:
    - `SESSION_SECRET`: `openssl rand -hex 32` (at least 32 characters, otherwise admin returns 503 `admin_not_configured`)

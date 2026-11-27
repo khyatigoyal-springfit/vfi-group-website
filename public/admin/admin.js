@@ -119,17 +119,32 @@
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
     }
-    return fetch(path, opts).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (j) {
-        if (r.ok && j && j.ok !== false) return j;
-        var err = { status: r.status, code: (j && j.code) || '', error: (j && j.error) || '', data: j || {} };
-        throw handleApiError(err, path);
+    var retries = 0;
+    function attempt() {
+      return fetch(path, opts).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (r.ok && j && j.ok !== false) return j;
+          var err = { status: r.status, code: (j && j.code) || '', error: (j && j.error) || '', data: j || {} };
+          if (err.status === 503 && err.code === 'unavailable') {
+            // Transient (database waking up): retry quietly, never the full-page "not set up" screen.
+            if (retries < 2) {
+              retries++;
+              VFI.toast('Connecting to the database\u2026 retrying');
+              return new Promise(function (res) { setTimeout(res, 2000); }).then(attempt);
+            }
+            err.error = 'The server is busy, please try again in a moment.';
+            err.busy = true;
+            throw err;
+          }
+          throw handleApiError(err, path);
+        });
+      }, function () {
+        throw { status: 0, code: 'network', error: '', data: {} };
       });
-    }, function () {
-      throw { status: 0, code: 'network', error: '', data: {} };
-    });
+    }
+    return attempt();
   };
-  var NOT_READY = { not_configured: 1, admin_not_configured: 1, unavailable: 1 };
+  var NOT_READY = { not_configured: 1, admin_not_configured: 1 };
   function handleApiError(err, path) {
     if (err.status === 503 && NOT_READY[err.code]) {
       err.handled = true;
@@ -152,7 +167,7 @@
     if (err.status === 401) return 'You were signed out. Please sign in again.';
     if (err.status === 403) return err.code === 'password_change_required' ? 'You need to set a new password first.' : 'You do not have permission to do this.';
     if (err.status === 429) return 'Too many attempts. Try again in 15 minutes.';
-    if (err.status === 503) return err.code === 'media_not_configured' ? 'Image uploads are not set up on this server yet.' : 'The service is unavailable right now. Please try again shortly.';
+    if (err.status === 503) return err.code === 'media_not_configured' ? 'Image uploads are not set up on this server yet.' : (err.code === 'unavailable' ? 'The server is busy, please try again in a moment.' : 'The service is unavailable right now. Please try again shortly.');
     return err.error || fallback || 'Something went wrong. Please try again.';
   };
 
