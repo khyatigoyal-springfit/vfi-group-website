@@ -7,7 +7,11 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)/?",
+      "source": "/:page(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)",
+      "destination": "/"
+    },
+    {
+      "source": "/:page(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)/",
       "destination": "/"
     },
     {
@@ -64,7 +68,7 @@
       ]
     },
     {
-      "source": "/api/((?!content$).*)",
+      "source": "/api/admin/:path*",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -73,6 +77,28 @@
         {
           "key": "Cache-Control",
           "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/api/enquiry",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/api/content",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
         }
       ]
     }

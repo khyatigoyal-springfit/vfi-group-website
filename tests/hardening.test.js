@@ -181,8 +181,9 @@ test('server: routing is case sensitive and strict like Vercel; optional trailin
 
 test('vercel.json page rewrite allows an optional trailing slash and keeps destination "/"', () => {
   const v = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vercel.json'), 'utf8'));
-  const r = v.rewrites.find((x) => x.destination === '/');
-  assert.equal(r.source, '/(about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct)/?');
+  const pages = 'about|manufacturing|innovation|products|brands|partnerships|sustainability|careers|contact|privacy|terms|code-of-conduct';
+  const rs = v.rewrites.filter((x) => x.destination === '/').map((x) => x.source);
+  assert.deepEqual(rs, [`/:page(${pages})`, `/:page(${pages})/`]);
   assert.ok(!v.rewrites.some((x) => /\(\.\*\)|:path\*/.test(x.source)), 'no catch-all');
 });
 
